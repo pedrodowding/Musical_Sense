@@ -50,6 +50,7 @@ export class AudioEngine{
     this.onStatus("permission");
     try{
       const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+      this.stream=stream;
       const Ctx=window.AudioContext||window.webkitAudioContext;
       if(!Ctx)throw new Error("O navegador não oferece processamento de áudio.");
       const ctx=new Ctx();
