@@ -49,7 +49,7 @@ const selectedCatalogEntry=()=>catalogEntryById(songDetailId,catalogData());
 const save=()=>{try{localStorage.setItem(DBKEY,JSON.stringify(db));return true}catch(e){console.warn("Armazenamento local indisponível",e);return false}};
 function toast(message){const prev=$("#toast");if(prev)prev.remove();const node=document.createElement("div");node.id="toast";node.className="toast";node.textContent=message;document.body.appendChild(node);clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.remove(),3500)}
 function navButton(item){const [id,icon,label]=item;return '<button class="nav-btn '+(page===id?"active":"")+'" data-route="'+id+'"><span class="i">'+icon+'</span><span>'+label+'</span></button>'}
-function mobileButton(item){const [id,icon,label]=item;return '<button class="'+(page===id?"active":"")+'" data-route="'+id+'"><span class="icon">'+icon+'</span><span>'+label+'</span></button>'}
+function mobileButton(item){const [id,icon,label]=item;const selected=page===id||(page==="song-detail"&&id==="library")||(page==="instruments"&&id==="profiles");return '<button class="'+(selected?"active":"")+'" data-route="'+id+'" aria-label="'+label+'" aria-current="'+(selected?"page":"false")+'"><span class="icon">'+icon+'</span><span>'+label+'</span></button>'}
 function shell(content){
   const u=active(),complete=currentLessons().filter(l=>u.completed[l.id]).length;
   return '<div class="shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">♫</span> Musical Sense</div><div class="side-caption">EXPLORAR</div>'+
@@ -133,9 +133,9 @@ function diagnosticReport(){
 }
 function profiles(){
   const u=active();
-  return '<div class="page-intro"><span class="eyebrow">UM ESPAÇO PARA CADA MÚSICO</span><h1>Perfis da família</h1><p>Compartilhem o aparelho sem misturar pontos, aulas e conquistas. Os dados ficam salvos apenas neste navegador.</p></div>'+
+  return '<div class="page-intro"><span class="eyebrow">UM ESPAÇO PARA CADA MÚSICO</span><h1>Perfis da família</h1><p>Compartilhem o aparelho sem misturar pontos, aulas e conquistas. Os dados ficam salvos apenas neste navegador.</p><button class="btn ghost sm" data-route="instruments">🎸 Trocar meu instrumento: '+esc(instrumentName(u.instrument))+' →</button></div>'+
   '<div class="grid two"><section class="card"><h2>Escolha quem vai tocar</h2>'+db.users.map(p=>'<div class="profile-row '+(p.id===u.id?"active":"")+'"><span class="avatar">'+esc(p.name[0].toUpperCase())+'</span><div class="grow"><b>'+esc(p.name)+'</b><div class="muted small">'+esc(p.instrument)+' · '+(p.xp||0)+' XP</div></div><div class="profile-tools"><button class="btn sm '+(p.id===u.id?"ghost":"")+'" data-profile="'+esc(p.id)+'">'+(p.id===u.id?"✓ Ativo":"Entrar")+'</button><button class="btn sm outline" data-profile-edit="'+esc(p.id)+'" aria-label="Renomear perfil">✎</button><button class="btn sm outline" data-profile-delete="'+esc(p.id)+'" aria-label="Excluir perfil">×</button></div></div>').join("")+'</section>'+
-  '<section class="card"><h2>Adicionar músico</h2><form id="profile-form"><label class="form-field" for="profile-name">Nome</label><input class="form-input" id="profile-name" name="name" maxlength="30" required placeholder="Ex.: Ana"><label class="form-field" for="profile-instrument">Instrumento</label><select class="form-input" id="profile-instrument" name="instrument">'+["Piano","Teclado","Violão","Guitarra","Ukulele","Baixo"].map(v=>'<option>'+v+'</option>').join("")+'</select><button class="btn" type="submit">+ Criar perfil</button></form><p class="inline-tip">Nesta fase, as trilhas práticas estão preparadas para piano e teclado. Outros instrumentos terão conteúdos próprios em versões futuras.</p><button class="btn sm outline" data-route="diagnostics">🔧 Diagnóstico e teste de microfone</button></section></div>'+
+  '<section class="card"><h2>Adicionar músico</h2><form id="profile-form"><label class="form-field" for="profile-name">Nome</label><input class="form-input" id="profile-name" name="name" maxlength="30" required placeholder="Ex.: Ana"><label class="form-field" for="profile-instrument">Instrumento</label><select class="form-input" id="profile-instrument" name="instrument">'+INSTRUMENTS.map(v=>'<option>'+esc(v.name)+'</option>').join("")+'</select><button class="btn" type="submit">+ Criar perfil</button></form><p class="inline-tip">Nesta fase, as trilhas práticas estão preparadas para piano e teclado. Outros instrumentos terão conteúdos próprios em versões futuras.</p><button class="btn sm outline" data-route="diagnostics">🔧 Diagnóstico e teste de microfone</button></section></div>'+
   '<div class="card" style="margin-top:18px"><h3>Seus números</h3><div class="grid three">'+metric("Experiência",u.xp+" XP","⚡","purple")+metric("Lições",Object.keys(u.completed||{}).length,"🏆","green")+metric("Precisão",percent(u.totalCorrect,u.totalAttempts)+"%","🎯","")+'</div></div>'+
   '<div class="card" style="margin-top:17px"><h3>💾 Backup da família</h3><p class="muted small">Exporte seus perfis, XP, aulas e letras pessoais para um arquivo JSON. Guarde-o com cuidado, pois pode conter nomes e letras. Restaurar um backup substitui os dados deste dispositivo.</p><div class="row wrap"><button class="btn sm ghost" data-action="backup-export">⬇ Exportar progresso</button><label class="btn sm outline" for="backup-file">⬆ Restaurar backup</label><input type="file" id="backup-file" accept=".json,application/json" style="display:none"></div></div>';
 }
@@ -530,6 +530,36 @@ document.addEventListener("click",async e=>{
   const b=e.target.closest("button");if(!b||b.disabled)return;
   const d=b.dataset;
   if(d.route){changePage(d.route);return}
+  if(d.instrument){
+    const info=INSTRUMENTS.find(item=>item.id===d.instrument);if(!info)return;
+    active().instrument=info.name;
+    catalogScope="mine";catalogQuery="";catalogDifficulty="all";courseFilter="all";
+    if(!save())toast("Não foi possível salvar a preferência.");
+    changePage("home");toast("Instrumento selecionado: "+info.name+".");
+    return;
+  }
+  if(d.catalogScope){catalogScope=d.catalogScope;render();return}
+  if(d.openSong){songDetailId=d.openSong;changePage("song-detail");return}
+  if(d.favorite){
+    const item=catalogEntryById(d.favorite,catalogData());if(!item)return;
+    const u=active(),favorites=new Set(u.favorites||[]);
+    if(favorites.has(item.id))favorites.delete(item.id);else favorites.add(item.id);
+    u.favorites=[...favorites];
+    if(!save())toast("Não foi possível salvar seus favoritos.");
+    render();return;
+  }
+  if(d.startSong){
+    const item=catalogEntryById(d.startSong,catalogData());if(!item){toast("Música não encontrada.");return}
+    if(item.kind==="instrument"){
+      const target=instrumentInfo(item.instrument);
+      if(!(target.id==="piano"&&currentInstrument().group==="keys")&&currentInstrument().id!==target.id){
+        active().instrument=target.name;catalogScope="mine";save();
+      }
+      await startLesson(item.lessonId);return;
+    }
+    if(item.kind==="vocal"){await beginVocal(item.vocalId);return}
+    if(item.kind==="personal"){await beginPersonal(item.personalId);return}
+  }
   if(d.course){courseFilter=d.course;changePage("courses");return}
   if(d.filter){courseFilter=d.filter;render();return}
   if(d.genre){songFilter=d.genre;render();return}
@@ -565,6 +595,7 @@ document.addEventListener("click",async e=>{
   const action=d.action;
   if(!action)return;
   if(action==="microphone"){await enableMic();return}
+  if(action==="catalog-reset"){catalogQuery="";catalogScope="all";catalogDifficulty="all";render();return}
   if(action==="diagnose-mic"){await enableMic();return}
   if(action==="backup-export"){
     try{
@@ -628,6 +659,7 @@ document.addEventListener("submit",e=>{
   const u=initialUser(name,instrument);db.users.push(u);db.active=u.id;save();changePage("home");toast("Perfil criado. Bons estudos!");
 });
 document.addEventListener("change",async e=>{
+  if(e.target.id==="catalog-difficulty"){catalogDifficulty=e.target.value;render();return}
   if(e.target.id==="backup-file"){
     const file=e.target.files?.[0];if(!file)return;
     if(file.size>2000000){toast("O backup deve ter no máximo 2 MB.");return}
@@ -664,7 +696,17 @@ document.addEventListener("change",e=>{
   if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;
   render();toast("Ajuste aplicado. Reinicie a música.");
 });
-document.addEventListener("input",e=>{if(!session)return;if(e.target.id==="sensitivity"){session.sensitivity=Number(e.target.value);audio.setSensitivity(session.sensitivity/100)}if(e.target.id==="latency"&&session.performance){session.performance.setLatency(e.target.value);db.perfLatency=session.performance.latencyMs;save();const label=$("#latency-value");if(label)label.textContent=session.performance.latencyMs+" ms"}});
+document.addEventListener("input",e=>{
+  if(e.target.id==="catalog-query"){
+    catalogQuery=String(e.target.value||"");
+    const entries=fullCatalog(),settings={query:catalogQuery,scope:catalogScope,difficulty:catalogDifficulty,
+      favorites:active().favorites||[],instrument:active().instrument};
+    const container=$("#catalog-results"),counter=$("#catalog-count");
+    if(container)container.innerHTML=catalogResultsMarkup(entries,settings);
+    if(counter)counter.textContent=catalogFilter(entries,settings).length+" opções";
+    return;
+  }
+  if(!session)return;if(e.target.id==="sensitivity"){session.sensitivity=Number(e.target.value);audio.setSensitivity(session.sensitivity/100)}if(e.target.id==="latency"&&session.performance){session.performance.setLatency(e.target.value);db.perfLatency=session.performance.latencyMs;save();const label=$("#latency-value");if(label)label.textContent=session.performance.latencyMs+" ms"}});
 document.addEventListener("visibilitychange",()=>{if(document.hidden){
   if(session?.performance&&["running","countin"].includes(session.performance.phase))session.performance.pause(performance.now());
   if(vocal&&["running","countin"].includes(vocal.phase))vocal.pause(performance.now());
