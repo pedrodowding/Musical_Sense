@@ -86,6 +86,10 @@ export function awardPractice(user,input,now=new Date()){
  user.totalCorrect=(user.totalCorrect||0)+correct;
  user.totalAttempts=(user.totalAttempts||0)+attempts;
  user.practiceSeconds=(user.practiceSeconds||0)+seconds;
+ if(passed&&full&&kind==="vocal"){
+   user.vocalCompleted=user.vocalCompleted||{};
+   const prev=user.vocalCompleted[lessonId];user.vocalCompleted[lessonId]={at:now.getTime(),bestAccuracy:Math.max(accuracy,prev?.bestAccuracy||0)};
+ }
  if(passed&&full&&kind==="instrument"){
    const prev=user.completed[lessonId],stars=Math.max(1,Math.min(3,Number(input.stars)||1));
    user.completed[lessonId]={at:now.getTime(),stars:Math.max(stars,prev?.stars||0)};
@@ -120,7 +124,7 @@ export function awardPractice(user,input,now=new Date()){
  user.xp+=xp;const after=levelInfo(user.xp);
  const result={xp,lessonXp:Math.max(0,xp-missions.reduce((s,m)=>s+m.xp,0)-unlocked.reduce((s,b)=>s+b.xp,0)),missions:missions.map(m=>m.id),badges:unlocked.map(b=>b.id),levelUp:after.level>before.level,level:after.level,accuracy,streak:streakInfo(user,date).current,replay:count>0};
  g.claims[key]=result;prune(g);
- user.history.push({id:lessonId,kind,mode:input.mode||"",day,date,seconds,xp,accuracy,correct,attempts,passed,full,at:now.getTime()});
+ user.history.push({id:lessonId,kind,mode:input.mode||"",day:date,seconds,xp,accuracy,correct,attempts,passed,full,at:now.getTime()});
  user.history=user.history.slice(-250);
  return result;
 }
