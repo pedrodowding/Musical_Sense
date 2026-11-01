@@ -34,6 +34,7 @@ export function parseBackup(text){
    id,name,instrument:instruments.includes(x.instrument)?x.instrument:"Piano",xp:nonnegative(x.xp,1e8),
    completed:objectSubset(x.completed,150),vocalCompleted:objectSubset(x.vocalCompleted,150),
    checkpoints:objectSubset(x.checkpoints,150),personalLyrics:safeLibrary(x.personalLyrics),
+   favorites:Array.isArray(x.favorites)?[...new Set(x.favorites.filter(v=>typeof v==="string"&&v.length<=120))].slice(0,150):[],
    totalCorrect:nonnegative(x.totalCorrect,1e8),totalAttempts:nonnegative(x.totalAttempts,1e8),
    practiceSeconds:nonnegative(x.practiceSeconds,1e9),history:safeHistory(x.history),
    createdAt:nonnegative(x.createdAt,Date.now()),game:{
