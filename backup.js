@@ -17,7 +17,8 @@ function safeHistory(v){
 export function makeBackup(db){
  return JSON.stringify({schema:"musical-sense-backup",version:1,exportedAt:new Date().toISOString(),
   warning:"Este backup contém nomes de perfis, progresso e eventuais letras pessoais. Guarde em local seguro.",
-  data:{users:db.users,active:db.active,perfLatency:db.perfLatency,vocalLatency:db.vocalLatency}},null,2);
+  data:{users:db.users,active:db.active,perfLatency:db.perfLatency,vocalLatency:db.vocalLatency,
+  audioVolume:db.audioVolume,pulseVolume:db.pulseVolume,soundTimbre:db.soundTimbre}},null,2);
 }
 export function parseBackup(text){
  if(typeof text!=="string"||text.length>2e6)throw Error("Arquivo inválido ou maior que 2 MB.");
@@ -48,5 +49,8 @@ export function parseBackup(text){
   return ensureProgress(user);
  });
  return {users,active:ids.has(source.active)?source.active:users[0].id,
-  perfLatency:source.perfLatency==null?160:nonnegative(source.perfLatency,350),vocalLatency:source.vocalLatency==null?130:nonnegative(source.vocalLatency,350)};
+  perfLatency:source.perfLatency==null?160:nonnegative(source.perfLatency,350),vocalLatency:source.vocalLatency==null?130:nonnegative(source.vocalLatency,350),
+  audioVolume:source.audioVolume==null?.85:Math.min(1,nonnegative(source.audioVolume,1)),
+  pulseVolume:source.pulseVolume==null?.72:Math.min(1,nonnegative(source.pulseVolume,1)),
+  soundTimbre:["auto","piano","strings","soft"].includes(source.soundTimbre)?source.soundTimbre:"auto"};
 }
