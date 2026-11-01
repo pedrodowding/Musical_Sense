@@ -93,11 +93,33 @@ function workouts(){
   '<div class="section-head"><h2>Escolha um treino</h2></div><div class="lesson-list">'+options.map(lessonCard).join("")+
   '<div class="lesson-row"><span class="lesson-icon teal">🎤</span><div class="grow"><h3>Aquecimento vocal</h3><p>Descubra seu alcance e cante notas longas.</p><div class="lesson-foot"><span>⏱ 3 min</span><span>🎯 Afinação</span></div></div><button class="btn sm lesson-action" data-vocal="voice-warmup">Cantar →</button></div></div>';
 }
+function diagnostics(){
+ let storageStatus="Disponível";try{const key="musical-sense-diagnostic";localStorage.setItem(key,"ok");localStorage.removeItem(key)}catch(e){storageStatus="Bloqueado ou indisponível"}
+ const micSupported=Boolean(navigator.mediaDevices?.getUserMedia),secure=Boolean(window.isSecureContext),pwa=Boolean(navigator.serviceWorker);
+ const note=lastFrame?.note;
+ return '<div class="page-intro"><button class="link-action" data-route="profiles">← Voltar para perfis</button><h1>Diagnóstico do Musical Sense 🔧</h1><p>Use esta tela para descobrir por que o aplicativo não está captando som ou salvando seu progresso. Não é necessário concluir uma aula para testar.</p></div>'+
+ '<div class="grid two"><section class="card"><h2>🎙 Teste do microfone</h2><span class="pill '+(audio.listening?"green":"orange")+'">'+(audio.listening?"Captando som":"Desligado")+'</span><p class="small muted" style="margin-top:15px">Toque uma nota ou cante uma vogal sustentada depois de ativar.</p>'+
+ '<div class="vocal-meter"><div id="diag-meter"></div></div><div class="vocal-readings"><div><b id="diag-note">'+(note===null||note===undefined?"—":noteName(note))+'</b><span>Nota</span></div><div><b id="diag-hz">'+(lastFrame?.hz?lastFrame.hz.toFixed(1):"0")+'</b><span>Hz</span></div><div><b id="diag-confidence">'+(lastFrame?.confidence?Math.round(lastFrame.confidence*100):0)+'%</b><span>Confiança</span></div></div>'+
+ '<button class="btn '+(audio.listening?"ghost":"")+'" data-action="diagnose-mic">'+(audio.listening?"Desligar":"🎙 Testar microfone")+'</button></section>'+
+ '<section class="card"><h2>Verificações do dispositivo</h2>'+
+ [['HTTPS / contexto seguro',secure],['API do microfone',micSupported],['PWA / Service Worker',pwa],['Armazenamento de progresso',storageStatus==="Disponível"]].map(([label,ok])=>'<div class="row between" style="border-bottom:1px solid #edf0f7;padding:10px 0"><span class="small">'+esc(label)+'</span><span class="pill '+(ok?"green":"orange")+'">'+(ok?"✓ OK":"Verificar")+'</span></div>').join("")+
+ '<p class="muted small" style="margin-top:15px">Armazenamento: '+esc(storageStatus)+' · Perfil ativo: '+esc(active().name)+'</p>'+
+ '<div class="row wrap"><button class="btn sm ghost" data-action="diagnose-copy">Copiar diagnóstico</button><button class="btn sm outline" data-action="diagnose-reload">Atualizar aplicativo</button></div></section></div>'+
+ '<div class="card" style="margin-top:18px"><h3>O que testar</h3><p class="muted small">1. Ative o microfone. 2. Cante uma vogal ou toque uma nota longa. 3. Veja se o nível de volume sobe. 4. Se o volume subir, mas não houver nota, reduza o ruído e tente outro registro. 5. Copie o diagnóstico se precisar relatar o problema.</p></div>';
+}
+function diagnosticReport(){
+ return ["Musical Sense - diagnóstico","Data: "+new Date().toISOString(),"Contexto HTTPS: "+Boolean(window.isSecureContext),
+ "Microfone: "+audioStatus,"Suporte getUserMedia: "+Boolean(navigator.mediaDevices?.getUserMedia),
+ "Nota detectada: "+(lastFrame?.note==null?"nenhuma":noteName(lastFrame.note)),
+ "Hz: "+(lastFrame?.hz?.toFixed(1)||0),"Volume RMS: "+(lastFrame?.rms?.toFixed(4)||0),
+ "Confiança: "+(lastFrame?.confidence?.toFixed(3)||0),
+ "PWA: "+Boolean(navigator.serviceWorker),"Navegador: "+(navigator.userAgent||"indisponível")].join("\n");
+}
 function profiles(){
   const u=active();
   return '<div class="page-intro"><span class="eyebrow">UM ESPAÇO PARA CADA MÚSICO</span><h1>Perfis da família</h1><p>Compartilhem o aparelho sem misturar pontos, aulas e conquistas. Os dados ficam salvos apenas neste navegador.</p></div>'+
   '<div class="grid two"><section class="card"><h2>Escolha quem vai tocar</h2>'+db.users.map(p=>'<div class="profile-row '+(p.id===u.id?"active":"")+'"><span class="avatar">'+esc(p.name[0].toUpperCase())+'</span><div class="grow"><b>'+esc(p.name)+'</b><div class="muted small">'+esc(p.instrument)+' · '+(p.xp||0)+' XP</div></div><div class="profile-tools"><button class="btn sm '+(p.id===u.id?"ghost":"")+'" data-profile="'+esc(p.id)+'">'+(p.id===u.id?"✓ Ativo":"Entrar")+'</button><button class="btn sm outline" data-profile-edit="'+esc(p.id)+'" aria-label="Renomear perfil">✎</button><button class="btn sm outline" data-profile-delete="'+esc(p.id)+'" aria-label="Excluir perfil">×</button></div></div>').join("")+'</section>'+
-  '<section class="card"><h2>Adicionar músico</h2><form id="profile-form"><label class="form-field" for="profile-name">Nome</label><input class="form-input" id="profile-name" name="name" maxlength="30" required placeholder="Ex.: Ana"><label class="form-field" for="profile-instrument">Instrumento</label><select class="form-input" id="profile-instrument" name="instrument">'+["Piano","Teclado","Violão","Guitarra","Ukulele","Baixo"].map(v=>'<option>'+v+'</option>').join("")+'</select><button class="btn" type="submit">+ Criar perfil</button></form><p class="inline-tip">Nesta fase, as trilhas práticas estão preparadas para piano e teclado. Outros instrumentos terão conteúdos próprios em versões futuras.</p></section></div>'+
+  '<section class="card"><h2>Adicionar músico</h2><form id="profile-form"><label class="form-field" for="profile-name">Nome</label><input class="form-input" id="profile-name" name="name" maxlength="30" required placeholder="Ex.: Ana"><label class="form-field" for="profile-instrument">Instrumento</label><select class="form-input" id="profile-instrument" name="instrument">'+["Piano","Teclado","Violão","Guitarra","Ukulele","Baixo"].map(v=>'<option>'+v+'</option>').join("")+'</select><button class="btn" type="submit">+ Criar perfil</button></form><p class="inline-tip">Nesta fase, as trilhas práticas estão preparadas para piano e teclado. Outros instrumentos terão conteúdos próprios em versões futuras.</p><button class="btn sm outline" data-route="diagnostics">🔧 Diagnóstico e teste de microfone</button></section></div>'+
   '<div class="card" style="margin-top:18px"><h3>Seus números</h3><div class="grid three">'+metric("Experiência",u.xp+" XP","⚡","purple")+metric("Lições",Object.keys(u.completed||{}).length,"🏆","green")+metric("Precisão",percent(u.totalCorrect,u.totalAttempts)+"%","🎯","")+'</div></div>';
 }
 const degree=[0,0,1,1,2,3,3,4,4,5,5,6];
@@ -168,14 +190,14 @@ function result(){
 }
 function render(){
   if(!db.users.some(u=>u.id===db.active))db.active=db.users[0].id;
-  const content=page==="home"?home():page==="courses"?courses():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics():page==="library"?library():page==="workouts"?workouts():profiles();
+  const content=page==="home"?home():page==="courses"?courses():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics():page==="diagnostics"?diagnostics():page==="library"?library():page==="workouts"?workouts():profiles();
   $("#app").innerHTML=page==="practice"&&session?practice():page==="result"&&session?result():page==="vocal-practice"&&vocal?renderVocalPractice(vocal,noteName,audioStatus,lastFrame):page==="vocal-result"&&vocal?renderVocalResult(vocal.summary(),vocalAward?.xp||0,vocalAward?.level||1,(vocalAward?.badges||[]).map(id=>BADGES.find(b=>b.id===id)?.name||id)):page==="personal-practice"&&personalSession?renderPersonalPractice(personalSession.song,{...personalSession,micActive:audio.listening},lastFrame,noteName):shell(content);
   document.title=(page==="practice"&&session?session.lesson.title+" | ":page==="vocal-practice"&&vocal?vocal.song.title+" | ":"")+"Musical Sense";
   updateAudioUI();
 }
 function stopTimers(){clearInterval(tipTimer);tipTimer=null;if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;player.stop();metronome=false;demoBusy=false}
 function changePage(next){
-  if(["practice","result","vocal-practice","vocal-result","personal-practice"].includes(page)){audio.stop();audio.disconnectMidi();stopTimers();session=null;vocal=null;personalSession=null}
+  if(["practice","result","vocal-practice","vocal-result","personal-practice","diagnostics"].includes(page)){audio.stop();audio.disconnectMidi();stopTimers();session=null;vocal=null;personalSession=null}
   page=next;render();window.scrollTo(0,0);
 }
 async function startLesson(id,requestMicrophone=true,options={}){
@@ -203,6 +225,13 @@ async function enableMic(){
 }
 function onFrame(frame){
   lastFrame=frame;
+  if(page==="diagnostics"){
+    const level=$("#diag-meter");if(level)level.style.width=Math.min(100,Math.round(frame.rms*1100))+"%";
+    const note=$("#diag-note");if(note)note.textContent=frame.note==null?"—":noteName(frame.note);
+    const hz=$("#diag-hz");if(hz)hz.textContent=frame.hz?.toFixed(1)||"0";
+    const confidence=$("#diag-confidence");if(confidence)confidence.textContent=Math.round((frame.confidence||0)*100)+"%";
+    return;
+  }
   if(page==="vocal-practice"&&vocal){
     if(vocal.phase==="running")vocal.sample(frame,performance.now());
     const level=$("#vocal-meter");if(level)level.style.width=Math.min(100,Math.round(frame.rms*1100))+"%";
@@ -516,6 +545,9 @@ document.addEventListener("click",async e=>{
   const action=d.action;
   if(!action)return;
   if(action==="microphone"){await enableMic();return}
+  if(action==="diagnose-mic"){await enableMic();return}
+  if(action==="diagnose-copy"){try{await navigator.clipboard.writeText(diagnosticReport());toast("Diagnóstico copiado.");}catch(e){toast("Não foi possível copiar. Verifique as permissões da área de transferência.")}return}
+  if(action==="diagnose-reload"){audio.stop();stopTimers();window.location.reload();return}
   if(action==="lyrics-import"){changePage("lyrics-import");return}
   if(action==="singing-leave"){changePage("singing");return}
   if(action==="vocal-mic"){await enableMic();return}
