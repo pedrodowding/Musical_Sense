@@ -56,6 +56,7 @@ export class AudioEngine{
       const ctx=new Ctx();
       await ctx.resume();
       const source=ctx.createMediaStreamSource(stream);
+      this.ctx=ctx;
       const filter=ctx.createBiquadFilter();filter.type="highpass";filter.frequency.value=67;
       const analyser=ctx.createAnalyser();analyser.fftSize=4096;analyser.smoothingTimeConstant=0;
       source.connect(filter);filter.connect(analyser);
@@ -119,12 +120,12 @@ export class AudioEngine{
   disconnectMidi(){this.midiHandlers.forEach(({input,handler})=>input.removeEventListener("midimessage",handler));this.midiHandlers=[];if(this.midiAccess)this.midiAccess.onstatechange=null;this.midiAccess=null}
 }
 export class SoundPlayer{
-  constructor(){this.ctx=null;this.timer=null;this.demoEnd=0}
+  constructor(){this.ctx=null;this.timer=null;this.demoEnd=0;this.oscillators=new Set()}
   async context(){if(!this.ctx){const Ctx=window.AudioContext||window.webkitAudioContext;this.ctx=new Ctx()}await this.ctx.resume();return this.ctx}
   tone(ctx,midi,start,duration=.35,volume=.14){
     const f=noteFrequency(midi);
     const g=ctx.createGain();g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(volume,start+.025);g.gain.exponentialRampToValueAtTime(.0001,start+duration+.12);g.connect(ctx.destination);
-    const oscs=[];[[1,1],[2,.18],[3,.07]].forEach(([multiple,level])=>{const o=ctx.createOscillator();o.type="sine";o.frequency.value=f*multiple;const gain=ctx.createGain();gain.gain.value=level;o.connect(gain);gain.connect(g);o.start(start);o.stop(start+duration+.16);oscs.push(o)});
+    const oscs=[];[[1,1],[2,.18],[3,.07]].forEach(([multiple,level])=>{const o=ctx.createOscillator();o.type="sine";o.frequency.value=f*multiple;const gain=ctx.createGain();gain.gain.value=level;o.connect(gain);gain.connect(g);this.oscillators.add(o);o.onended=()=>this.oscillators.delete(o);o.start(start);o.stop(start+duration+.16);oscs.push(o)});
     return oscs;
   }
   async play(notes,tempo=96){
@@ -135,8 +136,8 @@ export class SoundPlayer{
   async metronomeClick(strong=false){
     const ctx=await this.context(),t=ctx.currentTime+.012,o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=strong?1100:800;
     g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.09,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.085);
-    o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.1);
+    o.connect(g);g.connect(ctx.destination);this.oscillators.add(o);o.onended=()=>this.oscillators.delete(o);o.start(t);o.stop(t+.1);
   }
-  stop(){if(this.timer)clearInterval(this.timer);this.timer=null}
+  stop(){if(this.timer)clearInterval(this.timer);this.timer=null;for(const osc of this.oscillators){try{osc.stop()}catch{}}this.oscillators.clear()}
   async metronome(bpm){this.stop();let i=0;await this.metronomeClick(true);this.timer=setInterval(()=>this.metronomeClick(++i%4===0),60000/bpm)}
 }
