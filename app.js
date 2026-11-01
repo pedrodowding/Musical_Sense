@@ -34,7 +34,7 @@ let performanceRAF=0,lastVisualTick=0;
 const player=new SoundPlayer();
 const audio=new AudioEngine(frame=>onFrame(frame),ev=>onNote(ev),(status,error)=>{audioStatus=status;if(error)audioError=error;updateAudioUI()});
 const active=()=>db.users.find(u=>u.id===db.active)||db.users[0];
-const save=()=>{try{localStorage.setItem(DBKEY,JSON.stringify(db))}catch{}};
+const save=()=>{try{localStorage.setItem(DBKEY,JSON.stringify(db));return true}catch(e){console.warn("Armazenamento local indisponível",e);return false}};
 function toast(message){const prev=$("#toast");if(prev)prev.remove();const node=document.createElement("div");node.id="toast";node.className="toast";node.textContent=message;document.body.appendChild(node);clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.remove(),3500)}
 function navButton(item){const [id,icon,label]=item;return '<button class="nav-btn '+(page===id?"active":"")+'" data-route="'+id+'"><span class="i">'+icon+'</span><span>'+label+'</span></button>'}
 function mobileButton(item){const [id,icon,label]=item;return '<button class="'+(page===id?"active":"")+'" data-route="'+id+'"><span class="icon">'+icon+'</span><span>'+label+'</span></button>'}
@@ -158,7 +158,7 @@ function practice(){
 }
 function result(){
   const r=session.result,stars="★".repeat(r.stars)+"☆".repeat(3-r.stars);
-  return '<div class="result-wrap"><section class="result-card"><div class="result-icon">'+(r.passed?"🏆":"🎯")+'</div><span class="pill '+(r.passed?"green":"orange")+'">'+(r.passed?"AULA CONCLUÍDA":"TREINO CONCLUÍDO")+'</span><h1>'+(r.passed?"Você fez música!":"Você está evoluindo!")+'</h1><p>'+(r.passed?"Mais um passo para tocar cada vez melhor.":"Continue praticando para aumentar sua precisão.")+'</p><div class="result-stars" aria-label="'+r.stars+' de três estrelas">'+stars+'</div><div class="result-stats"><div class="result-stat"><strong>+'+r.xp+'</strong><span>XP conquistados</span></div><div class="result-stat"><strong>'+r.accuracy+'%</strong><span>Notas corretas</span></div><div class="result-stat"><strong>'+r.seconds+'s</strong><span>Tempo de aula</span></div></div>'+performanceResultExtra(r)+'<div class="row wrap" style="justify-content:center"><button class="btn ghost" data-action="repeat">↻ Praticar novamente</button>'+(r.performance&&r.performance.difficultRange?'<button class="btn ghost" data-action="difficult">🎯 Repetir trecho difícil</button>':"")+'<button class="btn" data-action="next">Próxima aula →</button></div></section></div>';
+  return '<div class="result-wrap"><section class="result-card"><div class="result-icon">'+(r.passed?"🏆":"🎯")+'</div><span class="pill '+(r.passed?"green":"orange")+'">'+(r.passed?"AULA CONCLUÍDA":"TREINO CONCLUÍDO")+'</span><h1>'+(r.passed?"Você fez música!":"Você está evoluindo!")+'</h1><p>'+(r.passed?"Mais um passo para tocar cada vez melhor.":"Continue praticando para aumentar sua precisão.")+'</p><div class="result-stars" aria-label="'+r.stars+' de três estrelas">'+stars+'</div><div class="result-stats"><div class="result-stat"><strong>+'+r.xp+'</strong><span>XP conquistados</span></div><div class="result-stat"><strong>'+r.accuracy+'%</strong><span>Notas corretas</span></div><div class="result-stat"><strong>'+r.seconds+'s</strong><span>Tempo de aula</span></div></div>'+performanceResultExtra(r)+''+(r.awards?.badges?.length?'<div class="success-panel">🏅 Novas medalhas: '+r.awards.badges.map(id=>esc(BADGES.find(b=>b.id===id)?.name||id)).join(", ")+'</div>':"")+(r.awards?.levelUp?'<p class="success-text">⭐ Você alcançou o nível '+r.awards.level+'!</p>':"")+'<div class="row wrap" style="justify-content:center"><button class="btn ghost" data-action="repeat">↻ Praticar novamente</button>'+(r.performance&&r.performance.difficultRange?'<button class="btn ghost" data-action="difficult">🎯 Repetir trecho difícil</button>':"")+'<button class="btn" data-action="next">Próxima aula →</button></div></section></div>';
 }
 function render(){
   if(!db.users.some(u=>u.id===db.active))db.active=db.users[0].id;
@@ -177,6 +177,7 @@ async function startLesson(id,requestMicrophone=true,options={}){
   const lesson=lessonById(id),allSteps=getSessionNotes(lesson),range=options.range&&options.range.end>options.range.start?options.range:null,steps=range?allSteps.slice(range.start,range.end):allSteps,mode=options.mode==="performance"?"performance":"guided";
   session={lesson,steps,index:0,hits:0,misses:0,assisted:0,feedback:[],showHint:false,wrongFlashUntil:0,
     coach:"",stepStart:Date.now(),startedAt:Date.now(),lastCorrect:null,sensitivity:70,midiEnabled:false,result:null,mode,sectionRange:range,
+    sessionId:"instrument-"+Date.now()+"-"+Math.random().toString(36).slice(2),
     performance:mode==="performance"?new PerformanceSession(steps,{bpm,latencyMs:db.perfLatency??160}):null
   };
   page="practice";audioStatus="off";audioError="";lastFrame=null;audio.setSensitivity(.70);render();window.scrollTo(0,0);
@@ -225,14 +226,15 @@ function finishLesson(){
   const passed=!performanceData||accuracy>=65;
   const stars=accuracy>=92&&(!performanceData||performanceData.rhythmAccuracy>=80)&&s.assisted<=2?3:accuracy>=72?2:1;
   const seconds=Math.max(1,Math.round((Date.now()-s.startedAt)/1000));
-  const multiplier=performanceData?(passed?1:.35):1;
-  const xp=Math.max(5,Math.round(s.lesson.xp*(.5+.5*accuracy/100)*(s.assisted?.85:1)*multiplier));
-  s.result={accuracy,stars,xp,seconds,passed,mode:s.mode,performance:performanceData};
-  u.xp=(u.xp||0)+xp;u.totalCorrect=(u.totalCorrect||0)+s.hits;u.totalAttempts=(u.totalAttempts||0)+s.hits+s.misses;u.practiceSeconds=(u.practiceSeconds||0)+seconds;
-  u.completed=u.completed||{};const prior=u.completed[s.lesson.id];
-  if(passed&&!s.sectionRange)u.completed[s.lesson.id]={at:Date.now(),stars:Math.max(stars,prior?.stars||0)};
-  u.history=u.history||[];u.history.push({id:s.lesson.id,mode:s.mode,day:new Date().toLocaleDateString("en-CA"),seconds,xp,accuracy,rhythmAccuracy:performanceData?.rhythmAccuracy??null});u.history=u.history.slice(-200);
-  save();audio.stop();audio.disconnectMidi();stopTimers();page="result";render();
+  const award=awardPractice(u,{
+    sessionId:s.sessionId,kind:"instrument",mode:s.mode,lessonId:s.lesson.id,
+    correct:s.hits,attempts:performanceData?performanceData.total:s.hits+s.misses,
+    seconds,baseXp:s.lesson.xp,passed,full:!s.sectionRange,stars,
+    song:s.lesson.kind==="song",assisted:s.assisted,rhythmAccuracy:performanceData?.rhythmAccuracy
+  });
+  s.result={accuracy,stars,xp:award.xp,seconds,passed,mode:s.mode,performance:performanceData,awards:award};
+  if(!save())toast("Não foi possível salvar o progresso neste navegador.");
+  audio.stop();audio.disconnectMidi();stopTimers();page="result";render();
 }
 function syncPerformanceState(){
   if(!session?.performance)return;
