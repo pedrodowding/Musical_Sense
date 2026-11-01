@@ -11,7 +11,9 @@ export const LESSONS=[
 {id:"bass",course:"harmony",title:"Descubra a mão esquerda",subtitle:"Notas graves com a mão esquerda",icon:"⬅️",minutes:5,xp:90,level:7,kind:"technique",tip:"Notas mais graves ficam à esquerda do piano. Tocaremos uma de cada vez.",steps:[N(48,5),N(50,4),N(52,3),N(53,2),N(55,1),N(53,2),N(52,3),N(48,5)]},
 {id:"arpeggio",course:"harmony",title:"Primeiros acordes",subtitle:"Aprenda tríades em arpejos",icon:"🎵",minutes:6,xp:120,level:8,kind:"arpeggio",tip:"Este exercício identifica as notas do acorde separadamente, não acordes simultâneos.",steps:[60,64,67,60,65,69,72,65,67,71,74,67].map(m=>N(m,0))},
 {id:"intervals",course:"harmony",title:"Saltos e intervalos",subtitle:"Treine distâncias entre notas",icon:"🚀",minutes:6,xp:120,level:9,kind:"technique",tip:"Antecipe visualmente para onde sua mão vai.",steps:[60,64,60,67,60,72,67,64,60].map(m=>N(m,0))},
-{id:"rhythm",course:"fundamentals",title:"Pulso e repetição",subtitle:"Treine ataques separados com um pulso",icon:"🥁",minutes:5,xp:100,level:4,kind:"rhythm",tip:"Ative o metrônomo, ouça o pulso e toque uma nota por batida. No modo guiado o avanço é por nota. No modo Performance, acompanhe a linha verde para treinar o tempo.",steps:[N(60,1),N(60,1),N(60,1),N(60,1),N(62,2),N(62,2),N(64,3),N(64,3)]}
+{id:"rhythm",course:"fundamentals",title:"Pulso e repetição",subtitle:"Treine ataques separados com um pulso",icon:"🥁",minutes:5,xp:100,level:4,kind:"rhythm",tip:"Ative o metrônomo, ouça o pulso e toque uma nota por batida. No modo guiado o avanço é por nota. No modo Performance, acompanhe a linha verde para treinar o tempo.",steps:[N(60,1),N(60,1),N(60,1),N(60,1),N(62,2),N(62,2),N(64,3),N(64,3)]},
+{id:"spring",course:"solo",title:"Passos de Primavera",subtitle:"Melodia original para iniciar no piano",icon:"🌷",minutes:6,xp:120,level:6,kind:"song",tip:"Pratique a melodia em duas frases. Toque cada nota com calma antes de aumentar o ritmo.",steps:[N(60,1),N(64,3),N(67,5,2),N(65,4),N(64,3),N(62,2),N(60,1,2),N(62,2),N(64,3),N(65,4),N(67,5,2),N(64,3),N(62,2),N(60,1,2)]},
+{id:"starlight",course:"solo",title:"Luzes da Noite",subtitle:"Canção instrumental original de duas frases",icon:"🌙",minutes:6,xp:120,level:7,kind:"song",tip:"Antecipe os pequenos saltos, sem perder a suavidade.",steps:[N(64,3),N(67,5),N(72,0,2),N(71,0),N(69,0),N(67,5,2),N(65,4),N(64,3),N(62,2),N(64,3),N(67,5),N(60,1,2)]}
 ];
 export const COURSES=[
 {id:"fundamentals",name:"Primeiros passos",subtitle:"Notas, teclado e leitura musical",icon:"🎹",theme:"violet",count:4,description:"Comece do zero e aprenda a reconhecer notas no instrumento real."},
@@ -21,7 +23,9 @@ export const COURSES=[
 export const SONGS=[
 {id:"lamb",name:"Maria Tinha um Carneirinho",artist:"Melodia tradicional",cover:"🐑",level:"Iniciante",genre:"Tradicionais"},
 {id:"joy",name:"Ode à Alegria",artist:"L. van Beethoven",cover:"🌟",level:"Iniciante",genre:"Clássicas"},
-{id:"scale",name:"Escala de Dó maior",artist:"Exercício didático original",cover:"🌈",level:"Iniciante",genre:"Exercícios"}
+{id:"scale",name:"Escala de Dó maior",artist:"Exercício didático original",cover:"🌈",level:"Iniciante",genre:"Exercícios"},
+{id:"spring",name:"Passos de Primavera",artist:"Musical Sense (original)",cover:"🌷",level:"Iniciante",genre:"Autorais"},
+{id:"starlight",name:"Luzes da Noite",artist:"Musical Sense (original)",cover:"🌙",level:"Iniciante",genre:"Autorais"}
 ];
 const namesPT=["Dó","Dó♯","Ré","Ré♯","Mi","Fá","Fá♯","Sol","Sol♯","Lá","Lá♯","Si"];
 const namesEN=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
