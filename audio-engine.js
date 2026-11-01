@@ -41,30 +41,42 @@ export class AudioEngine{
     this.ctx=null;this.stream=null;this.analyser=null;this.source=null;
     this.active=false;this.raf=0;this.lastAnalysis=0;this.candidate=null;this.candidateFrames=0;
     this.latched=null;this.quietFrames=0;this.prevRms=0;this.lastEmitted=0;
-    this.threshold=.012;this.ignoreUntil=0;this.midiAccess=null;this.midiHandlers=[];
+    this.threshold=.012;this.ignoreUntil=0;this.midiAccess=null;this.midiHandlers=[];this.generation=0;this.openPromise=null;
   }
   get listening(){return this.active}
   async start(){
     if(this.active)return;
-    if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error("Abra o aplicativo por HTTPS no Safari ou em outro navegador compatível.");
+    if(this.openPromise)return this.openPromise;
+    if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia)throw new Error("Abra o aplicativo por HTTPS em um navegador que permite microfone.");
+    const generation=++this.generation;
     this.onStatus("permission");
+    const task=this.open(generation);this.openPromise=task;
+    try{await task}finally{if(this.openPromise===task)this.openPromise=null}
+  }
+  async open(generation){
+    let stream=null,ctx=null;
+    const cancelled=()=>generation!==this.generation;
     try{
-      const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+      stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+      if(cancelled()){stream.getTracks().forEach(t=>t.stop());return}
       this.stream=stream;
       const Ctx=window.AudioContext||window.webkitAudioContext;
       if(!Ctx)throw new Error("O navegador não oferece processamento de áudio.");
-      const ctx=new Ctx();
-      await ctx.resume();
+      ctx=new Ctx();this.ctx=ctx;await ctx.resume();
+      if(cancelled()){stream.getTracks().forEach(t=>t.stop());ctx.close().catch(()=>{});return}
       const source=ctx.createMediaStreamSource(stream);
-      this.ctx=ctx;
       const filter=ctx.createBiquadFilter();filter.type="highpass";filter.frequency.value=67;
       const analyser=ctx.createAnalyser();analyser.fftSize=4096;analyser.smoothingTimeConstant=0;
       source.connect(filter);filter.connect(analyser);
-      this.stream=stream;this.ctx=ctx;this.source=source;this.analyser=analyser;this.active=true;
+      if(cancelled()){stream.getTracks().forEach(t=>t.stop());ctx.close().catch(()=>{});return}
+      this.source=source;this.analyser=analyser;this.active=true;
       this.reset();this.onStatus("listening");
       this.raf=requestAnimationFrame(t=>this.loop(t));
       stream.getAudioTracks().forEach(track=>track.addEventListener("ended",()=>this.stop()));
-    }catch(err){this.stop();this.onStatus("error",err.message||"Não foi possível usar o microfone.");throw err}
+    }catch(err){
+      if(cancelled()){if(stream)stream.getTracks().forEach(t=>t.stop());if(ctx)ctx.close().catch(()=>{});return}
+      this.stop();this.onStatus("error",err.message||"Não foi possível usar o microfone.");throw err;
+    }
   }
   reset(){this.candidate=null;this.candidateFrames=0;this.latched=null;this.quietFrames=0;this.prevRms=0;this.lastEmitted=0}
   loop(time){
@@ -105,6 +117,7 @@ export class AudioEngine{
   setSensitivity(value){this.threshold=.005+(.035-.005)*(1-Math.max(0,Math.min(1,value)))}
   muteFor(ms){this.ignoreUntil=performance.now()+ms;this.reset()}
   stop(){
+    this.generation++;
     this.active=false;if(this.raf)cancelAnimationFrame(this.raf);this.raf=0;
     if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null}
     if(this.ctx){const c=this.ctx;this.ctx=null;c.close().catch(()=>{})}
