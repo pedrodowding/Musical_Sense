@@ -2,6 +2,17 @@
 
 Aplicativo web de aprendizagem musical com aulas visuais e avaliação das notas tocadas em um **piano ou teclado físico** pelo microfone do navegador.
 
+## Atualização 3.0: trilha por instrumento, música e UX mobile
+
+- **Escolha funcional de instrumento:** Piano, Teclado, Violão, Guitarra, Ukulele, Baixo e Voz. O instrumento ativo fica salvo no perfil; o histórico e XP não são perdidos ao trocar.
+- **Trilhas específicas:** 12 aulas de piano/teclado, seis exercícios de nota única para cada instrumento de cordas e área própria de canto com três canções/exercícios vocais.
+- **Repertório inicial:** 32 opções tocáveis/cantáveis de melodias e exercícios (5 piano + 24 cordas + 3 canto) e letras pessoais adicionais. Inclui material original e obras tradicionais/em domínio público. Não há catálogo comercial licenciado.
+- **Descoberta musical:** busca tolerante a acentos, seleção por instrumento, filtros de nível, favoritos por aluno, detalhes de música e prévia sintetizada para melodia disponível.
+- **Experiência mobile:** cinco abas principais, caminho progressivo com próxima lição evidente, botões touch-first, áreas seguras do iPhone/iPad e um braço de cordas com indicação de casas em vez de teclado de piano nas aulas de violão, guitarra, ukulele e baixo.
+- **Compatibilidade:** microfone continua sendo a fonte principal em Safari; somente **notas isoladas** são avaliadas nas trilhas de cordas. Acordes simultâneos ainda não têm detector próprio.
+
+Referências de UX e matriz de testes: [docs/MOBILE_UX_AND_CONTENT_V3.md](docs/MOBILE_UX_AND_CONTENT_V3.md).
+
 ## Atualização 2.2: canto, letras, gamificação e confiabilidade
 
 **Nova área Cantar:** três conteúdos vocais originais em PT-BR, com sílabas, letras e melodias sincronizadas, modos de voz em oitavas diferentes, comparação monofônica de afinação pela frequência captada do microfone, reprodução de guia melódico sintetizado, metrônomo e resultado por nota.
