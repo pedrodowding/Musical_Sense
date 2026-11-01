@@ -39,9 +39,33 @@ let vocal=null,vocalAward=null,personalSession=null,singingRAF=0,singingLastTick
 let catalogQuery="",catalogScope="mine",catalogDifficulty="all",songDetailId=null;
 let performanceRAF=0,lastVisualTick=0;
 const player=new SoundPlayer();
+player.setVolume(db.audioVolume??.85);
+player.setMetronomeVolume(db.pulseVolume??.72);
 const audio=new AudioEngine(frame=>onFrame(frame),ev=>onNote(ev),(status,error)=>{audioStatus=status;if(error)audioError=error;updateAudioUI()});
 const active=()=>db.users.find(u=>u.id===db.active)||db.users[0];
 const currentInstrument=()=>instrumentInfo(active().instrument);
+function soundTimbre(instrument=active().instrument){
+ const setting=db.soundTimbre||"auto";
+ if(setting!=="auto")return setting;
+ const info=instrumentInfo(instrument);
+ return info.group==="strings"?"strings":info.group==="vocal"?"soft":"piano";
+}
+function applyTimbre(instrument=active().instrument){player.setTimbre(soundTimbre(instrument))}
+function volumeInline(){
+ const volume=Math.round(player.getVolume()*100);
+ return '<div class="sound-inline" role="group" aria-label="Volume da guia musical"><label for="sound-volume">🔊 Som do app</label><input type="range" id="sound-volume" min="0" max="100" step="5" value="'+volume+'" aria-label="Volume da guia musical"><b id="sound-volume-value">'+volume+'%</b><button class="btn sm ghost" data-action="sound-test">♫ Testar</button></div>';
+}
+function soundSettings(){
+ const volume=Math.round(player.getVolume()*100),pulse=Math.round(player.metronomeVolume*100),timbre=db.soundTimbre||"auto";
+ const presets=[["auto","Automático pelo instrumento"],["piano","Piano sintetizado"],["strings","Cordas sintetizadas"],["soft","Suave (guia vocal)"]];
+ return '<div class="page-intro"><span class="eyebrow">AJUSTES DE ÁUDIO</span><h1>Ouça cada nota com clareza 🔊</h1><p>Configure o volume dos exemplos e do metrônomo, ouça um teste e escolha o timbre que prefere.</p></div>'+
+ '<div class="card sound-settings"><div class="sound-setting"><div><h2>🔊 Volume das melodias</h2><p class="muted small">Ajusta notas demonstradas, prévias e sons das lições.</p></div><div class="sound-setting-input"><input id="sound-volume" type="range" min="0" max="100" step="5" value="'+volume+'" aria-label="Volume principal"><strong id="sound-volume-value">'+volume+'%</strong></div></div>'+
+ '<div class="sound-setting"><div><h2>🥁 Volume do metrônomo</h2><p class="muted small">Equilibre o pulso com o som dos exercícios.</p></div><div class="sound-setting-input"><input id="pulse-volume" type="range" min="0" max="100" step="5" value="'+pulse+'" aria-label="Volume do metrônomo"><strong id="pulse-volume-value">'+pulse+'%</strong></div></div>'+
+ '<div class="sound-setting"><div><h2>🎹 Timbre da guia</h2><p class="muted small">São sons sintetizados, não amostras de instrumentos reais.</p></div><select id="sound-timbre" class="form-input">'+presets.map(([id,label])=>'<option value="'+id+'" '+(timbre===id?"selected":"")+'>'+label+'</option>').join("")+'</select></div>'+
+ '<div class="row wrap sound-actions"><button class="btn" data-action="sound-test">♫ Ouvir melodia</button><button class="btn outline" data-action="pulse-test">🥁 Ouvir pulso</button><button class="btn ghost" data-action="sound-reset">Restaurar padrão</button></div>'+
+ '<p class="inline-tip">Comece com volume moderado, especialmente ao usar fones. O controle do aplicativo não altera o volume físico do iPad. Para evitar que o microfone ouça o próprio aplicativo, use fones de ouvido durante a prática.</p></div>';
+}
+applyTimbre();
 const currentLessons=()=>lessonsForInstrument(active().instrument,LESSONS);
 const catalogData=()=>({pianoSongs:SONGS,lessons:LESSONS,vocalSongs:VOCAL_SONGS,personalSongs:active().personalLyrics||[]});
 const fullCatalog=()=>catalogEntries(catalogData());
@@ -54,7 +78,7 @@ function shell(content){
   const u=active(),complete=currentLessons().filter(l=>u.completed[l.id]).length;
   return '<div class="shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">♫</span> Musical Sense</div><div class="side-caption">EXPLORAR</div>'+
   routes.map(navButton).join("")+'<div class="sidebar-spacer"></div><div class="sidebar-panel"><strong>🎯 Seu progresso</strong><p>'+complete+' aulas concluídas · '+u.xp+' XP</p><div class="progress-track" style="margin-top:12px"><div class="progress-fill" style="width:'+percent(complete,Math.max(1,currentLessons().length))+'%"></div></div></div></aside>'+
-  '<div class="main"><div class="content"><div class="topbar"><span class="eyebrow">APRENDA NO SEU TEMPO</span><div class="top-actions"><span class="bubble">⚡ '+u.xp+' XP</span><button class="profile-switch" data-route="profiles" title="Trocar perfil"><span class="avatar">'+esc(u.name.trim().charAt(0).toUpperCase())+'</span>'+esc(u.name.split(" ")[0])+' ▾</button></div></div>'+
+  '<div class="main"><div class="content"><div class="topbar"><span class="eyebrow">APRENDA NO SEU TEMPO</span><div class="top-actions"><span class="bubble">⚡ '+u.xp+' XP</span><button class="sound-top-btn" data-route="sound" aria-label="Configurar volume" title="Configurar volume">🔊 <span>Som</span></button><button class="profile-switch" data-route="profiles" title="Trocar perfil"><span class="avatar">'+esc(u.name.trim().charAt(0).toUpperCase())+'</span>'+esc(u.name.split(" ")[0])+' ▾</button></div></div>'+
   content+'</div></div></div><nav class="mobile-nav" aria-label="Navegação principal">'+mobileRoutes.map(mobileButton).join("")+'</nav>';
 }
 function metric(label,value,icon,color){return '<div class="card stat"><span class="stat-icon '+color+'">'+icon+'</span><div><b>'+esc(value)+'</b><span>'+esc(label)+'</span></div></div>'}
@@ -197,7 +221,7 @@ function practice(){
   '<section class="lesson-main"><div class="score-header"><strong>🎼 Sua partitura</strong><span>Nota '+(s.index+1)+' de '+total+'</span></div><div class="score-board">'+scoreSvg()+'</div><div class="keyboard-panel"><div class="keyboard-top"><strong>'+(currentInstrument().group==="strings"?"🎸 Onde tocar no "+esc(currentInstrument().name):"⌨ Onde tocar no teclado")+'</strong><span>'+(s.showHint?"Posição destacada em lilás":"Toque no instrumento físico") +'</span></div>'+(currentInstrument().group==="strings"?fretboard(currentInstrument().id,current,{showHint:s.showHint,heard:lastFrame?.note??null}):piano())+'</div></section>'+
   '<div class="lesson-bottom"><section class="listen-panel"><div class="listen-top"><div class="listen-indicator"><span class="audio-dot '+(audioStatus==="listening"?"on":audioStatus==="permission"?"wait":"")+'" id="audio-dot"></span><div><div class="audio-status" id="audio-status">'+esc(audioText())+'</div><div class="audio-sub" id="audio-sub">'+(audioStatus==="listening"?"Toque uma nota por vez e sustente por um instante.":"O acesso será solicitado pelo navegador.")+'</div></div></div><div class="row"><button class="btn sm '+(audio.listening?"ghost":"")+'" data-action="microphone" id="mic-btn">'+(audio.listening?"Desligar":"🎙 Ativar microfone")+'</button></div></div>'+
   '<div class="level"><div id="input-level" style="width:0%"></div></div><div class="audio-readings"><span id="heard">Nota: aguardando</span><span id="frequency">0 Hz</span><span id="tuning">Afinação: —</span></div>'+
-  '<div class="row wrap" style="margin-top:14px"><button class="btn outline sm" data-action="midi">🎹 '+(s.midiEnabled?"MIDI conectado":"Conectar MIDI")+'</button><label class="row small muted" for="sensitivity">Sensibilidade <input id="sensitivity" type="range" min="0" max="100" value="'+s.sensitivity+'" style="width:90px" aria-label="Sensibilidade do microfone"></label></div></section>'+
+  '<div class="row wrap" style="margin-top:14px"><button class="btn outline sm" data-action="midi">🎹 '+(s.midiEnabled?"MIDI conectado":"Conectar MIDI")+'</button><label class="row small muted" for="sensitivity">Sensibilidade <input id="sensitivity" type="range" min="0" max="100" value="'+s.sensitivity+'" style="width:90px" aria-label="Sensibilidade do microfone"></label></div>'+volumeInline()+'</section>'+
   '<section class="coaching-panel"><div class="coach-head"><span class="coach-emoji">💡</span> Seu professor virtual</div><div class="coach-message" id="coach-message">'+esc(coachMessage())+'</div><div class="coach-actions"><button class="btn sm ghost" data-action="hint">'+(s.showHint?"Ocultar dica":"🔍 Mostrar dica")+'</button><button class="btn sm outline" data-action="hear-note">♫ Ouvir nota</button><button class="btn sm outline" data-action="restart">↻ Reiniciar</button><button class="btn sm outline" data-action="tempo">⏱ '+bpm+' BPM</button>'+(s.mode==="performance"?"":'<button class="btn sm outline" data-action="metronome">'+(metronome?"◼ Parar pulso":"♪ Metrônomo")+'</button>')+'</div></section></div>'+
   '<footer class="lesson-footer"><span class="muted">🎙 Use seu instrumento físico. A tela é apenas um guia visual.</span><span class="muted">Os acordes simultâneos ainda não são reconhecidos.</span><button class="btn dark sm" data-action="leave">Salvar e sair</button></footer></div></div>';
 }
@@ -207,7 +231,7 @@ function result(){
 }
 function render(){
   if(!db.users.some(u=>u.id===db.active))db.active=db.users[0].id;
-  const content=page==="home"?home():page==="courses"?courses():page==="instruments"?instrumentsPage():page==="library"?library():page==="song-detail"?songDetail():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics((active().personalLyrics||[]).find(x=>x.id===editingSongId)):page==="diagnostics"?diagnostics():page==="workouts"?workouts():profiles();
+  const content=page==="home"?home():page==="courses"?courses():page==="instruments"?instrumentsPage():page==="library"?library():page==="song-detail"?songDetail():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics((active().personalLyrics||[]).find(x=>x.id===editingSongId)):page==="diagnostics"?diagnostics():page==="sound"?soundSettings():page==="workouts"?workouts():profiles();
   $("#app").innerHTML=page==="practice"&&session?practice():page==="result"&&session?result():page==="vocal-practice"&&vocal?renderVocalPractice(vocal,noteName,audioStatus,lastFrame):page==="vocal-result"&&vocal?renderVocalResult(vocal.summary(),vocalAward?.xp||0,vocalAward?.level||1,(vocalAward?.badges||[]).map(id=>BADGES.find(b=>b.id===id)?.name||id)):page==="personal-practice"&&personalSession?renderPersonalPractice(personalSession.song,{...personalSession,micActive:audio.listening},lastFrame,noteName):shell(content);
   document.title=(page==="practice"&&session?session.lesson.title+" | ":page==="vocal-practice"&&vocal?vocal.song.title+" | ":"")+"Musical Sense";
   updateAudioUI();
@@ -221,6 +245,7 @@ function changePage(next){
 async function startLesson(id,requestMicrophone=true,options={}){
   stopTimers();audio.stop();audio.disconnectMidi();
   const lesson=findInstrumentLesson(id,LESSONS);if(!lesson){toast("Esta aula não está disponível.");return}
+  applyTimbre(lesson.instrument||active().instrument);
   const allSteps=getSessionNotes(lesson),range=options.range&&options.range.end>options.range.start?options.range:null,steps=range?allSteps.slice(range.start,range.end):allSteps,mode=options.mode==="performance"?"performance":"guided";
   active().checkpoints=active().checkpoints||{};
   if(options.reset){delete active().checkpoints[id];save()}
@@ -378,6 +403,7 @@ function resetPerformance(){
   session.startedAt=Date.now();session.stepStart=Date.now();render();
 }
 async function beginVocal(songId,{bpmOverride=null,transpose=0}={}){
+  applyTimbre("Voz");
   const song=vocalById(songId);if(!song){toast("Canção não encontrada.");return}
   audio.stop();audio.disconnectMidi();stopTimers();session=null;personalSession=null;
   vocal=new SingingSession(song,{bpm:bpmOverride||song.bpm,transpose,latencyMs:db.vocalLatency??130});
@@ -503,6 +529,7 @@ async function previewSong(){
   try{
     player.stop();
     const notes=item.notes.slice(0,12);
+    applyTimbre(item.instrument);
     const duration=await player.play(notes,item.bpm||80);
     toast("Reproduzindo uma prévia sintetizada da melodia.");
     setTimeout(()=>{demoBusy=false},duration+100);
@@ -544,7 +571,7 @@ document.addEventListener("click",async e=>{
   if(d.route){changePage(d.route);return}
   if(d.instrument){
     const info=INSTRUMENTS.find(item=>item.id===d.instrument);if(!info)return;
-    active().instrument=info.name;
+    active().instrument=info.name;applyTimbre(info.name);
     catalogScope="mine";catalogQuery="";catalogDifficulty="all";courseFilter="all";
     if(!save())toast("Não foi possível salvar a preferência.");
     changePage("home");toast("Instrumento selecionado: "+info.name+".");
