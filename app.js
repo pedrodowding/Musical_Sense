@@ -143,7 +143,7 @@ const degree=[0,0,1,1,2,3,3,4,4,5,5,6];
 function diatonic(m){return Math.floor(m/12)*7+degree[((m%12)+12)%12]}
 function noteY(m,bass){return 138-(diatonic(m)-(bass?diatonic(43):diatonic(64)))*8.5}
 function scoreSvg(){
-  const steps=session.steps,start=Math.floor(session.index/8)*8,windowSteps=steps.slice(start,start+8),bass=session.lesson.id==="bass";
+  const steps=session.steps,start=Math.floor(session.index/8)*8,windowSteps=steps.slice(start,start+8),bass=session.lesson.id==="bass"||session.lesson.instrument==="bass-guitar";
   let svg='<svg viewBox="0 0 860 210" role="img" aria-label="Partitura: próxima nota '+esc(noteName(steps[session.index].m))+'"><rect width="860" height="210" fill="#fff"/>';
   for(let i=0;i<5;i++)svg+='<line class="score-line" x1="68" x2="837" y1="'+(70+i*17)+'" y2="'+(70+i*17)+'"/>';
   svg+='<text x="15" y="137" fill="#353451" font-family="serif" font-size="83">'+(bass?"𝄢":"𝄞")+'</text>';
@@ -187,19 +187,19 @@ function coachMessage(){
   if(session.coach)return session.coach;
   if(audioStatus==="error")return "Verifique a permissão de microfone no Safari. Você também pode tentar uma entrada MIDI em navegadores compatíveis.";
   if(audioStatus!=="listening"&&!session.midiEnabled)return "Toque em Ativar microfone para começar. O aplicativo vai escutar seu instrumento de verdade.";
-  if(session.showHint)return "Dica ativada: procure a tecla lilás no teclado visual e toque-a no instrumento físico.";
+  if(session.showHint)return "Dica ativada: acompanhe a posição destacada na referência visual do seu instrumento.";
   return session.index===0?"Acompanhe a partitura e toque a primeira nota.":"Ótimo! Agora encontre a próxima nota. Você está indo bem.";
 }
 function practice(){
   const s=session,l=s.lesson,total=s.steps.length,current=s.steps[s.index],progress=percent(s.index,total);
   return '<div class="lesson-screen"><header class="lesson-top"><button class="lesson-back" data-action="leave" aria-label="Fechar aula">✕</button><div class="lesson-title"><strong>'+esc(l.title)+'</strong><span>'+esc(l.subtitle)+'</span></div><div class="lesson-progress"><div class="progress-track"><div class="progress-fill" style="width:'+progress+'%"></div></div></div><div class="lesson-stats"><span class="pill">⚡ '+(s.hits*10)+' XP</span><span class="pill">'+(s.index+1)+'/'+total+'</span></div></header>'+
   '<div class="lesson-body"><div class="practice-modes" role="group" aria-label="Modo da aula"><button class="practice-mode '+(s.mode==="guided"?"active":"")+'" data-mode="guided">📖 Aprender sem pressa</button><button class="practice-mode '+(s.mode==="performance"?"active":"")+'" data-mode="performance">🎵 Tocar no ritmo</button></div>'+(s.mode==="performance"?performancePanel(s,noteName,bpm):"")+'<div class="instruction"><div><span class="difficulty">'+(s.mode==="performance"?"DESAFIO NO TEMPO":l.kind==="song"?"TOCANDO UMA MELODIA":"PRÁTICA GUIADA")+'</span><h1>Toque <span style="color:#6656e7">'+noteName(current.m)+'</span></h1><span class="muted">'+esc(s.sectionRange?"Treino focado nas notas "+(s.sectionRange.start+1)+" a "+s.sectionRange.end+".":l.tip)+'</span></div><button class="btn outline sm" data-action="demo" '+(demoBusy||s.mode==="performance"&&s.performance.phase!=="ready"?"disabled":"")+'>♫ Ouvir exemplo</button></div>'+
-  '<section class="lesson-main"><div class="score-header"><strong>🎼 Sua partitura</strong><span>Nota '+(s.index+1)+' de '+total+'</span></div><div class="score-board">'+scoreSvg()+'</div><div class="keyboard-panel"><div class="keyboard-top"><strong>⌨ Onde tocar no piano</strong><span>'+((s.showHint)?"A tecla lilás mostra a dica":"Peça uma dica quando precisar")+'</span></div>'+piano()+'</div></section>'+
+  '<section class="lesson-main"><div class="score-header"><strong>🎼 Sua partitura</strong><span>Nota '+(s.index+1)+' de '+total+'</span></div><div class="score-board">'+scoreSvg()+'</div><div class="keyboard-panel"><div class="keyboard-top"><strong>'+(currentInstrument().group==="strings"?"🎸 Onde tocar no "+esc(currentInstrument().name):"⌨ Onde tocar no teclado")+'</strong><span>'+(s.showHint?"Posição destacada em lilás":"Toque no instrumento físico") +'</span></div>'+(currentInstrument().group==="strings"?fretboard(currentInstrument().id,current,{showHint:s.showHint,heard:lastFrame?.note??null}):piano())+'</div></section>'+
   '<div class="lesson-bottom"><section class="listen-panel"><div class="listen-top"><div class="listen-indicator"><span class="audio-dot '+(audioStatus==="listening"?"on":audioStatus==="permission"?"wait":"")+'" id="audio-dot"></span><div><div class="audio-status" id="audio-status">'+esc(audioText())+'</div><div class="audio-sub" id="audio-sub">'+(audioStatus==="listening"?"Toque uma nota por vez e sustente por um instante.":"O acesso será solicitado pelo navegador.")+'</div></div></div><div class="row"><button class="btn sm '+(audio.listening?"ghost":"")+'" data-action="microphone" id="mic-btn">'+(audio.listening?"Desligar":"🎙 Ativar microfone")+'</button></div></div>'+
   '<div class="level"><div id="input-level" style="width:0%"></div></div><div class="audio-readings"><span id="heard">Nota: aguardando</span><span id="frequency">0 Hz</span><span id="tuning">Afinação: —</span></div>'+
   '<div class="row wrap" style="margin-top:14px"><button class="btn outline sm" data-action="midi">🎹 '+(s.midiEnabled?"MIDI conectado":"Conectar MIDI")+'</button><label class="row small muted" for="sensitivity">Sensibilidade <input id="sensitivity" type="range" min="0" max="100" value="'+s.sensitivity+'" style="width:90px" aria-label="Sensibilidade do microfone"></label></div></section>'+
   '<section class="coaching-panel"><div class="coach-head"><span class="coach-emoji">💡</span> Seu professor virtual</div><div class="coach-message" id="coach-message">'+esc(coachMessage())+'</div><div class="coach-actions"><button class="btn sm ghost" data-action="hint">'+(s.showHint?"Ocultar dica":"🔍 Mostrar dica")+'</button><button class="btn sm outline" data-action="hear-note">♫ Ouvir nota</button><button class="btn sm outline" data-action="restart">↻ Reiniciar</button><button class="btn sm outline" data-action="tempo">⏱ '+bpm+' BPM</button>'+(s.mode==="performance"?"":'<button class="btn sm outline" data-action="metronome">'+(metronome?"◼ Parar pulso":"♪ Metrônomo")+'</button>')+'</div></section></div>'+
-  '<footer class="lesson-footer"><span class="muted">🎙 Use um instrumento físico. O teclado na tela é apenas um guia visual.</span><span class="muted">Os acordes simultâneos ainda não são reconhecidos.</span><button class="btn dark sm" data-action="leave">Salvar e sair</button></footer></div></div>';
+  '<footer class="lesson-footer"><span class="muted">🎙 Use seu instrumento físico. A tela é apenas um guia visual.</span><span class="muted">Os acordes simultâneos ainda não são reconhecidos.</span><button class="btn dark sm" data-action="leave">Salvar e sair</button></footer></div></div>';
 }
 function result(){
   const r=session.result,stars="★".repeat(r.stars)+"☆".repeat(3-r.stars);
@@ -219,7 +219,8 @@ function changePage(next){
 }
 async function startLesson(id,requestMicrophone=true,options={}){
   stopTimers();audio.stop();audio.disconnectMidi();
-  const lesson=lessonById(id),allSteps=getSessionNotes(lesson),range=options.range&&options.range.end>options.range.start?options.range:null,steps=range?allSteps.slice(range.start,range.end):allSteps,mode=options.mode==="performance"?"performance":"guided";
+  const lesson=findInstrumentLesson(id,LESSONS);if(!lesson){toast("Esta aula não está disponível.");return}
+  const allSteps=getSessionNotes(lesson),range=options.range&&options.range.end>options.range.start?options.range:null,steps=range?allSteps.slice(range.start,range.end):allSteps,mode=options.mode==="performance"?"performance":"guided";
   active().checkpoints=active().checkpoints||{};
   if(options.reset){delete active().checkpoints[id];save()}
   const checkpoint=mode==="guided"&&!range&&!options.reset?active().checkpoints[id]:null;
@@ -600,7 +601,7 @@ document.addEventListener("click",async e=>{
   if(action==="leave"){changePage("courses");return}
   if(action==="repeat"){await startLesson(session.lesson.id,true,{mode:session.mode,range:session.sectionRange});return}
   if(action==="difficult"){const range=session.result?.performance?.difficultRange;if(range)await startLesson(session.lesson.id,true,{mode:"performance",range:session.sectionRange?{start:session.sectionRange.start+range.start,end:session.sectionRange.start+range.end}:range});return}
-  if(action==="next"){const idx=LESSONS.findIndex(l=>l.id===session.lesson.id);await startLesson(LESSONS[(idx+1)%LESSONS.length].id);return}
+  if(action==="next"){const lessons=currentLessons(),idx=lessons.findIndex(l=>l.id===session.lesson.id),next=lessons[idx+1];if(next)await startLesson(next.id);else changePage("courses");return}
 });
 document.addEventListener("submit",e=>{
   if(e.target.id==="lyrics-form"){
