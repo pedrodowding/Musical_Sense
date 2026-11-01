@@ -3,8 +3,13 @@ import {LESSONS,COURSES,SONGS,noteName,noteShort,lessonById,getSessionNotes,init
 import {AudioEngine,SoundPlayer} from "./audio-engine.js";
 import {PerformanceSession} from "./performance-engine.js";
 import {performanceRollSvg,performancePanel,performanceResultExtra} from "./performance-view.js";
+import {VOCAL_SONGS,vocalById} from "./singing-data.js";
+import {SingingSession} from "./singing-engine.js";
+import {createPersonalSong,safeLibrary} from "./lyrics-library.js";
+import {renderSingingHome,renderImportLyrics,renderVocalPractice,renderVocalResult,renderPersonalPractice,renderAchievements} from "./singing-ui.js";
+import {awardPractice,ensureProgress,levelInfo,missionState,streakInfo,localDay,BADGES} from "./gamification.js";
 const DBKEY="musical-sense-v3",OLDKEY="musical-sense-v1";
-const routes=[["home","⌂","Início"],["courses","▤","Cursos"],["library","♫","Músicas"],["workouts","◷","Treinos"],["profiles","♙","Perfis"]];
+const routes=[["home","⌂","Início"],["courses","▤","Cursos"],["singing","🎤","Cantar"],["library","♫","Músicas"],["workouts","◷","Treinos"],["profiles","♙","Perfis"]];
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const percent=(a,b)=>b?Math.round(a/b*100):0;
@@ -23,6 +28,8 @@ function load(){
   const u=initialUser();return {users:[u],active:u.id};
 }
 let db=load(),page="home",courseFilter="all",songFilter="Todas",session=null,audioStatus="off",audioError="",lastFrame=null,tipTimer=null,demoBusy=false,metronome=false,bpm=80,toastTimer=null;
+db.users.forEach(u=>{ensureProgress(u);u.personalLyrics=safeLibrary(u.personalLyrics)});
+let vocal=null,vocalAward=null,personalSession=null,singingRAF=0,singingLastTick=0,vocalFrame=null;
 let performanceRAF=0,lastVisualTick=0;
 const player=new SoundPlayer();
 const audio=new AudioEngine(frame=>onFrame(frame),ev=>onNote(ev),(status,error)=>{audioStatus=status;if(error)audioError=error;updateAudioUI()});
@@ -40,13 +47,14 @@ function shell(content){
 }
 function metric(label,value,icon,color){return '<div class="card stat"><span class="stat-icon '+color+'">'+icon+'</span><div><b>'+esc(value)+'</b><span>'+esc(label)+'</span></div></div>'}
 function home(){
-  const u=active(),complete=Object.keys(u.completed||{}).length,next=LESSONS.find(l=>!u.completed[l.id])||LESSONS[0],accuracy=percent(u.totalCorrect,u.totalAttempts);
+  const u=active(),complete=Object.keys(u.completed||{}).length,next=LESSONS.find(l=>!u.completed[l.id])||LESSONS[0],accuracy=percent(u.totalCorrect,u.totalAttempts),level=levelInfo(u.xp),streak=streakInfo(u);
   let out='<div class="hero"><div class="hero-copy"><span class="pill dark">✨ SUA JORNADA MUSICAL</span><h1>Seu talento começa com uma nota.</h1><p>Toque no seu piano ou teclado. O Musical Sense escuta e guia você em cada conquista.</p><button class="btn white" data-lesson="'+next.id+'">▶ '+(complete?"Continuar aprendendo":"Começar minha primeira aula")+'</button></div><div class="hero-art" aria-hidden="true"><div class="orbit"></div><div class="orbit"></div><span class="big-note">♫</span><span class="spark">✦</span></div></div>';
-  out+='<div class="grid three" style="margin-top:16px">'+metric("XP conquistados",u.xp,"⚡","purple")+metric("Aulas concluídas",complete,"🏆","green")+metric("Notas corretas",u.totalCorrect,"🎯","")+'</div>';
+  out+='<div class="grid three" style="margin-top:16px">'+metric("Nível musical",level.level,"⚡","purple")+metric("Aulas concluídas",complete,"🏆","green")+metric("Dias seguidos",streak.current,"🔥","")+'</div>';
   out+='<div class="section-head"><h2>Continue sua jornada</h2><button class="link-action" data-route="courses">Ver todas as aulas →</button></div>';
   out+='<div class="lesson-row"><div class="lesson-icon">'+next.icon+'</div><div class="grow"><span class="eyebrow">'+(complete?"PRÓXIMA ETAPA":"COMECE AQUI")+'</span><h3>'+esc(next.title)+'</h3><p>'+esc(next.subtitle)+'</p><div class="lesson-foot"><span>⏱ '+next.minutes+' min</span><span>⚡ '+next.xp+' XP</span></div></div><button class="btn lesson-action" data-lesson="'+next.id+'">Aprender →</button></div>';
   out+='<div class="section-head"><h2>Explore seu universo musical</h2></div><div class="grid three">'+COURSES.map(courseCard).join("")+'</div>';
   out+='<div class="grid two" style="margin-top:17px"><div class="card workout"><div class="workout-deco" aria-hidden="true">♫</div><span class="pill dark">5 MINUTOS</span><h2 style="margin:14px 0 8px">Um treino rápido faz a diferença</h2><p>Exercite seu ouvido e a coordenação com desafios curtos.</p><button class="btn white" data-route="workouts">Treinar agora →</button></div><div class="card"><span class="pill green">📈 SEU DESENVOLVIMENTO</span><h2 style="margin:14px 0 13px">Cada nota conta</h2><p class="muted small">Progresso nas aulas disponíveis</p><div class="progress-track"><div class="progress-fill" style="width:'+percent(complete,LESSONS.length)+'%"></div></div><div class="row between" style="margin-top:12px"><span class="small muted">'+complete+'/'+LESSONS.length+' aulas</span><span class="small strong">'+accuracy+'% de acertos registrados</span></div></div></div>';
+  out+='<div class="section-head"><h2>Novos desafios</h2></div><div class="grid two"><div class="card" style="background:linear-gradient(110deg,#f6ecff,#dff9f1)"><span class="pill">🎤 CANTO</span><h2 style="margin:13px 0 7px">Sua voz também é um instrumento</h2><p class="muted small">Cante melodias originais com letras sincronizadas e feedback de afinação.</p><button class="btn" data-route="singing">Começar a cantar →</button></div><div class="gamification-mini"><span class="pill">🏆 MISSÕES E MEDALHAS</span><h3 style="margin-top:13px">Nível '+level.level+' · '+u.xp+' XP</h3><p>Pratique, ganhe medalhas e mantenha sua sequência musical.</p><div class="statline"><b>Próximo nível</b><span>'+level.progress+'%</span></div><div class="progress-track"><div class="progress-fill" style="width:'+level.progress+'%"></div></div><button class="btn ghost sm" data-route="achievements">Ver conquistas →</button></div></div>';
   return out;
 }
 function courseCard(c){
@@ -73,7 +81,7 @@ function library(){
   '<p class="inline-tip">Músicas comerciais populares não estão incluídas sem a licença correspondente. O áudio de demonstração é sintetizado a partir das próprias notas dos exercícios.</p>';
 }
 function workouts(){
-  const u=active(),today=new Date().toLocaleDateString("en-CA"),sessionsToday=(u.history||[]).filter(h=>h.day===today),minToday=Math.round(sessionsToday.reduce((acc,h)=>acc+(h.seconds||0),0)/60);
+  const u=active(),today=localDay(),sessionsToday=(u.history||[]).filter(h=>h.day===today),minToday=Math.round(sessionsToday.reduce((acc,h)=>acc+(h.seconds||0),0)/60);
   const options=[LESSONS[0],LESSONS[2],LESSONS.find(l=>l.id==="rhythm")];
   return '<div class="page-intro"><span class="eyebrow">PEQUENAS VITÓRIAS, TODOS OS DIAS</span><h1>Treinos de 5 minutos ⏱</h1><p>Exercícios objetivos para melhorar leitura, precisão e coordenação. Você não precisa terminar uma aula longa para evoluir.</p></div>'+
   '<div class="card workout"><span class="pill dark">DESAFIO DO DIA</span><h2 style="margin:14px 0 8px">Sua meta: 5 minutos de música</h2><p>'+Math.min(5,minToday)+' de 5 minutos de prática hoje</p><div class="progress-track" style="background:#5a5a89;max-width:440px"><div class="progress-fill" style="width:'+Math.min(100,percent(minToday,5))+'%"></div></div><p class="small" style="margin:10px 0 0">O tempo registra aulas concluídas neste dispositivo.</p></div>'+
@@ -154,14 +162,14 @@ function result(){
 }
 function render(){
   if(!db.users.some(u=>u.id===db.active))db.active=db.users[0].id;
-  const content=page==="home"?home():page==="courses"?courses():page==="library"?library():page==="workouts"?workouts():profiles();
-  $("#app").innerHTML=page==="practice"&&session?practice():page==="result"&&session?result():shell(content);
-  document.title=(page==="practice"&&session?session.lesson.title+" | ":"")+"Musical Sense";
+  const content=page==="home"?home():page==="courses"?courses():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics():page==="library"?library():page==="workouts"?workouts():profiles();
+  $("#app").innerHTML=page==="practice"&&session?practice():page==="result"&&session?result():page==="vocal-practice"&&vocal?renderVocalPractice(vocal,noteName,audioStatus,lastFrame):page==="vocal-result"&&vocal?renderVocalResult(vocal.summary(),vocalAward?.xp||0,vocalAward?.level||1,(vocalAward?.badges||[]).map(id=>BADGES.find(b=>b.id===id)?.name||id)):page==="personal-practice"&&personalSession?renderPersonalPractice(personalSession.song,personalSession,lastFrame,noteName):shell(content);
+  document.title=(page==="practice"&&session?session.lesson.title+" | ":page==="vocal-practice"&&vocal?vocal.song.title+" | ":"")+"Musical Sense";
   updateAudioUI();
 }
-function stopTimers(){clearInterval(tipTimer);tipTimer=null;if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;player.stop();metronome=false;demoBusy=false}
+function stopTimers(){clearInterval(tipTimer);tipTimer=null;if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;player.stop();metronome=false;demoBusy=false}
 function changePage(next){
-  if(page==="practice"||page==="result"){audio.stop();audio.disconnectMidi();stopTimers();session=null}
+  if(["practice","result","vocal-practice","vocal-result","personal-practice"].includes(page)){audio.stop();audio.disconnectMidi();stopTimers();session=null;vocal=null;personalSession=null}
   page=next;render();window.scrollTo(0,0);
 }
 async function startLesson(id,requestMicrophone=true,options={}){
