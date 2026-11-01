@@ -159,19 +159,20 @@ function render(){
   document.title=(page==="practice"&&session?session.lesson.title+" | ":"")+"Musical Sense";
   updateAudioUI();
 }
-function stopTimers(){clearInterval(tipTimer);tipTimer=null;player.stop();metronome=false;demoBusy=false}
+function stopTimers(){clearInterval(tipTimer);tipTimer=null;if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;player.stop();metronome=false;demoBusy=false}
 function changePage(next){
   if(page==="practice"||page==="result"){audio.stop();audio.disconnectMidi();stopTimers();session=null}
   page=next;render();window.scrollTo(0,0);
 }
-async function startLesson(id,requestMicrophone=true){
+async function startLesson(id,requestMicrophone=true,options={}){
   stopTimers();audio.stop();audio.disconnectMidi();
-  const lesson=lessonById(id);session={
-    lesson,steps:getSessionNotes(lesson),index:0,hits:0,misses:0,assisted:0,feedback:[],showHint:false,wrongFlashUntil:0,
-    coach:"",stepStart:Date.now(),startedAt:Date.now(),lastCorrect:null,sensitivity:70,midiEnabled:false,result:null
+  const lesson=lessonById(id),allSteps=getSessionNotes(lesson),range=options.range&&options.range.end>options.range.start?options.range:null,steps=range?allSteps.slice(range.start,range.end):allSteps,mode=options.mode==="performance"?"performance":"guided";
+  session={lesson,steps,index:0,hits:0,misses:0,assisted:0,feedback:[],showHint:false,wrongFlashUntil:0,
+    coach:"",stepStart:Date.now(),startedAt:Date.now(),lastCorrect:null,sensitivity:70,midiEnabled:false,result:null,mode,sectionRange:range,
+    performance:mode==="performance"?new PerformanceSession(steps,{bpm,latencyMs:db.perfLatency??160}):null
   };
   page="practice";audioStatus="off";audioError="";lastFrame=null;audio.setSensitivity(.70);render();window.scrollTo(0,0);
-  tipTimer=setInterval(()=>{if(page!=="practice"||!session)return;if(!session.showHint&&Date.now()-session.stepStart>9000){session.showHint=true;session.coach="Precisa de ajuda? A tecla lilás indica onde tocar.";render()}},1100);
+  tipTimer=setInterval(()=>{if(page!=="practice"||!session||session.mode!=="guided")return;if(!session.showHint&&Date.now()-session.stepStart>9000){session.showHint=true;session.coach="Precisa de ajuda? A tecla lilás indica onde tocar.";render()}},1100);
   if(requestMicrophone)await enableMic();
 }
 async function enableMic(){
