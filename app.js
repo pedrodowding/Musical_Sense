@@ -90,7 +90,7 @@ function workouts(){
 function profiles(){
   const u=active();
   return '<div class="page-intro"><span class="eyebrow">UM ESPAÇO PARA CADA MÚSICO</span><h1>Perfis da família</h1><p>Compartilhem o aparelho sem misturar pontos, aulas e conquistas. Os dados ficam salvos apenas neste navegador.</p></div>'+
-  '<div class="grid two"><section class="card"><h2>Escolha quem vai tocar</h2>'+db.users.map(p=>'<div class="profile-row '+(p.id===u.id?"active":"")+'"><span class="avatar">'+esc(p.name[0].toUpperCase())+'</span><div class="grow"><b>'+esc(p.name)+'</b><div class="muted small">'+esc(p.instrument)+' · '+(p.xp||0)+' XP</div></div><button class="btn sm '+(p.id===u.id?"ghost":"")+'" data-profile="'+esc(p.id)+'">'+(p.id===u.id?"✓ Ativo":"Entrar")+'</button></div>').join("")+'</section>'+
+  '<div class="grid two"><section class="card"><h2>Escolha quem vai tocar</h2>'+db.users.map(p=>'<div class="profile-row '+(p.id===u.id?"active":"")+'"><span class="avatar">'+esc(p.name[0].toUpperCase())+'</span><div class="grow"><b>'+esc(p.name)+'</b><div class="muted small">'+esc(p.instrument)+' · '+(p.xp||0)+' XP</div></div><div class="profile-tools"><button class="btn sm '+(p.id===u.id?"ghost":"")+'" data-profile="'+esc(p.id)+'">'+(p.id===u.id?"✓ Ativo":"Entrar")+'</button><button class="btn sm outline" data-profile-edit="'+esc(p.id)+'" aria-label="Renomear perfil">✎</button><button class="btn sm outline" data-profile-delete="'+esc(p.id)+'" aria-label="Excluir perfil">×</button></div></div>').join("")+'</section>'+
   '<section class="card"><h2>Adicionar músico</h2><form id="profile-form"><label class="form-field" for="profile-name">Nome</label><input class="form-input" id="profile-name" name="name" maxlength="30" required placeholder="Ex.: Ana"><label class="form-field" for="profile-instrument">Instrumento</label><select class="form-input" id="profile-instrument" name="instrument">'+["Piano","Teclado","Violão","Guitarra","Ukulele","Baixo"].map(v=>'<option>'+v+'</option>').join("")+'</select><button class="btn" type="submit">+ Criar perfil</button></form><p class="inline-tip">Nesta fase, as trilhas práticas estão preparadas para piano e teclado. Outros instrumentos terão conteúdos próprios em versões futuras.</p></section></div>'+
   '<div class="card" style="margin-top:18px"><h3>Seus números</h3><div class="grid three">'+metric("Experiência",u.xp+" XP","⚡","purple")+metric("Lições",Object.keys(u.completed||{}).length,"🏆","green")+metric("Precisão",percent(u.totalCorrect,u.totalAttempts)+"%","🎯","")+'</div></div>';
 }
@@ -264,7 +264,7 @@ function finishLesson(){
     song:s.lesson.kind==="song",assisted:s.assisted,rhythmAccuracy:performanceData?.rhythmAccuracy
   });
   s.result={accuracy,stars,xp:award.xp,seconds,passed,mode:s.mode,performance:performanceData,awards:award};
-  if(u.checkpoints)delete u.checkpoints[s.lesson.id];
+  if(!s.sectionRange&&passed&&u.checkpoints)delete u.checkpoints[s.lesson.id];
   if(!save())toast("Não foi possível salvar o progresso neste navegador.");
   audio.stop();audio.disconnectMidi();stopTimers();page="result";render();
 }
@@ -479,6 +479,19 @@ document.addEventListener("click",async e=>{
   if(d.course){courseFilter=d.course;changePage("courses");return}
   if(d.filter){courseFilter=d.filter;render();return}
   if(d.genre){songFilter=d.genre;render();return}
+  if(d.profileEdit){
+    const p=db.users.find(x=>x.id===d.profileEdit);if(!p)return;
+    const proposed=window.prompt("Novo nome do perfil:",p.name);if(proposed===null)return;
+    const name=proposed.trim().slice(0,30);if(!name){toast("Informe um nome válido.");return}
+    p.name=name;if(!save())toast("Não foi possível salvar o nome.");render();return;
+  }
+  if(d.profileDelete){
+    if(db.users.length<=1){toast("Mantenha pelo menos um perfil.");return}
+    const p=db.users.find(x=>x.id===d.profileDelete);if(!p)return;
+    if(!window.confirm("Excluir o perfil "+p.name+"? O progresso e as letras locais deste aluno serão apagados."))return;
+    db.users=db.users.filter(x=>x.id!==d.profileDelete);if(db.active===d.profileDelete)db.active=db.users[0].id;
+    if(!save())toast("Não foi possível salvar a exclusão.");render();return;
+  }
   if(d.profile){db.active=d.profile;save();changePage("home");return}
   if(d.lesson){await startLesson(d.lesson);return}
   if(d.vocal){await beginVocal(d.vocal);return}
@@ -537,7 +550,7 @@ document.addEventListener("submit",e=>{
   e.preventDefault();
   const fd=new FormData(e.target),name=String(fd.get("name")||"").trim(),instrument=String(fd.get("instrument")||"Piano");
   if(!name){toast("Digite o nome do aluno.");return}
-  if(db.users.length>=8){toast("O limite desta versão é de oito perfis.");return}
+  if(db.users.length>=5){toast("O plano familiar permite até cinco perfis neste dispositivo.");return}
   const u=initialUser(name,instrument);db.users.push(u);db.active=u.id;save();changePage("home");toast("Perfil criado. Bons estudos!");
 });
 document.addEventListener("change",async e=>{
