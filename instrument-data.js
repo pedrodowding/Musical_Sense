@@ -26,7 +26,7 @@ const sources=[
  {id:"electric",prefix:"guitarra",string:"Mi aguda",stringNumber:1,open:64,kind:"guitar",program:[
   {key:"first",title:"Primeiro riff",subtitle:"Riff original na corda Mi aguda",icon:"⚡",kind:"notes",notes:[64,64,67,69,67,64],xp:50,minutes:4},
   {key:"steps",title:"Casas e precisão",subtitle:"Explorando as casas 0, 1, 3 e 5",icon:"🎸",kind:"technique",notes:[64,65,67,69,67,65,64],xp:75,minutes:5},
-  {key:"song",title:"Riff de descoberta",subtitle:"Melodia original de guitarra",icon:"🎶",kind:"song",notes:[64,67,69,72,69,67,65,64],xp:110,minutes:6},
+  {key:"song",title:"Riff de descoberta",subtitle:"Melodia original de guitarra",icon:"🎶",kind:"song",notes:[64,67,69,71,69,67,65,64],xp:110,minutes:6},
   {key:"rhythm",title:"Pulso do rock",subtitle:"Ataques na corda Mi com metrônomo",icon:"🥁",kind:"rhythm",notes:[64,64,64,67,67,69,67,64],xp:90,minutes:5}
  ]},
  {id:"ukulele",prefix:"uke",string:"Lá",stringNumber:1,open:69,kind:"ukulele",program:[
