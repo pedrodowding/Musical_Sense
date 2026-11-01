@@ -634,6 +634,26 @@ document.addEventListener("click",async e=>{
   const action=d.action;
   if(!action)return;
   if(action==="microphone"){await enableMic();return}
+  if(action==="sound-test"){
+    try{
+      player.stop();metronome=false;
+      applyTimbre(page==="vocal-practice"?"Voz":page==="practice"?session?.lesson?.instrument||active().instrument:active().instrument);
+      const demo=[{m:60,beats:1},{m:64,beats:1},{m:67,beats:1},{m:72,beats:2}];
+      const duration=await player.play(demo,110);
+      if(audio.listening)audio.muteFor(duration+160);
+      toast("Teste de áudio iniciado. Ajuste o volume enquanto ouve.");
+    }catch(e){toast("Não foi possível reproduzir o som. Toque novamente para liberar áudio no navegador.")}
+    return;
+  }
+  if(action==="pulse-test"){
+    try{await player.metronomeClick(true);toast("Pulso reproduzido.")}catch(e){toast("Não foi possível reproduzir o pulso.")}
+    return;
+  }
+  if(action==="sound-reset"){
+    db.audioVolume=player.setVolume(.85);
+    db.pulseVolume=player.setMetronomeVolume(.72);
+    db.soundTimbre="auto";applyTimbre();save();render();toast("Configurações de áudio restauradas.");return;
+  }
   if(action==="preview-song"){await previewSong();return}
   if(action==="catalog-reset"){catalogQuery="";catalogScope="all";catalogDifficulty="all";render();return}
   if(action==="diagnose-mic"){await enableMic();return}
@@ -699,6 +719,14 @@ document.addEventListener("submit",e=>{
   const u=initialUser(name,instrument);db.users.push(u);db.active=u.id;save();changePage("home");toast("Perfil criado. Bons estudos!");
 });
 document.addEventListener("change",async e=>{
+  if(e.target.id==="sound-volume"||e.target.id==="pulse-volume"){
+    db.audioVolume=player.getVolume();db.pulseVolume=player.metronomeVolume;save();return;
+  }
+  if(e.target.id==="sound-timbre"){
+    const value=e.target.value;
+    if(!["auto","piano","strings","soft"].includes(value))return;
+    db.soundTimbre=value;applyTimbre();save();toast("Timbre atualizado.");return;
+  }
   if(e.target.id==="catalog-difficulty"){catalogDifficulty=e.target.value;render();return}
   if(e.target.id==="backup-file"){
     const file=e.target.files?.[0];if(!file)return;
@@ -737,6 +765,16 @@ document.addEventListener("change",e=>{
   render();toast("Ajuste aplicado. Reinicie a música.");
 });
 document.addEventListener("input",e=>{
+  if(e.target.id==="sound-volume"){
+    player.setVolume(Number(e.target.value)/100);
+    const label=$("#sound-volume-value");if(label)label.textContent=Math.round(player.getVolume()*100)+"%";
+    db.audioVolume=player.getVolume();return;
+  }
+  if(e.target.id==="pulse-volume"){
+    player.setMetronomeVolume(Number(e.target.value)/100);
+    const label=$("#pulse-volume-value");if(label)label.textContent=Math.round(player.metronomeVolume*100)+"%";
+    db.pulseVolume=player.metronomeVolume;return;
+  }
   if(e.target.id==="catalog-query"){
     catalogQuery=String(e.target.value||"");
     const entries=fullCatalog(),settings={query:catalogQuery,scope:catalogScope,difficulty:catalogDifficulty,
