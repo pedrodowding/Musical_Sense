@@ -15,7 +15,7 @@ jobs:
           node-version: "22"
       - name: Check module syntax
         run: |
-          for file in app.js music-data.js audio-engine.js performance-engine.js performance-view.js singing-data.js singing-engine.js lyrics-library.js singing-ui.js gamification.js sw.js; do
+          for file in app.js music-data.js audio-engine.js performance-engine.js performance-view.js singing-data.js singing-engine.js lyrics-library.js singing-ui.js gamification.js backup.js sw.js; do
             node --input-type=module --check < "$file"
           done
       - name: Run instrument, vocal, lyrics and reward regression tests
