@@ -13,6 +13,11 @@ test("backup preserva alunos, progresso e XP",()=>{
  assert.equal(result.users[0].game.badges["first-note"].at,1);
  assert.equal(result.active,"u1");
 });
+test("backup mantém favoritos separados por perfil",()=>{
+ const x=base();x.users[0].favorites=["piano:joy","string:violao-song"];
+ const data=parseBackup(makeBackup(x));
+ assert.deepEqual(data.users[0].favorites,x.users[0].favorites);
+});
 test("backup mantém letras pessoais apenas dentro do perfil",()=>{
  const x=base(),song=lyrics.createPersonalSong({title:"Minha música",lyrics:"[00:01.00]Verso",rightsConfirmed:true});
  x.users[0].personalLyrics=[song];
