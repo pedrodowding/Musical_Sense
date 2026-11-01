@@ -44,5 +44,13 @@ export function performanceResultExtra(r){
   if(!r.performance)return "";
   const p=r.performance;
   const label=r.passed?"Você acompanhou o ritmo!":"Desafio concluído. Repita para melhorar.";
-  return '<div class="performance-summary"><strong>🎯 '+label+'</strong><div class="performance-summary-grid"><div><b>'+p.rhythmAccuracy+'%</b><span>Precisão rítmica</span></div><div><b>'+p.perfect+'</b><span>Notas perfeitas</span></div><div><b>'+p.bestCombo+'×</b><span>Melhor sequência</span></div><div><b>'+p.misses+'</b><span>Notas perdidas</span></div></div><p>Precisão rítmica: notas corretas próximas ao tempo esperado. Estimativa sujeita à latência e às limitações do microfone.</p></div>';
+  const offsets=p.events.filter(e=>typeof e.offsetMs==="number").map(e=>e.offsetMs);
+  const early=offsets.filter(t=>t<-80).length,late=offsets.filter(t=>t>80).length;
+  const bias=early>late?"Você tende a antecipar as notas. Escute mais um pulso antes de tocar.":late>early?"Você tende a tocar depois do pulso. Prepare os dedos para a próxima nota.":"Seu tempo ficou relativamente equilibrado entre antecipações e atrasos.";
+  const bars=p.events.map((e,i)=>{
+    const grade=e.status||"miss";
+    const title="Nota "+(i+1)+": "+(grade==="perfect"?"perfeita":grade==="good"?"boa":grade==="ok"?"fora do centro do pulso":"não tocada")+(typeof e.offsetMs==="number"?" ("+(e.offsetMs>0?"+":"")+e.offsetMs+" ms)":"");
+    return '<span class="rhythm-note '+grade+'" title="'+escapeHtml(title)+'" aria-label="'+escapeHtml(title)+'">'+(i+1)+'</span>';
+  }).join("");
+  return '<div class="performance-summary"><strong>🎯 '+label+'</strong><div class="performance-summary-grid"><div><b>'+p.rhythmAccuracy+'%</b><span>Precisão rítmica</span></div><div><b>'+p.perfect+'</b><span>Notas perfeitas</span></div><div><b>'+p.bestCombo+'×</b><span>Melhor sequência</span></div><div><b>'+p.misses+'</b><span>Notas perdidas</span></div></div><div class="rhythm-note-title">Resultado nota por nota</div><div class="rhythm-note-list">'+bars+'</div><p>'+escapeHtml(bias)+'</p><p>Estimativa temporal sujeita à latência e às limitações do microfone. Verde indica acerto próximo ao pulso, amarelo indica precisão menor e vermelho indica nota não tocada.</p></div>';
 }
