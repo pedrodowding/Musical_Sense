@@ -47,5 +47,5 @@ export function parseBackup(text){
   return ensureProgress(user);
  });
  return {users,active:ids.has(source.active)?source.active:users[0].id,
-  perfLatency:nonnegative(source.perfLatency,350),vocalLatency:nonnegative(source.vocalLatency,350)};
+  perfLatency:source.perfLatency==null?160:nonnegative(source.perfLatency,350),vocalLatency:source.vocalLatency==null?130:nonnegative(source.vocalLatency,350)};
 }
