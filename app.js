@@ -9,8 +9,13 @@ import {createPersonalSong,safeLibrary} from "./lyrics-library.js";
 import {renderSingingHome,renderImportLyrics,renderVocalPractice,renderVocalResult,renderPersonalPractice,renderAchievements} from "./singing-ui.js";
 import {awardPractice,ensureProgress,levelInfo,missionState,streakInfo,localDay,BADGES} from "./gamification.js";
 import {makeBackup,parseBackup} from "./backup.js";
+import {INSTRUMENTS,instrumentId,instrumentInfo,instrumentName,lessonsForInstrument,findInstrumentLesson,getInstrumentCourses} from "./instrument-data.js";
+import {fretboard} from "./instrument-ui.js";
+import {catalogEntries,catalogFilter,catalogEntryById} from "./catalog.js";
+import {instrumentContext,instrumentPicker,learningPath,catalogPage,catalogResultsMarkup,songDetailPage} from "./discovery-ui.js";
 const DBKEY="musical-sense-v3",OLDKEY="musical-sense-v1";
-const routes=[["home","⌂","Início"],["courses","▤","Cursos"],["singing","🎤","Cantar"],["library","♫","Músicas"],["workouts","◷","Treinos"],["profiles","♙","Perfis"]];
+const routes=[["home","⌂","Início"],["courses","◎","Trilha"],["library","♫","Músicas"],["singing","🎤","Cantar"],["workouts","◷","Treinos"],["profiles","♙","Perfis"]];
+const mobileRoutes=[["home","⌂","Início"],["courses","◎","Trilha"],["library","♫","Músicas"],["singing","🎤","Cantar"],["profiles","♙","Perfil"]];
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const percent=(a,b)=>b?Math.round(a/b*100):0;
@@ -31,20 +36,26 @@ function load(){
 let db=load(),page="home",courseFilter="all",songFilter="Todas",session=null,audioStatus="off",audioError="",lastFrame=null,tipTimer=null,demoBusy=false,metronome=false,bpm=80,toastTimer=null;
 db.users.forEach(u=>{ensureProgress(u);u.personalLyrics=safeLibrary(u.personalLyrics)});
 let vocal=null,vocalAward=null,personalSession=null,singingRAF=0,singingLastTick=0,vocalFrame=null,editingSongId=null;
+let catalogQuery="",catalogScope="mine",catalogDifficulty="all",songDetailId=null;
 let performanceRAF=0,lastVisualTick=0;
 const player=new SoundPlayer();
 const audio=new AudioEngine(frame=>onFrame(frame),ev=>onNote(ev),(status,error)=>{audioStatus=status;if(error)audioError=error;updateAudioUI()});
 const active=()=>db.users.find(u=>u.id===db.active)||db.users[0];
+const currentInstrument=()=>instrumentInfo(active().instrument);
+const currentLessons=()=>lessonsForInstrument(active().instrument,LESSONS);
+const catalogData=()=>({pianoSongs:SONGS,lessons:LESSONS,vocalSongs:VOCAL_SONGS,personalSongs:active().personalLyrics||[]});
+const fullCatalog=()=>catalogEntries(catalogData());
+const selectedCatalogEntry=()=>catalogEntryById(songDetailId,catalogData());
 const save=()=>{try{localStorage.setItem(DBKEY,JSON.stringify(db));return true}catch(e){console.warn("Armazenamento local indisponível",e);return false}};
 function toast(message){const prev=$("#toast");if(prev)prev.remove();const node=document.createElement("div");node.id="toast";node.className="toast";node.textContent=message;document.body.appendChild(node);clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.remove(),3500)}
 function navButton(item){const [id,icon,label]=item;return '<button class="nav-btn '+(page===id?"active":"")+'" data-route="'+id+'"><span class="i">'+icon+'</span><span>'+label+'</span></button>'}
 function mobileButton(item){const [id,icon,label]=item;return '<button class="'+(page===id?"active":"")+'" data-route="'+id+'"><span class="icon">'+icon+'</span><span>'+label+'</span></button>'}
 function shell(content){
-  const u=active(),complete=Object.keys(u.completed||{}).length;
+  const u=active(),complete=currentLessons().filter(l=>u.completed[l.id]).length;
   return '<div class="shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">♫</span> Musical Sense</div><div class="side-caption">EXPLORAR</div>'+
-  routes.map(navButton).join("")+'<div class="sidebar-spacer"></div><div class="sidebar-panel"><strong>🎯 Seu progresso</strong><p>'+complete+' aulas concluídas · '+u.xp+' XP</p><div class="progress-track" style="margin-top:12px"><div class="progress-fill" style="width:'+percent(complete,LESSONS.length)+'%"></div></div></div></aside>'+
+  routes.map(navButton).join("")+'<div class="sidebar-spacer"></div><div class="sidebar-panel"><strong>🎯 Seu progresso</strong><p>'+complete+' aulas concluídas · '+u.xp+' XP</p><div class="progress-track" style="margin-top:12px"><div class="progress-fill" style="width:'+percent(complete,Math.max(1,currentLessons().length))+'%"></div></div></div></aside>'+
   '<div class="main"><div class="content"><div class="topbar"><span class="eyebrow">APRENDA NO SEU TEMPO</span><div class="top-actions"><span class="bubble">⚡ '+u.xp+' XP</span><button class="profile-switch" data-route="profiles" title="Trocar perfil"><span class="avatar">'+esc(u.name.trim().charAt(0).toUpperCase())+'</span>'+esc(u.name.split(" ")[0])+' ▾</button></div></div>'+
-  content+'</div></div></div><nav class="mobile-nav" aria-label="Navegação principal">'+routes.map(mobileButton).join("")+'</nav>';
+  content+'</div></div></div><nav class="mobile-nav" aria-label="Navegação principal">'+mobileRoutes.map(mobileButton).join("")+'</nav>';
 }
 function metric(label,value,icon,color){return '<div class="card stat"><span class="stat-icon '+color+'">'+icon+'</span><div><b>'+esc(value)+'</b><span>'+esc(label)+'</span></div></div>'}
 function home(){
