@@ -195,6 +195,7 @@ function onFrame(frame){
 function onNote(event){
   if(page!=="practice"||!session)return;
   const s=session,target=s.steps[s.index].m,m=event.note;
+  if(s.mode==="performance"){const p=s.performance,rv=p.receive(event,performance.now());syncPerformanceState();if(p.phase==="finished"){finishLesson();return}if(rv.type==="hit"||rv.type==="wrong"){render()}else{const c=$("#performance-message");if(c)c.textContent=p.lastFeedback}return}
   if(m===target&&Math.abs(event.cents||0)<=45){
     const assisted=s.showHint;
     s.feedback[s.index]=assisted?"hint":"correct";s.hits++;if(assisted)s.assisted++;
@@ -211,14 +212,18 @@ function onNote(event){
   }
 }
 function finishLesson(){
-  const s=session,u=active(),accuracy=percent(s.hits,s.hits+s.misses),stars=accuracy>=92&&s.assisted<=2?3:accuracy>=72?2:1;
+  const s=session,u=active(),performanceData=s.mode==="performance"?s.performance.summary():null;
+  const accuracy=performanceData?performanceData.accuracy:percent(s.hits,s.hits+s.misses);
+  const passed=!performanceData||accuracy>=65;
+  const stars=accuracy>=92&&(!performanceData||performanceData.rhythmAccuracy>=80)&&s.assisted<=2?3:accuracy>=72?2:1;
   const seconds=Math.max(1,Math.round((Date.now()-s.startedAt)/1000));
-  const xp=Math.max(15,Math.round(s.lesson.xp*(.5+.5*accuracy/100)*(s.assisted?0.85:1)));
-  s.result={accuracy,stars,xp,seconds};
+  const multiplier=performanceData?(passed?1:.35):1;
+  const xp=Math.max(5,Math.round(s.lesson.xp*(.5+.5*accuracy/100)*(s.assisted?.85:1)*multiplier));
+  s.result={accuracy,stars,xp,seconds,passed,mode:s.mode,performance:performanceData};
   u.xp=(u.xp||0)+xp;u.totalCorrect=(u.totalCorrect||0)+s.hits;u.totalAttempts=(u.totalAttempts||0)+s.hits+s.misses;u.practiceSeconds=(u.practiceSeconds||0)+seconds;
   u.completed=u.completed||{};const prior=u.completed[s.lesson.id];
-  u.completed[s.lesson.id]={at:Date.now(),stars:Math.max(stars,prior?.stars||0)};
-  u.history=u.history||[];u.history.push({id:s.lesson.id,day:new Date().toLocaleDateString("en-CA"),seconds,xp,accuracy});u.history=u.history.slice(-200);
+  if(passed&&!s.sectionRange)u.completed[s.lesson.id]={at:Date.now(),stars:Math.max(stars,prior?.stars||0)};
+  u.history=u.history||[];u.history.push({id:s.lesson.id,mode:s.mode,day:new Date().toLocaleDateString("en-CA"),seconds,xp,accuracy,rhythmAccuracy:performanceData?.rhythmAccuracy??null});u.history=u.history.slice(-200);
   save();audio.stop();audio.disconnectMidi();stopTimers();page="result";render();
 }
 function updateAudioUI(){
