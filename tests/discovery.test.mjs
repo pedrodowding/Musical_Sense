@@ -106,6 +106,7 @@ test("detalhe avisa quando instrumento é diferente antes de iniciar",()=>{
  const item=catalog.catalogEntryById("piano:joy",data);
  const detail=discovery.songDetailPage(item,{instrument:"Violão"});
  assert.ok(detail.includes("Trocar para Piano"));
+ assert.ok(detail.includes('data-action="preview-song"'));
  const same=discovery.songDetailPage(item,{instrument:"Teclado"});
  assert.ok(same.includes("Começar prática"));
 });
