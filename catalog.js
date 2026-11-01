@@ -18,7 +18,7 @@ export function catalogEntries({pianoSongs,lessons,vocalSongs,personalSongs=[]})
  const vocals=vocalSongs.map(song=>({
   id:"vocal:"+song.id,vocalId:song.id,kind:"vocal",instrument:"voice",title:song.title,
   artist:song.artist,description:song.description,cover:song.icon,genre:song.genre,level:song.level,
-  difficulty:song.level==="Iniciante"?1:2,minutes:Math.max(1,Math.ceil(song.totalBeats*60/song.bpm/60)),
+  difficulty:song.level==="Iniciante"?1:2,bpm:song.bpm,minutes:Math.max(1,Math.ceil(song.totalBeats*60/song.bpm/60)),
   notes:song.steps,source:"Composição original",capability:"pitch-and-lyrics"
  }));
  const personal=personalSongs.map(song=>({
