@@ -335,6 +335,7 @@ function animateVocal(now){
 }
 async function toggleVocal(){
   if(!vocal)return;
+  if(demoBusy){player.stop();demoBusy=false;audio.muteFor(0)}
   if(vocal.phase==="finished"){await beginVocal(vocal.song.id,{bpmOverride:vocal.bpm,transpose:vocal.transpose});return}
   if(["running","countin"].includes(vocal.phase)){
     vocal.pause(performance.now());if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;
@@ -525,6 +526,18 @@ document.addEventListener("submit",e=>{
   if(!name){toast("Digite o nome do aluno.");return}
   if(db.users.length>=8){toast("O limite desta versão é de oito perfis.");return}
   const u=initialUser(name,instrument);db.users.push(u);db.active=u.id;save();changePage("home");toast("Perfil criado. Bons estudos!");
+});
+document.addEventListener("change",async e=>{
+  if(e.target.id!=="lyrics-file")return;
+  const file=e.target.files?.[0];if(!file)return;
+  if(file.size>30000){toast("O arquivo deve ter até 30 KB.");return}
+  if(!/\.(lrc|txt)$/i.test(file.name)){toast("Selecione um arquivo .lrc ou .txt.");return}
+  try{
+    const content=await file.text();
+    const area=$("#lyrics-content");if(area)area.value=content;
+    const title=$("#lyric-title");if(title&&!title.value)title.value=file.name.replace(/\.(lrc|txt)$/i,"").replace(/[_-]/g," ").slice(0,100);
+    toast("Arquivo carregado. Confira a letra e a autorização de uso.");
+  }catch(err){toast("Não foi possível abrir o arquivo de texto.")}
 });
 document.addEventListener("change",e=>{
   if(!vocal||page!=="vocal-practice")return;
