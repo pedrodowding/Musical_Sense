@@ -8,6 +8,7 @@ import {SingingSession} from "./singing-engine.js";
 import {createPersonalSong,safeLibrary} from "./lyrics-library.js";
 import {renderSingingHome,renderImportLyrics,renderVocalPractice,renderVocalResult,renderPersonalPractice,renderAchievements} from "./singing-ui.js";
 import {awardPractice,ensureProgress,levelInfo,missionState,streakInfo,localDay,BADGES} from "./gamification.js";
+import {makeBackup,parseBackup} from "./backup.js";
 const DBKEY="musical-sense-v3",OLDKEY="musical-sense-v1";
 const routes=[["home","⌂","Início"],["courses","▤","Cursos"],["singing","🎤","Cantar"],["library","♫","Músicas"],["workouts","◷","Treinos"],["profiles","♙","Perfis"]];
 const $=s=>document.querySelector(s);
@@ -547,6 +548,17 @@ document.addEventListener("click",async e=>{
   if(!action)return;
   if(action==="microphone"){await enableMic();return}
   if(action==="diagnose-mic"){await enableMic();return}
+  if(action==="backup-export"){
+    try{
+      const contents=makeBackup(db),blob=new Blob([contents],{type:"application/json"});
+      const url=URL.createObjectURL(blob),anchor=document.createElement("a");
+      anchor.href=url;anchor.download="musical-sense-backup-"+localDay()+".json";
+      document.body.appendChild(anchor);anchor.click();anchor.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      toast("Backup preparado para download. Guarde-o em local seguro.");
+    }catch(err){toast("Não foi possível exportar o backup.")}
+    return;
+  }
   if(action==="diagnose-copy"){try{await navigator.clipboard.writeText(diagnosticReport());toast("Diagnóstico copiado.");}catch(e){toast("Não foi possível copiar. Verifique as permissões da área de transferência.")}return}
   if(action==="diagnose-reload"){audio.stop();stopTimers();window.location.reload();return}
   if(action==="lyrics-import"){changePage("lyrics-import");return}
@@ -593,6 +605,18 @@ document.addEventListener("submit",e=>{
   const u=initialUser(name,instrument);db.users.push(u);db.active=u.id;save();changePage("home");toast("Perfil criado. Bons estudos!");
 });
 document.addEventListener("change",async e=>{
+  if(e.target.id==="backup-file"){
+    const file=e.target.files?.[0];if(!file)return;
+    if(file.size>2000000){toast("O backup deve ter no máximo 2 MB.");return}
+    try{
+      const restored=parseBackup(await file.text());
+      if(!window.confirm("Restaurar "+restored.users.length+" perfil(is)? Isso substituirá o progresso e as letras pessoais atuais neste dispositivo."))return;
+      const previous=db;db=restored;
+      if(!save()){db=previous;throw Error("O armazenamento local não permitiu restaurar este backup.");}
+      changePage("profiles");toast("Backup restaurado com sucesso.");
+    }catch(err){toast(err.message||"Falha ao restaurar backup.");}
+    return;
+  }
   if(e.target.id!=="lyrics-file")return;
   const file=e.target.files?.[0];if(!file)return;
   if(file.size>30000){toast("O arquivo deve ter até 30 KB.");return}
