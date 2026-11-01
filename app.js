@@ -73,19 +73,25 @@ function courses(){
   '<div class="section-head"><h2>Explore as aulas</h2><span class="muted small">'+items.length+' disponíveis</span></div><div class="taglist">'+filters.map(([id,label])=>'<button class="chip '+(courseFilter===id?"active":"")+'" data-filter="'+id+'">'+label+'</button>').join("")+'</div><div class="lesson-list">'+items.map(lessonCard).join("")+'</div>';
 }
 function library(){
-  const genres=["Todas","Clássicas","Tradicionais","Exercícios"],items=SONGS.filter(s=>songFilter==="Todas"||s.genre===songFilter);
-  return '<div class="page-intro"><span class="eyebrow">BIBLIOTECA MUSICAL</span><h1>Aprenda tocando músicas</h1><p>Comece com melodias tradicionais, obras em domínio público e exercícios originais. O catálogo cresce conforme adicionamos conteúdos licenciados.</p></div>'+
-  '<div class="card" style="background:linear-gradient(120deg,#e9e3ff,#dff8f3);margin-bottom:20px"><span class="pill">🎵 REPERTÓRIO INICIAL</span><h2 style="margin:12px 0 7px">Da primeira nota à primeira música</h2><p class="muted small" style="margin:0">Toque cada melodia com feedback pelo microfone, nota por nota.</p></div>'+
+  const genres=["Todas","Clássicas","Tradicionais","Exercícios","Canto"],
+    items=SONGS.filter(s=>songFilter==="Todas"||s.genre===songFilter),
+    vocals=VOCAL_SONGS.filter(s=>songFilter==="Todas"||songFilter==="Canto");
+  return '<div class="page-intro"><span class="eyebrow">BIBLIOTECA MUSICAL</span><h1>Toque ou cante sua próxima música 🎵</h1><p>Melodias tradicionais, exercícios e canções vocais originais com letras sincronizadas. Músicas comerciais entram apenas após o licenciamento adequado.</p></div>'+
+  '<div class="card" style="background:linear-gradient(120deg,#e9e3ff,#dff8f3);margin-bottom:20px"><span class="pill">🎵 REPERTÓRIO INICIAL</span><h2 style="margin:12px 0 7px">Sua música, seu ritmo</h2><p class="muted small" style="margin:0">No piano, acompanhe notas. No canto, acompanhe a letra e pratique sua afinação.</p></div>'+
   '<div class="taglist">'+genres.map(g=>'<button class="chip '+(songFilter===g?"active":"")+'" data-genre="'+esc(g)+'">'+esc(g)+'</button>').join("")+'</div>'+
-  items.map(s=>'<div class="song-row"><span class="song-cover">'+s.cover+'</span><div class="grow"><h3>'+esc(s.name)+'</h3><p>'+esc(s.artist)+' · '+esc(s.level)+'</p></div><button class="btn sm" data-lesson="'+s.id+'">Praticar ▶</button></div>').join("")+
-  '<p class="inline-tip">Músicas comerciais populares não estão incluídas sem a licença correspondente. O áudio de demonstração é sintetizado a partir das próprias notas dos exercícios.</p>';
+  items.map(s=>'<div class="song-row"><span class="song-cover">'+s.cover+'</span><div class="grow"><h3>'+esc(s.name)+'</h3><p>'+esc(s.artist)+' · '+esc(s.level)+' · 🎹 Piano</p></div><button class="btn sm" data-lesson="'+s.id+'">Tocar ▶</button></div>').join("")+
+  vocals.map(s=>'<div class="song-row"><span class="song-cover">'+s.icon+'</span><div class="grow"><h3>'+esc(s.title)+'</h3><p>'+esc(s.artist)+' · '+esc(s.level)+' · 🎤 Canto com letra</p></div><button class="btn sm" data-vocal="'+s.id+'">Cantar ▶</button></div>').join("")+
+  '<div class="card" style="margin-top:18px"><h3>📝 Suas próprias letras</h3><p class="muted small">Importe letras autorizadas em TXT ou LRC para acompanhar no seu ritmo. Letras sem melodia não recebem nota de afinação.</p><button class="btn ghost sm" data-route="singing">Abrir minha biblioteca de letras →</button></div>'+
+  '<p class="inline-tip">Áudios de demonstração são sintetizados. Não extraímos letras ou áudio do YouTube, Spotify ou outros serviços.</p>';
 }
 function workouts(){
-  const u=active(),today=localDay(),sessionsToday=(u.history||[]).filter(h=>h.day===today),minToday=Math.round(sessionsToday.reduce((acc,h)=>acc+(h.seconds||0),0)/60);
+  const u=active(),today=localDay(),sessionsToday=(u.history||[]).filter(h=>h.day===today),
+    secsToday=sessionsToday.reduce((acc,h)=>acc+(h.seconds||0),0),minToday=Math.floor(secsToday/60);
   const options=[LESSONS[0],LESSONS[2],LESSONS.find(l=>l.id==="rhythm")];
-  return '<div class="page-intro"><span class="eyebrow">PEQUENAS VITÓRIAS, TODOS OS DIAS</span><h1>Treinos de 5 minutos ⏱</h1><p>Exercícios objetivos para melhorar leitura, precisão e coordenação. Você não precisa terminar uma aula longa para evoluir.</p></div>'+
-  '<div class="card workout"><span class="pill dark">DESAFIO DO DIA</span><h2 style="margin:14px 0 8px">Sua meta: 5 minutos de música</h2><p>'+Math.min(5,minToday)+' de 5 minutos de prática hoje</p><div class="progress-track" style="background:#5a5a89;max-width:440px"><div class="progress-fill" style="width:'+Math.min(100,percent(minToday,5))+'%"></div></div><p class="small" style="margin:10px 0 0">O tempo registra aulas concluídas neste dispositivo.</p></div>'+
-  '<div class="section-head"><h2>Escolha um treino</h2></div><div class="lesson-list">'+options.map(lessonCard).join("")+'</div>';
+  return '<div class="page-intro"><span class="eyebrow">PEQUENAS VITÓRIAS, TODOS OS DIAS</span><h1>Treinos de 5 minutos ⏱</h1><p>Exercícios rápidos para leitura, precisão, coordenação e aquecimento vocal.</p></div>'+
+  '<div class="card workout"><span class="pill dark">DESAFIO DO DIA</span><h2 style="margin:14px 0 8px">Sua meta: 5 minutos de música</h2><p>'+Math.min(5,minToday)+' de 5 minutos de prática hoje</p><div class="progress-track" style="background:#5a5a89;max-width:440px"><div class="progress-fill" style="width:'+Math.min(100,percent(secsToday,300))+'%"></div></div><p class="small" style="margin:10px 0 0">O tempo registra práticas finalizadas neste dispositivo.</p></div>'+
+  '<div class="section-head"><h2>Escolha um treino</h2></div><div class="lesson-list">'+options.map(lessonCard).join("")+
+  '<div class="lesson-row"><span class="lesson-icon teal">🎤</span><div class="grow"><h3>Aquecimento vocal</h3><p>Descubra seu alcance e cante notas longas.</p><div class="lesson-foot"><span>⏱ 3 min</span><span>🎯 Afinação</span></div></div><button class="btn sm lesson-action" data-vocal="voice-warmup">Cantar →</button></div></div>';
 }
 function profiles(){
   const u=active();
