@@ -2,6 +2,26 @@
 
 Aplicativo web de aprendizagem musical com aulas visuais e avaliação das notas tocadas em um **piano ou teclado físico** pelo microfone do navegador.
 
+## Atualização 2.2: canto, letras, gamificação e confiabilidade
+
+**Nova área Cantar:** três conteúdos vocais originais em PT-BR, com sílabas, letras e melodias sincronizadas, modos de voz em oitavas diferentes, comparação monofônica de afinação pela frequência captada do microfone, reprodução de guia melódico sintetizado, metrônomo e resultado por nota.
+
+**Minha biblioteca de letras:** importar/colar TXT ou LRC sob declaração de direitos. O conteúdo é privado do perfil no armazenamento local. A exibição de letra pessoal não avalia se palavras ou melodia estão corretas sem uma partitura e direitos correspondentes. Não há raspagem de músicas comerciais.
+
+**Gamificação:** XP com trava de sessões duplicadas, bônus reduzido em repetições, níveis, missões diárias, oito tipos de medalhas, streak por calendário local, pontuação vocal e checkpoints para retomar aulas de instrumento.
+
+**Confiabilidade:** cancelamento seguro de solicitações de microfone, controle para interromper guia/metrônomo, administração de até cinco perfis familiares, backup/exportação e restauração validada de dados JSON, testes de diagnóstico de microfone em Perfil e cobertura regressiva no GitHub Actions.
+
+**Antes de comercializar:** validar iPad e voz/instrumento reais, calibrar latência, garantir conformidade LGPD para futura conta online, licenciar qualquer repertório comercial com direitos explícitos para letra, melodia, playback e eventual experiência de canto/karaokê.
+
+Documentação de catálogo, direitos e matriz de QA: [docs/CONTENT_RIGHTS_AND_QA.md](docs/CONTENT_RIGHTS_AND_QA.md).
+
+Executar testes (Node 22+):
+
+\`\`\`sh
+node --test tests/*.test.mjs
+\`\`\`
+
 ## Versão atual
 
 - Dashboard mobile-first, trilhas pedagógicas e exercícios guiados
@@ -50,7 +70,7 @@ Repositório estático: importação Vercel como **Other**, sem Build Command e 
 - Detecção **monofônica** em estudo: acordes simultâneos e múltiplas vozes ainda não são analisados.
 - Algoritmo, compatibilidade de iPad e latência **precisam de validação com instrumentos reais**. Nem todos os timbres/oitavas são captados de forma confiável.
 - O modo Performance mede proximidade temporal estimada entre eventos de notas e pulsos, sem garantia de precisão profissional. A latência real e o instante exato do ataque de notas ainda podem variar por instrumento e dispositivo. O metrônomo no modo guiado não avalia ritmo.
-- Perfis usam localStorage neste dispositivo; não há login ou sincronização na nuvem.
+- Perfis usam localStorage neste dispositivo; há backup JSON manual, mas não login ou sincronização na nuvem.
 - O metrônomo e os exemplos de áudio são sintetizados localmente, sem gravações comerciais.
 - Outros instrumentos além de piano/teclado estão previstos, mas não têm trilhas próprias.
 - No Safari do iPad, a Web MIDI API não está amplamente disponível. O microfone é o modo principal.
