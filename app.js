@@ -62,8 +62,8 @@ function courseCard(c){
   return '<div class="course-card"><div class="course-art '+c.theme+'"><span class="course-badge">'+done+'/'+total.length+' aulas</span><span aria-hidden="true">'+c.icon+'</span></div><div class="course-inner"><h3>'+esc(c.name)+'</h3><p>'+esc(c.subtitle)+'</p><div class="progress-track" style="margin-bottom:14px"><div class="progress-fill" style="width:'+percent(done,total.length)+'%"></div></div><div class="course-foot"><span>'+percent(done,total.length)+'% concluído</span><button class="btn sm ghost" data-course="'+c.id+'">Explorar →</button></div></div></div>';
 }
 function lessonCard(l){
-  const done=active().completed[l.id],colored=l.course==="solo"?"teal":l.course==="harmony"?"gold":"sky";
-  return '<div class="lesson-row"><span class="lesson-icon '+colored+'">'+l.icon+'</span><div class="grow"><div class="row wrap" style="gap:8px"><h3>'+esc(l.title)+'</h3>'+(done?'<span class="pill green">✓ Concluída</span>':'')+'</div><p>'+esc(l.subtitle)+'</p><div class="lesson-foot"><span>⏱ '+l.minutes+' min</span><span>⚡ '+l.xp+' XP</span><span>Nível '+l.level+'</span></div></div><button class="btn sm '+(done?"ghost":"")+' lesson-action" data-lesson="'+l.id+'">'+(done?"Refazer ↻":"Começar →")+'</button></div>';
+  const done=active().completed[l.id],checkpoint=active().checkpoints?.[l.id],colored=l.course==="solo"?"teal":l.course==="harmony"?"gold":"sky";
+  return '<div class="lesson-row"><span class="lesson-icon '+colored+'">'+l.icon+'</span><div class="grow"><div class="row wrap" style="gap:8px"><h3>'+esc(l.title)+'</h3>'+(done?'<span class="pill green">✓ Concluída</span>':'')+'</div><p>'+esc(l.subtitle)+'</p><div class="lesson-foot"><span>⏱ '+l.minutes+' min</span><span>⚡ '+l.xp+' XP</span><span>Nível '+l.level+'</span></div></div><button class="btn sm '+(done?"ghost":"")+' lesson-action" data-lesson="'+l.id+'">'+(done?"Refazer ↻":checkpoint?.index>0?"Continuar "+checkpoint.index+"/"+getSessionNotes(l).length+" →":"Começar →")+'</button></div>';
 }
 function courses(){
   const filters=[["all","Todas"],["fundamentals","Fundamentos"],["solo","Melodias"],["harmony","Harmonia"]];
@@ -175,11 +175,18 @@ function changePage(next){
 async function startLesson(id,requestMicrophone=true,options={}){
   stopTimers();audio.stop();audio.disconnectMidi();
   const lesson=lessonById(id),allSteps=getSessionNotes(lesson),range=options.range&&options.range.end>options.range.start?options.range:null,steps=range?allSteps.slice(range.start,range.end):allSteps,mode=options.mode==="performance"?"performance":"guided";
+  active().checkpoints=active().checkpoints||{};
+  if(options.reset){delete active().checkpoints[id];save()}
+  const checkpoint=mode==="guided"&&!range&&!options.reset?active().checkpoints[id]:null;
   session={lesson,steps,index:0,hits:0,misses:0,assisted:0,feedback:[],showHint:false,wrongFlashUntil:0,
     coach:"",stepStart:Date.now(),startedAt:Date.now(),lastCorrect:null,sensitivity:70,midiEnabled:false,result:null,mode,sectionRange:range,
     sessionId:"instrument-"+Date.now()+"-"+Math.random().toString(36).slice(2),
     performance:mode==="performance"?new PerformanceSession(steps,{bpm,latencyMs:db.perfLatency??160}):null
   };
+  if(checkpoint&&checkpoint.mode==="guided"&&checkpoint.index>0&&checkpoint.index<steps.length){
+    session.index=checkpoint.index;session.hits=checkpoint.hits||checkpoint.index;session.misses=checkpoint.misses||0;
+    session.assisted=checkpoint.assisted||0;session.feedback=Array(steps.length).fill(null).map((_,i)=>i<session.index?"correct":null);
+  }
   page="practice";audioStatus="off";audioError="";lastFrame=null;audio.setSensitivity(.70);render();window.scrollTo(0,0);
   tipTimer=setInterval(()=>{if(page!=="practice"||!session||session.mode!=="guided")return;if(!session.showHint&&Date.now()-session.stepStart>9000){session.showHint=true;session.coach="Precisa de ajuda? A tecla lilás indica onde tocar.";render()}},1100);
   if(requestMicrophone)await enableMic();
@@ -228,6 +235,11 @@ function onNote(event){
     const assisted=s.showHint;
     s.feedback[s.index]=assisted?"hint":"correct";s.hits++;if(assisted)s.assisted++;
     s.lastCorrect=m;s.index++;s.showHint=false;s.coach="✓ Muito bem! Próxima nota.";s.stepStart=Date.now();s.wrongFlashUntil=0;
+    if(s.mode==="guided"&&!s.sectionRange){
+      active().checkpoints=active().checkpoints||{};
+      active().checkpoints[s.lesson.id]={mode:"guided",index:s.index,hits:s.hits,misses:s.misses,assisted:s.assisted,updatedAt:Date.now()};
+      save();
+    }
     if(s.index>=s.steps.length){finishLesson();return}
     if(s.steps[s.index].m===m)s.coach="Acertou! Solte a tecla e toque novamente para repetir a nota.";
     render();
@@ -252,6 +264,7 @@ function finishLesson(){
     song:s.lesson.kind==="song",assisted:s.assisted,rhythmAccuracy:performanceData?.rhythmAccuracy
   });
   s.result={accuracy,stars,xp:award.xp,seconds,passed,mode:s.mode,performance:performanceData,awards:award};
+  if(u.checkpoints)delete u.checkpoints[s.lesson.id];
   if(!save())toast("Não foi possível salvar o progresso neste navegador.");
   audio.stop();audio.disconnectMidi();stopTimers();page="result";render();
 }
@@ -501,7 +514,7 @@ document.addEventListener("click",async e=>{
   if(action==="hear-note"){await hearSingleNote();return}
   if(action==="tempo"){if(session?.mode==="performance"&&["running","countin"].includes(session.performance.phase)){toast("Pause antes de mudar a velocidade.");return}bpm=bpm===60?80:bpm===80?100:60;if(session?.mode==="performance"){resetPerformance();return}if(metronome){await player.metronome(bpm)}render();return}
   if(action==="hint"){session.showHint=!session.showHint;session.coach=session.showHint?"Dica: procure a tecla destacada em lilás.":"";render();return}
-  if(action==="restart"){await startLesson(session.lesson.id,true,{mode:session.mode,range:session.sectionRange});return}
+  if(action==="restart"){await startLesson(session.lesson.id,true,{mode:session.mode,range:session.sectionRange,reset:true});return}
   if(action==="metronome"){await toggleMetro();return}
   if(action==="leave"){changePage("courses");return}
   if(action==="repeat"){await startLesson(session.lesson.id,true,{mode:session.mode,range:session.sectionRange});return}
