@@ -226,6 +226,60 @@ function finishLesson(){
   u.history=u.history||[];u.history.push({id:s.lesson.id,mode:s.mode,day:new Date().toLocaleDateString("en-CA"),seconds,xp,accuracy,rhythmAccuracy:performanceData?.rhythmAccuracy??null});u.history=u.history.slice(-200);
   save();audio.stop();audio.disconnectMidi();stopTimers();page="result";render();
 }
+function syncPerformanceState(){
+  if(!session?.performance)return;
+  const p=session.performance;
+  session.index=Math.min(p.index,session.steps.length-1);
+  session.hits=p.hits;
+  session.misses=p.misses+p.wrong;
+  session.feedback=p.events.map(e=>e?.status??null);
+  session.coach=p.lastFeedback;
+}
+function animatePerformance(now){
+  performanceRAF=0;
+  if(page!=="practice"||!session?.performance)return;
+  const p=session.performance;
+  if(p.phase!=="running"&&p.phase!=="countin")return;
+  const previous=p.index,phase=p.phase,frame=p.tick(now);
+  if(frame.beat)player.metronomeClick(frame.beatNumber%4===0).catch(()=>{});
+  syncPerformanceState();
+  if(p.phase==="finished"){finishLesson();return}
+  if(p.index!==previous||p.phase!==phase)render();
+  if(now-lastVisualTick>=90){
+    lastVisualTick=now;
+    const roll=$("#performance-roll");if(roll)roll.innerHTML=performanceRollSvg(p,noteName,now);
+    const clock=$("#perf-clock");if(clock)clock.textContent=p.phase==="countin"?"Contagem: "+p.countdown(now):p.index+" / "+p.total+" notas";
+    const combo=$("#perf-combo");if(combo)combo.textContent=p.combo+"×";
+    const perfect=$("#perf-perfect");if(perfect)perfect.textContent=p.perfect;
+    const good=$("#perf-good");if(good)good.textContent=p.good;
+    const misses=$("#perf-misses");if(misses)misses.textContent=p.misses;
+    const message=$("#performance-message");if(message)message.textContent=p.phase==="countin"?"Prepare-se: "+p.countdown(now):p.lastFeedback;
+  }
+  performanceRAF=requestAnimationFrame(animatePerformance);
+}
+async function togglePerformance(){
+  if(!session?.performance)return;
+  const p=session.performance;
+  if(p.phase==="finished"){resetPerformance();return}
+  if(p.phase==="running"||p.phase==="countin"){
+    p.pause(performance.now());if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;render();return;
+  }
+  try{await player.context()}catch(e){toast("Sem áudio para a contagem. A partitura ainda pode avançar.")}
+  const now=performance.now();
+  if(p.phase==="paused")p.resume(now);else p.start(now);
+  session.coach=p.lastFeedback;
+  if(!audio.listening&&!session.midiEnabled)toast("Ative o microfone para registrar os acertos.");
+  render();if(performanceRAF)cancelAnimationFrame(performanceRAF);
+  performanceRAF=requestAnimationFrame(animatePerformance);
+}
+function resetPerformance(){
+  if(!session?.performance)return;
+  if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;
+  player.stop();metronome=false;
+  session.performance=new PerformanceSession(session.steps,{bpm,latencyMs:db.perfLatency??160});
+  session.index=0;session.hits=0;session.misses=0;session.feedback=[];session.coach="";
+  session.startedAt=Date.now();session.stepStart=Date.now();render();
+}
 function updateAudioUI(){
   if(page!=="practice"||!session)return;
   const dot=$("#audio-dot");if(dot)dot.className="audio-dot "+(audioStatus==="listening"?"on":audioStatus==="permission"?"wait":"");
