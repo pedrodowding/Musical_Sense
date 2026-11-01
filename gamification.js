@@ -48,11 +48,11 @@ export function streakInfo(user,today=localDay()){
 function badgeRules(user,result,streak){
  const completed=Object.keys(user.completed||{}).length;
  return {
-  "first-note":(user.totalCorrect||0)>=1,
+  "first-note":result.kind!=="personal"&&(user.totalCorrect||0)>=1,
   "first-lesson":completed>=1,
   "first-voice":result.kind==="vocal"&&result.passed&&result.full!==false,
   "five-lessons":completed>=5,
-  "precision":result.passed&&result.accuracy>=90,
+  "precision":result.kind!=="personal"&&result.passed&&result.accuracy>=90,
   "song":result.passed&&result.full!==false&&(result.kind==="vocal"||result.song===true),
   "streak3":streak.current>=3,
   "streak7":streak.current>=7
@@ -71,20 +71,22 @@ export function awardPractice(user,input,now=new Date()){
  const kind=input.kind==="vocal"?"vocal":input.kind==="personal"?"personal":"instrument";
  const correct=Math.max(0,Math.floor(Number(input.correct)||0)),attempts=Math.max(correct,Math.floor(Number(input.attempts)||0));
  const seconds=Math.min(3600,Math.max(0,Math.floor(Number(input.seconds)||0)));
- const accuracy=attempts?Math.round(correct/attempts*100):0;
+ const accuracy=kind==="personal"?null:attempts?Math.round(correct/attempts*100):0;
  const passed=Boolean(input.passed)&&correct>0;
  const full=input.full!==false;
  const lessonId=String(input.lessonId||"practice");
  const rewardKey=date+"|"+kind+"|"+lessonId;const count=g.rewardCounts[rewardKey]||0;
  const base=Math.max(0,Math.min(250,Math.floor(Number(input.baseXp)||0)));
- const quality=0.5+accuracy/200;
+ const quality=0.5+(accuracy||0)/200;
  const first=passed&&full&&count===0;
  const multiplier=first?1:count<3?.25:0;
  let xp=(passed&&attempts>0)?Math.max(0,Math.round(base*quality*multiplier)):0;
  if(kind==="personal")xp=seconds>=20&&correct>0&&count===0?Math.min(10,Math.round(seconds/12)):0;
  g.rewardCounts[rewardKey]=count+1;
- user.totalCorrect=(user.totalCorrect||0)+correct;
- user.totalAttempts=(user.totalAttempts||0)+attempts;
+ if(kind!=="personal"){
+  user.totalCorrect=(user.totalCorrect||0)+correct;
+  user.totalAttempts=(user.totalAttempts||0)+attempts;
+ }
  user.practiceSeconds=(user.practiceSeconds||0)+seconds;
  if(passed&&full&&kind==="vocal"){
    user.vocalCompleted=user.vocalCompleted||{};
@@ -103,7 +105,7 @@ export function awardPractice(user,input,now=new Date()){
  }
  day.sessions++;
  day.seconds+=seconds;
- day.notes+=correct;
+ if(kind!=="personal")day.notes+=correct;
  if(passed&&full){if(kind==="vocal")day.vocal++;else if(kind==="instrument")day.lessons++}
  g.days[date]=day;
  const missions=[];
