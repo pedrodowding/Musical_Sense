@@ -326,18 +326,23 @@ document.addEventListener("click",async e=>{
   if(d.genre){songFilter=d.genre;render();return}
   if(d.profile){db.active=d.profile;save();changePage("home");return}
   if(d.lesson){await startLesson(d.lesson);return}
+  if(d.mode){if(!session||d.mode===session.mode)return;await startLesson(session.lesson.id,true,{mode:d.mode,range:session.sectionRange});return}
+  if(d.performanceBpm){if(!session||session.mode!=="performance"||["running","countin"].includes(session.performance.phase))return;bpm=Number(d.performanceBpm);resetPerformance();return}
   const action=d.action;
   if(!action)return;
   if(action==="microphone"){await enableMic();return}
+  if(action==="performance-toggle"){await togglePerformance();return}
+  if(action==="performance-reset"){resetPerformance();return}
   if(action==="midi"){await connectMidi();return}
   if(action==="demo"){await hearDemo();return}
   if(action==="hear-note"){await hearSingleNote();return}
-  if(action==="tempo"){bpm=bpm===60?80:bpm===80?100:60;if(metronome){await player.metronome(bpm)}render();return}
+  if(action==="tempo"){if(session?.mode==="performance"&&["running","countin"].includes(session.performance.phase)){toast("Pause antes de mudar a velocidade.");return}bpm=bpm===60?80:bpm===80?100:60;if(session?.mode==="performance"){resetPerformance();return}if(metronome){await player.metronome(bpm)}render();return}
   if(action==="hint"){session.showHint=!session.showHint;session.coach=session.showHint?"Dica: procure a tecla destacada em lilás.":"";render();return}
-  if(action==="restart"){await startLesson(session.lesson.id,false);return}
+  if(action==="restart"){await startLesson(session.lesson.id,true,{mode:session.mode,range:session.sectionRange});return}
   if(action==="metronome"){await toggleMetro();return}
   if(action==="leave"){changePage("courses");return}
-  if(action==="repeat"){await startLesson(session.lesson.id);return}
+  if(action==="repeat"){await startLesson(session.lesson.id,true,{mode:session.mode,range:session.sectionRange});return}
+  if(action==="difficult"){const range=session.result?.performance?.difficultRange;if(range)await startLesson(session.lesson.id,true,{mode:"performance",range:session.sectionRange?{start:session.sectionRange.start+range.start,end:session.sectionRange.start+range.end}:range});return}
   if(action==="next"){const idx=LESSONS.findIndex(l=>l.id===session.lesson.id);await startLesson(LESSONS[(idx+1)%LESSONS.length].id);return}
 });
 document.addEventListener("submit",e=>{
@@ -348,8 +353,8 @@ document.addEventListener("submit",e=>{
   if(db.users.length>=8){toast("O limite desta versão é de oito perfis.");return}
   const u=initialUser(name,instrument);db.users.push(u);db.active=u.id;save();changePage("home");toast("Perfil criado. Bons estudos!");
 });
-document.addEventListener("input",e=>{if(e.target.id==="sensitivity"&&session){session.sensitivity=Number(e.target.value);audio.setSensitivity(session.sensitivity/100)}});
-document.addEventListener("visibilitychange",()=>{if(document.hidden){if(audio.listening)audio.stop();player.stop();metronome=false;if(page==="practice"){audioError="";audioStatus="off";render()}}});
+document.addEventListener("input",e=>{if(!session)return;if(e.target.id==="sensitivity"){session.sensitivity=Number(e.target.value);audio.setSensitivity(session.sensitivity/100)}if(e.target.id==="latency"&&session.performance){session.performance.setLatency(e.target.value);db.perfLatency=session.performance.latencyMs;save();const label=$("#latency-value");if(label)label.textContent=session.performance.latencyMs+" ms"}});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){if(session?.performance&&["running","countin"].includes(session.performance.phase))session.performance.pause(performance.now());if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;if(audio.listening)audio.stop();player.stop();metronome=false;if(page==="practice"){audioError="";audioStatus="off";render()}}});
 window.addEventListener("pagehide",()=>{audio.stop();audio.disconnectMidi();stopTimers()});
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));
 render();
