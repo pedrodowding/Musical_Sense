@@ -42,6 +42,25 @@ const sources=[
   {key:"rhythm",title:"Groove no pulso",subtitle:"Notas graves repetidas no tempo",icon:"🥁",kind:"rhythm",notes:[43,43,45,45,47,45,43,43],xp:90,minutes:5}
  ]}
 ];
+const extraMelodies={
+ acoustic:[
+  {key:"morning",title:"Manhã de Cordas",subtitle:"Melodia original para violão, corda Mi",icon:"🌅",kind:"song",notes:[64,65,67,69,67,65,64,67,64],beats:[1,1,1,2,1,1,2,1,2],xp:110,minutes:5},
+  {key:"trail",title:"Trilha do Vento",subtitle:"Outra melodia original para violão",icon:"🍃",kind:"song",notes:[64,67,65,64,69,67,65,64],beats:[1,1,1,2,1,1,1,2],xp:120,minutes:6}
+ ],
+ electric:[
+  {key:"night",title:"Riff da Noite",subtitle:"Riff melódico original de guitarra",icon:"🌙",kind:"song",notes:[64,67,69,67,64,65,67,69,64],beats:[1,1,2,1,1,1,1,2,2],xp:110,minutes:5},
+  {key:"electric",title:"Faísca Musical",subtitle:"Desafio original na corda Mi aguda",icon:"⚡",kind:"song",notes:[64,65,67,71,69,67,65,64],beats:[1,1,1,2,1,1,1,2],xp:120,minutes:6}
+ ],
+ ukulele:[
+  {key:"sun",title:"Dia de Sol",subtitle:"Canção original de ukulele na corda Lá",icon:"☀️",kind:"song",notes:[69,71,72,74,72,71,69,72,69],beats:[1,1,1,2,1,1,2,1,2],xp:110,minutes:5},
+  {key:"waves",title:"Ondas da Ilha",subtitle:"Melodia original para ukulele",icon:"🌊",kind:"song",notes:[69,72,71,69,74,72,71,69],beats:[1,1,1,2,1,1,1,2],xp:120,minutes:6}
+ ],
+ "bass-guitar":[
+  {key:"pulse",title:"Pulso da Cidade",subtitle:"Groove original de baixo na corda Sol",icon:"🌆",kind:"song",notes:[43,43,45,47,43,45,48,47,43],beats:[1,1,1,2,1,1,1,2,2],xp:110,minutes:5},
+  {key:"steps",title:"Passos do Baixo",subtitle:"Linha original para baixo elétrico",icon:"🎵",kind:"song",notes:[43,45,47,45,43,48,47,45,43],beats:[1,1,2,1,1,1,1,1,2],xp:120,minutes:6}
+ ]
+};
+for(const source of sources)source.program.splice(3,0,...extraMelodies[source.id]);
 export const STRING_LESSONS=sources.flatMap((source)=>{
  return source.program.map((entry,index)=>({
    id:source.prefix+"-"+entry.key,
@@ -49,7 +68,7 @@ export const STRING_LESSONS=sources.flatMap((source)=>{
    title:entry.title,subtitle:entry.subtitle,icon:entry.icon,minutes:entry.minutes,xp:entry.xp,level:index+1,
    kind:entry.kind,tip:"Use somente a "+source.string+" ("+source.stringNumber+"ª corda). As notas são reconhecidas individualmente pelo microfone.",
    stringLabel:source.string,stringNumber:source.stringNumber,
-   steps:entry.notes.map((m,i)=>E(m,[m-source.open],entry.kind==="rhythm"&&i%4===3?2:1)),
+   steps:entry.notes.map((m,i)=>E(m,[m-source.open],entry.beats?.[i]||(entry.kind==="rhythm"&&i%4===3?2:1))),
    isOriginal:true
  }));
 });
