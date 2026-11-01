@@ -14,7 +14,7 @@ export class PerformanceSession {
     for(const step of this.steps){this.beats.push(current);current+=step.beats}
     this.totalBeats=current;
     this.phase="ready";this.index=0;this.events=Array(this.steps.length).fill(null);
-    this.hits=0;this.perfect=0;this.good=0;this.ok=0;this.misses=0;this.wrong=0;this.combo=0;this.bestCombo=0;this.score=0;
+    this.hits=0;this.perfect=0;this.good=0;this.ok=0;this.misses=0;this.wrong=0;this.wrongByNote=Array(this.steps.length).fill(0);this.combo=0;this.bestCombo=0;this.score=0;
     this.startAt=0;this.countdownStart=0;this.pausedAt=0;this.previousPhase="ready";this.lastBeatIndex=-1;this.lastWrongAt=-Infinity;
     this.lastFeedback="Acompanhe a linha de chegada e toque no tempo.";
   }
@@ -78,7 +78,7 @@ export class PerformanceSession {
     if(delta>this.windowMs)return {type:"late",index:idx,delta:Math.round(delta)};
     if(note!==target || Math.abs(cents)>45){
       if(now-this.lastWrongAt>=180){
-        this.wrong++;this.lastWrongAt=now;this.lastFeedback="Outra nota detectada. Olhe a posição e tente seguir no tempo.";
+        this.wrong++;this.wrongByNote[idx]++;this.lastWrongAt=now;this.lastFeedback="Outra nota detectada. Olhe a posição e tente seguir no tempo.";
       }
       return {type:"wrong",index:idx,expected:target,received:note,delta:Math.round(delta)};
     }
@@ -97,7 +97,7 @@ export class PerformanceSession {
   difficultRange(){
     let worst=-1,weight=0;
     for(let i=0;i<this.events.length;i++){
-      const entry=this.events[i],w=!entry||entry.status==="miss"?4:entry.status==="ok"?2:entry.status==="good"?1:0;
+      const entry=this.events[i],w=(!entry||entry.status==="miss"?4:entry.status==="ok"?2:entry.status==="good"?1:0)+Math.min(3,this.wrongByNote[i]);
       if(w>weight){weight=w;worst=i}
     }
     if(worst<0 && this.wrong===0)return null;
@@ -109,6 +109,6 @@ export class PerformanceSession {
     total:this.total,hits:this.hits,misses:this.misses,wrong:this.wrong,
     perfect:this.perfect,good:this.good,ok:this.ok,bestCombo:this.bestCombo,score:this.score,
     accuracy:Math.round(this.hits/this.total*100),rhythmAccuracy:Math.round((this.perfect+this.good)/this.total*100),
-    difficultRange:this.difficultRange(),events:this.events.map((e,i)=>({index:i,...(e||{status:"miss"})}))
+    difficultRange:this.difficultRange(),wrongByNote:[...this.wrongByNote],events:this.events.map((e,i)=>({index:i,...(e||{status:"miss"})}))
   }}
 }
