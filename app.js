@@ -635,6 +635,9 @@ document.addEventListener("click",async e=>{
   if(!action)return;
   if(action==="microphone"){await enableMic();return}
   if(action==="sound-test"){
+    if(session?.mode==="performance"&&["running","countin"].includes(session.performance?.phase)||vocal&&["running","countin"].includes(vocal.phase)){
+      toast("Pause o exercício antes de ouvir uma demonstração.");return;
+    }
     try{
       player.stop();metronome=false;
       applyTimbre(page==="vocal-practice"?"Voz":page==="practice"?session?.lesson?.instrument||active().instrument:active().instrument);
@@ -736,6 +739,7 @@ document.addEventListener("change",async e=>{
       if(!window.confirm("Restaurar "+restored.users.length+" perfil(is)? Isso substituirá o progresso e as letras pessoais atuais neste dispositivo."))return;
       const previous=db;db=restored;
       if(!save()){db=previous;throw Error("O armazenamento local não permitiu restaurar este backup.");}
+      player.setVolume(db.audioVolume??.85);player.setMetronomeVolume(db.pulseVolume??.72);applyTimbre();
       changePage("profiles");toast("Backup restaurado com sucesso.");
     }catch(err){toast(err.message||"Falha ao restaurar backup.");}
     return;
