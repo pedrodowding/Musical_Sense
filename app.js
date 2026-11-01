@@ -238,7 +238,7 @@ function render(){
 }
 function stopTimers(){clearInterval(tipTimer);tipTimer=null;if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;player.stop();metronome=false;demoBusy=false}
 function changePage(next){
-  if(page==="song-detail"){player.stop();demoBusy=false}
+  if(page==="song-detail"||page==="sound"){player.stop();demoBusy=false}
   if(["practice","result","vocal-practice","vocal-result","personal-practice","diagnostics"].includes(page)){audio.stop();audio.disconnectMidi();stopTimers();session=null;vocal=null;personalSession=null}
   page=next;render();window.scrollTo(0,0);
 }
