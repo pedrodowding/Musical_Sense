@@ -30,7 +30,7 @@ function load(){
 }
 let db=load(),page="home",courseFilter="all",songFilter="Todas",session=null,audioStatus="off",audioError="",lastFrame=null,tipTimer=null,demoBusy=false,metronome=false,bpm=80,toastTimer=null;
 db.users.forEach(u=>{ensureProgress(u);u.personalLyrics=safeLibrary(u.personalLyrics)});
-let vocal=null,vocalAward=null,personalSession=null,singingRAF=0,singingLastTick=0,vocalFrame=null;
+let vocal=null,vocalAward=null,personalSession=null,singingRAF=0,singingLastTick=0,vocalFrame=null,editingSongId=null;
 let performanceRAF=0,lastVisualTick=0;
 const player=new SoundPlayer();
 const audio=new AudioEngine(frame=>onFrame(frame),ev=>onNote(ev),(status,error)=>{audioStatus=status;if(error)audioError=error;updateAudioUI()});
@@ -192,7 +192,7 @@ function result(){
 }
 function render(){
   if(!db.users.some(u=>u.id===db.active))db.active=db.users[0].id;
-  const content=page==="home"?home():page==="courses"?courses():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics():page==="diagnostics"?diagnostics():page==="library"?library():page==="workouts"?workouts():profiles();
+  const content=page==="home"?home():page==="courses"?courses():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics((active().personalLyrics||[]).find(x=>x.id===editingSongId)):page==="diagnostics"?diagnostics():page==="library"?library():page==="workouts"?workouts():profiles();
   $("#app").innerHTML=page==="practice"&&session?practice():page==="result"&&session?result():page==="vocal-practice"&&vocal?renderVocalPractice(vocal,noteName,audioStatus,lastFrame):page==="vocal-result"&&vocal?renderVocalResult(vocal.summary(),vocalAward?.xp||0,vocalAward?.level||1,(vocalAward?.badges||[]).map(id=>BADGES.find(b=>b.id===id)?.name||id)):page==="personal-practice"&&personalSession?renderPersonalPractice(personalSession.song,{...personalSession,micActive:audio.listening},lastFrame,noteName):shell(content);
   document.title=(page==="practice"&&session?session.lesson.title+" | ":page==="vocal-practice"&&vocal?vocal.song.title+" | ":"")+"Musical Sense";
   updateAudioUI();
@@ -534,6 +534,7 @@ document.addEventListener("click",async e=>{
   if(d.lesson){await startLesson(d.lesson);return}
   if(d.vocal){await beginVocal(d.vocal);return}
   if(d.personal){await beginPersonal(d.personal);return}
+  if(d.editPersonal){editingSongId=d.editPersonal;changePage("lyrics-import");return}
   if(d.removePersonal){
     const song=(active().personalLyrics||[]).find(x=>x.id===d.removePersonal);
     if(song&&window.confirm("Remover a letra “"+song.title+"” deste dispositivo?")){
@@ -562,7 +563,7 @@ document.addEventListener("click",async e=>{
   }
   if(action==="diagnose-copy"){try{await navigator.clipboard.writeText(diagnosticReport());toast("Diagnóstico copiado.");}catch(e){toast("Não foi possível copiar. Verifique as permissões da área de transferência.")}return}
   if(action==="diagnose-reload"){audio.stop();stopTimers();window.location.reload();return}
-  if(action==="lyrics-import"){changePage("lyrics-import");return}
+  if(action==="lyrics-import"){editingSongId=null;changePage("lyrics-import");return}
   if(action==="singing-leave"){changePage("singing");return}
   if(action==="vocal-mic"){await enableMic();return}
   if(action==="vocal-toggle"){await toggleVocal();return}
@@ -590,11 +591,16 @@ document.addEventListener("submit",e=>{
   if(e.target.id==="lyrics-form"){
     e.preventDefault();const form=new FormData(e.target);
     try{
-      const u=active();if((u.personalLyrics||[]).length>=30)throw Error("Limite de 30 letras por perfil neste aparelho.");
+      const u=active(),list=u.personalLyrics||[],id=String(form.get("editingId")||"").trim();
+      const index=id?list.findIndex(s=>s.id===id):-1;
+      if(id&&index<0)throw Error("A letra original não foi encontrada para edição.");
+      if(index<0&&list.length>=30)throw Error("Limite de 30 letras por perfil neste aparelho.");
       const song=createPersonalSong({title:form.get("title"),artist:form.get("artist"),lyrics:form.get("lyrics"),rightsConfirmed:form.get("rights")==="on"});
-      u.personalLyrics=u.personalLyrics||[];u.personalLyrics.push(song);
-      if(!save()){u.personalLyrics.pop();throw Error("Não foi possível armazenar a letra. Libere espaço ou habilite o armazenamento local.");}
-      changePage("singing");toast("Letra salva no perfil "+u.name+".");
+      if(index>=0){song.id=list[index].id;song.createdAt=list[index].createdAt}
+      const previous=[...list];u.personalLyrics=list;
+      if(index>=0)list[index]=song;else list.push(song);
+      if(!save()){u.personalLyrics=previous;throw Error("Não foi possível salvar. Libere espaço ou habilite o armazenamento local.");}
+      editingSongId=null;changePage("singing");toast(index>=0?"Letra atualizada no perfil "+u.name+".":"Letra salva no perfil "+u.name+".");
     }catch(err){toast(err.message||"Confira os campos da letra.");}
     return;
   }
