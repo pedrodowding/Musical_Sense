@@ -1,6 +1,8 @@
 
 import {LESSONS,COURSES,SONGS,noteName,noteShort,lessonById,getSessionNotes,initialUser} from "./music-data.js";
 import {AudioEngine,SoundPlayer} from "./audio-engine.js";
+import {PerformanceSession} from "./performance-engine.js";
+import {performanceRollSvg,performancePanel,performanceResultExtra} from "./performance-view.js";
 const DBKEY="musical-sense-v3",OLDKEY="musical-sense-v1";
 const routes=[["home","⌂","Início"],["courses","▤","Cursos"],["library","♫","Músicas"],["workouts","◷","Treinos"],["profiles","♙","Perfis"]];
 const $=s=>document.querySelector(s);
@@ -21,6 +23,7 @@ function load(){
   const u=initialUser();return {users:[u],active:u.id};
 }
 let db=load(),page="home",courseFilter="all",songFilter="Todas",session=null,audioStatus="off",audioError="",lastFrame=null,tipTimer=null,demoBusy=false,metronome=false,bpm=80,toastTimer=null;
+let performanceRAF=0,lastVisualTick=0;
 const player=new SoundPlayer();
 const audio=new AudioEngine(frame=>onFrame(frame),ev=>onNote(ev),(status,error)=>{audioStatus=status;if(error)audioError=error;updateAudioUI()});
 const active=()=>db.users.find(u=>u.id===db.active)||db.users[0];
@@ -93,14 +96,14 @@ function scoreSvg(){
   svg+='<text x="15" y="137" fill="#353451" font-family="serif" font-size="83">'+(bass?"𝄢":"𝄞")+'</text>';
   windowSteps.forEach((entry,j)=>{
     const i=start+j,x=112+j*99,y=noteY(entry.m,bass),current=i===session.index,previous=session.feedback[i],isWrong=current&&session.wrongFlashUntil>Date.now();
-    const fill=isWrong?"#ee6e80":previous==="correct"?"#2bbfa6":previous==="hint"?"#efb552":current?"#6b56eb":"#abb0c4";
+    const fill=isWrong?"#ee6e80":["correct","perfect","good"].includes(previous)?"#2bbfa6":["hint","ok"].includes(previous)?"#efb552":previous==="miss"?"#ee6e80":current?"#6b56eb":"#abb0c4";
     if(current)svg+='<rect x="'+(x-37)+'" y="34" width="74" height="143" rx="21" fill="#eeeafe"/><line x1="'+x+'" x2="'+x+'" y1="31" y2="179" stroke="#9586ee" stroke-width="2" stroke-dasharray="5 6"/>';
     if(y>=153){for(let ledger=155;ledger<=y+4;ledger+=17)svg+='<line x1="'+(x-22)+'" x2="'+(x+22)+'" y1="'+ledger+'" y2="'+ledger+'" stroke="#9fa5b7" stroke-width="1.5"/>'}
     if(y<=55){for(let ledger=53;ledger>=y-4;ledger-=17)svg+='<line x1="'+(x-22)+'" x2="'+(x+22)+'" y1="'+ledger+'" y2="'+ledger+'" stroke="#9fa5b7" stroke-width="1.5"/>'}
     svg+='<line x1="'+(x+11)+'" x2="'+(x+11)+'" y1="'+y+'" y2="'+(y-44)+'" stroke="'+fill+'" stroke-width="3.2"/>';
     svg+='<ellipse cx="'+x+'" cy="'+y+'" rx="14" ry="10" transform="rotate(-20 '+x+' '+y+')" fill="'+fill+'"/>';
     if(entry.f)svg+='<circle cx="'+x+'" cy="'+(y-69)+'" r="13" fill="'+(current?"#6d5be7":"#e4e6f0")+'"/><text x="'+x+'" y="'+(y-65)+'" font-size="12" fill="'+(current?"#fff":"#68718e")+'" font-weight="800" text-anchor="middle">'+entry.f+'</text>';
-    if(previous)svg+='<text x="'+x+'" y="195" fill="'+fill+'" font-size="19" text-anchor="middle">'+(previous==="correct"?"✓":"★")+'</text>';
+    if(previous)svg+='<text x="'+x+'" y="195" fill="'+fill+'" font-size="19" text-anchor="middle">'+(previous==="miss"?"×":previous==="hint"?"★":"✓")+'</text>';
     if(current)svg+='<text x="'+x+'" y="20" fill="#6756e4" font-size="12" text-anchor="middle" font-weight="800">AGORA</text>';
   });
   return svg+'</svg>';
@@ -127,6 +130,7 @@ function piano(){
 }
 function audioText(){if(audioStatus==="listening")return "Microfone ouvindo seu instrumento";if(audioStatus==="permission")return "Solicitando acesso ao microfone";if(audioStatus==="error")return audioError||"Microfone indisponível";return "Microfone desligado"}
 function coachMessage(){
+  if(session.mode==="performance"&&session.performance){const p=session.performance;if(p.phase==="ready")return "Escolha a velocidade e pressione Começar performance.";if(p.phase==="paused")return "A performance está pausada. Continue quando estiver pronto.";if(p.phase==="countin")return "Ouça os quatro tempos de preparação.";return p.lastFeedback}
   if(session.coach)return session.coach;
   if(audioStatus==="error")return "Verifique a permissão de microfone no Safari. Você também pode tentar uma entrada MIDI em navegadores compatíveis.";
   if(audioStatus!=="listening"&&!session.midiEnabled)return "Toque em Ativar microfone para começar. O aplicativo vai escutar seu instrumento de verdade.";
