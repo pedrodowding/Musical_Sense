@@ -1,0 +1,22 @@
+name: Musical Sense quality checks
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  performance-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check module syntax
+        run: |
+          for file in app.js music-data.js audio-engine.js performance-engine.js performance-view.js sw.js; do
+            node --input-type=module --check < "$file"
+          done
+      - name: Run rhythm scoring tests
+        run: node --test tests/performance.test.mjs
