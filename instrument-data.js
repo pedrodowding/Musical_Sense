@@ -74,7 +74,10 @@ export const STRING_LESSONS=sources.flatMap((source)=>{
 });
 export function lessonsForInstrument(instrument,pianoLessons){
  const id=instrumentId(instrument);
- if(id==="piano"||id==="keyboard")return pianoLessons;
+ if(id==="piano"||id==="keyboard"){
+  const order=["first","five","reading","rhythm","lamb","scale","joy","spring","starlight","bass","arpeggio","intervals"];
+  return [...pianoLessons].sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
+ }
  if(id==="voice")return [];
  return STRING_LESSONS.filter(l=>l.instrument===id);
 }
