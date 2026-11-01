@@ -10,9 +10,9 @@ export function catalogEntries({pianoSongs,lessons,vocalSongs,personalSongs=[]})
    notes:lesson?.steps||[],source:song.id==="joy"?"Domínio público":"Tradicional ou exercício autoral",capability:"pitch"
   };
  });
- const stringSongs=STRING_LESSONS.filter(l=>l.kind==="song").map(l=>({
+ const stringSongs=STRING_LESSONS.map(l=>({
   id:"string:"+l.id,lessonId:l.id,kind:"instrument",instrument:l.instrument,title:l.title,
-  artist:"Musical Sense",description:l.subtitle,cover:l.icon,genre:"Melodias",level:"Iniciante",
+  artist:"Musical Sense",description:l.subtitle,cover:l.icon,genre:l.kind==="song"?"Melodias":"Exercícios",level:"Iniciante",
   difficulty:1,minutes:l.minutes,notes:l.steps,source:"Exercício original",capability:"pitch"
  }));
  const vocals=vocalSongs.map(song=>({
