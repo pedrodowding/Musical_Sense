@@ -67,3 +67,6 @@
  .achievement-icon{font-size:33px}
  .mission-card{padding:13px}.mission-card strong{font-size:11px}
 }
+
+.profile-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}.profile-tools .btn{min-width:34px;white-space:nowrap}
+@media(max-width:430px){.profile-tools{flex-direction:column}.profile-row{gap:8px}.profile-row .avatar{height:39px;width:39px}}
