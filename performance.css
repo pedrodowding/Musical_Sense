@@ -1,0 +1,53 @@
+
+/* Performance mode: original moving-score interface */
+.practice-modes{display:flex;gap:5px;padding:5px;background:#eaeafb;border-radius:15px;max-width:440px;margin:0 0 14px}
+.practice-mode{border:0;background:transparent;border-radius:11px;padding:10px 14px;color:#62698a;font-size:12px;font-weight:850;flex:1;min-width:0}
+.practice-mode.active{background:white;color:#574acf;box-shadow:0 3px 12px #241d7410}
+.performance-area{background:#fff;border:1px solid #e8eaf4;box-shadow:0 14px 42px #24215b0b;border-radius:22px;padding:18px 20px;margin-bottom:0}
+.performance-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.performance-head h2{margin:4px 0 3px;font-size:22px}.performance-head p{font-size:12px;color:#727a99;margin:0 0 15px}
+.performance-kicker{font-size:10px;color:#6556d7;font-weight:900;letter-spacing:.10em}
+.performance-pulse{flex:0 0 auto;background:#edeafa;border-radius:13px;padding:7px 16px;text-align:center;color:#5f50d5}
+.performance-pulse strong{font-size:26px;display:block;line-height:1.1}.performance-pulse span{display:block;font-size:10px;font-weight:800;margin-top:3px}
+.performance-roll{width:100%;overflow:hidden;background:#202444;border-radius:15px;box-shadow:inset 0 4px 16px #10142a40}
+.performance-roll svg{display:block;width:100%;height:auto;max-height:235px;min-height:125px}
+.performance-stats{display:flex;align-items:center;flex-wrap:wrap;gap:12px;color:#727895;font-size:11px;margin:10px 0 15px}
+.performance-stats b{color:#2c304f}.performance-stats>span{display:flex;align-items:center;gap:5px}
+.perf-dot{background:#7773e1;width:8px;height:8px;border-radius:50%;display:inline-block}.perf-dot.success{background:#23bfa3}.perf-dot.error{background:#ee7184}
+.perf-time{margin-left:auto;background:#f0effb;border-radius:20px;padding:5px 9px;font-weight:800;color:#6155b9}
+.performance-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.performance-controls .btn{font-size:12px}
+.tempo-selector{display:flex;align-items:center;gap:5px;margin-left:auto;background:#f3f3fc;border-radius:11px;padding:5px 8px}
+.tempo-selector span{font-size:10px;color:#737b98;font-weight:750}
+.tempo-chip{border:0;background:transparent;color:#737b98;font-size:11px;font-weight:850;padding:8px 10px;border-radius:8px}
+.tempo-chip.active{background:#6457df;color:white}
+.tempo-chip:disabled{opacity:.52}
+.performance-coach{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 14px;margin-top:13px;border-radius:12px;background:#f1efff}
+.performance-coach-text{font-size:12px;font-weight:750;color:#5147b8}
+.latency-control{display:flex;align-items:center;gap:7px;color:#747c99;font-size:10px;white-space:nowrap}
+.latency-control input{width:90px;accent-color:#6355df}.latency-control span{font-weight:850;min-width:38px}
+.performance-hint{color:#969bb0;font-size:10px;line-height:1.45;margin:8px 4px 0}
+.performance-summary{margin:15px 0 6px;padding:18px;background:#f3f1ff;border-radius:17px;text-align:left}
+.performance-summary>strong{display:block;color:#5249b4;margin-bottom:12px;font-size:13px}
+.performance-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;text-align:center}
+.performance-summary-grid>div{background:white;border-radius:11px;padding:11px 4px}
+.performance-summary-grid b{font-size:22px;color:#37366b;display:block}
+.performance-summary-grid span{font-size:9px;color:#9299ad}
+.performance-summary p{margin:11px 0 0;font-size:10px;color:#898da8}
+.result-wrap .result-card{width:min(590px,100%)}
+@media(max-width:760px){
+.practice-modes{max-width:100%;margin-bottom:4px}
+.practice-mode{padding:9px 5px;font-size:11px}
+.performance-area{padding:12px;border-radius:17px}
+.performance-head h2{font-size:17px}
+.performance-head p{font-size:10px}
+.performance-roll svg{min-height:110px}
+.performance-pulse{padding:7px 11px}.performance-pulse strong{font-size:22px}
+.performance-stats{gap:8px;font-size:10px}.perf-time{margin-left:0}
+.performance-controls{gap:6px}.performance-controls .btn{padding:9px 11px;min-height:37px;font-size:11px}
+.tempo-selector{margin:0;width:100%;justify-content:center}.tempo-chip{padding:7px 11px}
+.performance-coach{flex-direction:column;align-items:flex-start;padding:11px;gap:10px}
+.latency-control{width:100%;justify-content:space-between}.latency-control input{width:35%}
+.performance-hint{font-size:9px}
+.performance-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
