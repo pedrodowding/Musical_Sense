@@ -15,6 +15,24 @@ Aplicativo web de aprendizagem musical com aulas visuais e avaliação das notas
 - Biblioteca inicial de melodias tradicionais, domínio público e exercícios didáticos
 - PWA com Service Worker, manifesto, ícone SVG e suporte offline após instalação
 
+
+## Modo Performance (versão 2.1)
+
+Cada aula possui duas modalidades acessíveis na própria tela:
+
+1. **Aprender sem pressa:** o usuário toca as notas isoladamente e avança após o reconhecimento.
+2. **Tocar no ritmo:** um corredor de notas se desloca até a linha verde no tempo da música. O aluno ouve quatro pulsos de preparação, acompanha 60, 80 ou 100 BPM e pode pausar/continuar.
+
+No modo Performance, o aplicativo avalia os eventos de entrada monofônicos em relação aos instantes esperados, marca notas não tocadas e registra notas perfeitas, boas, fora do centro do pulso e perdidas. Os relatórios exibem precisão estimada, sequência de acertos e um trecho sugerido para praticar novamente.
+
+**Latência:** por padrão, os eventos captados pelo microfone são compensados em 160 ms. É possível alterar entre 0 e 300 ms no controle da aula. MIDI usa o horário do evento sem essa compensação. Ajustar a latência ajuda, mas ainda não equivale a uma calibração automática validada em diversos dispositivos.
+
+**Comportamento de conclusão:** um desafio de performance com menos de 65% de notas corretas concede XP reduzido, sem marcar a aula completa. A repetição de um trecho difícil não marca toda a aula como concluída.
+
+**Áudio:** os pulsos são sintetizados localmente com Web Audio. Recomendamos fones de ouvido para impedir que os cliques emitidos pelo iPad sejam captados pelo próprio microfone. Não há faixa comercial ou acompanhamento por banda gravada.
+
+**Validação:** o algoritmo de pontuação possui testes automatizados reproduzíveis com \`node --test tests/performance.test.mjs\`. A sincronização com instrumentos reais, incluindo a latência do Safari, continua dependente de testes físicos.
+
 ## Como publicar
 
 Repositório estático: importação Vercel como **Other**, sem Build Command e sem Output Directory. Cada push na branch main inicia um deploy na integração GitHub/Vercel já configurada.
@@ -31,7 +49,7 @@ Repositório estático: importação Vercel como **Other**, sem Build Command e 
 
 - Detecção **monofônica** em estudo: acordes simultâneos e múltiplas vozes ainda não são analisados.
 - Algoritmo, compatibilidade de iPad e latência **precisam de validação com instrumentos reais**. Nem todos os timbres/oitavas são captados de forma confiável.
-- Exercícios de pulso e metrônomo ainda não certificam precisão rítmica e nem acompanham uma faixa com áudio profissional.
+- O modo Performance mede proximidade temporal estimada entre eventos de notas e pulsos, sem garantia de precisão profissional. A latência real e o instante exato do ataque de notas ainda podem variar por instrumento e dispositivo. O metrônomo no modo guiado não avalia ritmo.
 - Perfis usam localStorage neste dispositivo; não há login ou sincronização na nuvem.
 - O metrônomo e os exemplos de áudio são sintetizados localmente, sem gravações comerciais.
 - Outros instrumentos além de piano/teclado estão previstos, mas não têm trilhas próprias.
