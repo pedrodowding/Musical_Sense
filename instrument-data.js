@@ -57,14 +57,14 @@ const extraMelodies={
  ],
  "bass-guitar":[
   {key:"pulse",title:"Pulso da Cidade",subtitle:"Groove original de baixo na corda Sol",icon:"🌆",kind:"song",notes:[43,43,45,47,43,45,48,47,43],beats:[1,1,1,2,1,1,1,2,2],xp:110,minutes:5},
-  {key:"steps",title:"Passos do Baixo",subtitle:"Linha original para baixo elétrico",icon:"🎵",kind:"song",notes:[43,45,47,45,43,48,47,45,43],beats:[1,1,2,1,1,1,1,1,2],xp:120,minutes:6}
+  {key:"walk",title:"Passos do Baixo",subtitle:"Linha original para baixo elétrico",icon:"🎵",kind:"song",notes:[43,45,47,45,43,48,47,45,43],beats:[1,1,2,1,1,1,1,1,2],xp:120,minutes:6}
  ]
 };
 for(const source of sources)source.program.splice(3,0,...extraMelodies[source.id]);
 export const STRING_LESSONS=sources.flatMap((source)=>{
  return source.program.map((entry,index)=>({
    id:source.prefix+"-"+entry.key,
-   instrument:source.id,course:index<2?"fundamentals":index===2?"solo":"harmony",
+   instrument:source.id,course:entry.kind==="song"?"solo":entry.kind==="rhythm"?"harmony":"fundamentals",
    title:entry.title,subtitle:entry.subtitle,icon:entry.icon,minutes:entry.minutes,xp:entry.xp,level:index+1,
    kind:entry.kind,tip:"Use somente a "+source.string+" ("+source.stringNumber+"ª corda). As notas são reconhecidas individualmente pelo microfone.",
    stringLabel:source.string,stringNumber:source.stringNumber,
