@@ -1,0 +1,69 @@
+
+/* Canto, letra sincronizada, biblioteca pessoal e conquistas */
+.mobile-nav{grid-template-columns:repeat(6,minmax(0,1fr))}
+.mobile-nav button{min-width:0}
+.vocal-intro{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(115deg,#f1eaff,#e4f8f4)}
+.vocal-intro h2{font-size:25px}.vocal-intro p{max-width:540px}.vocal-intro-art{font-size:115px;filter:drop-shadow(0 12px 9px #6e64bb2c);padding-right:35px}
+.vocal-song .vocal-cover{background:linear-gradient(145deg,#e7deff,#d3faf2);display:grid;place-items:center;height:138px;font-size:78px}
+.lyrics-textarea{min-height:230px;resize:vertical;font-family:ui-monospace,monospace;font-size:13px;line-height:1.6}
+.rights-check{display:flex;gap:11px;align-items:flex-start;padding:14px;background:#fff8e9;border:1px solid #f4e1b7;border-radius:13px;margin-bottom:18px;font-size:13px;color:#775d29}
+.rights-check input{width:18px;height:18px;accent-color:#6556ed;flex:0 0 18px}
+.vocal-screen{background:#f5f6fc;min-height:100dvh}
+.vocal-main{max-width:1040px;padding:26px 22px 45px;margin:0 auto}
+.vocal-head{text-align:center;margin-bottom:18px}
+.vocal-head h1{font-size:clamp(25px,3.4vw,35px);margin:7px 0}.vocal-head p{color:#727995;font-size:13px;margin:0}
+.vocal-karaoke{background:radial-gradient(circle at 80% 30%,#43488d,#1f2247);border-radius:25px;padding:24px 25px;color:white;box-shadow:0 18px 35px #24234e27;overflow:hidden}
+.vocal-karaoke-top{display:flex;justify-content:space-between;gap:10px;color:#b9bceb;font-size:12px;font-weight:800}
+.vocal-lyrics{min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center;padding:25px 10px}
+.karaoke-line{font-size:clamp(17px,2.9vw,28px);font-weight:750;color:#7c83b3;margin:0;line-height:1.36;transition:color .2s}
+.karaoke-line.active{color:#ffffff;font-size:clamp(23px,3.6vw,38px);text-shadow:0 4px 14px #0007}
+.karaoke-line.done{color:#58dfc4}
+.vocal-live-word{text-align:center;color:#b7c1e8;font-size:13px;margin:0 0 20px}
+.vocal-live-word strong{color:#60e7cc;font-size:23px;margin-left:5px}
+.vocal-live-word #vocal-countdown{display:inline-block;color:#f8ce88;font-size:13px;margin-left:15px}
+.vocal-note-ribbon{display:flex;justify-content:center;gap:7px;overflow:hidden;padding:6px 2px;min-height:75px}
+.vocal-note{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid #656a9a;border-radius:12px;min-width:62px;padding:11px 10px;color:#bfc3e9;background:#34375f;font-weight:800;font-size:12px}
+.vocal-note small{font-size:12px;font-weight:600;color:#b0b6d8}
+.vocal-note.active{background:#7868ea;color:white;border-color:#c3b5ff;box-shadow:0 0 0 3px #a89eff25}
+.vocal-note.perfect,.vocal-note.good{background:#238e78;border-color:#62e8cc;color:white}
+.vocal-note.miss,.vocal-note.wrong{background:#ba5368;border-color:#f0a0b0;color:white}
+.vocal-bottom{margin-top:15px}.vocal-bottom>.card{box-shadow:var(--shadow)}
+.vocal-bottom h3{margin:0 0 13px}.vocal-meter{height:11px;background:#e9eaf5;border-radius:25px;overflow:hidden;margin-bottom:14px}
+.vocal-meter>div{width:0;height:100%;background:linear-gradient(90deg,#55d3b9,#6555ee);border-radius:inherit;transition:width .1s}
+.vocal-readings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:15px}
+.vocal-readings>div{background:#f5f5fc;padding:12px 8px;border-radius:12px;text-align:center}
+.vocal-readings b{display:block;font-size:15px;color:#353757}.vocal-readings span{display:block;font-size:10px;color:#7a819e;margin-top:4px}
+.vocal-options{display:flex;gap:9px}.vocal-options label{flex:1;font-size:11px;color:#636a88;font-weight:850}
+.vocal-options select{padding:11px;margin-top:7px}
+.vocal-controls{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.vocal-controls .btn{min-width:140px}
+.vocal-result-stats{text-align:center;color:#6c7194;font-size:12px;margin:12px 0 15px}
+.achievement{text-align:center;position:relative;padding:22px 14px}
+.achievement-icon{font-size:45px;display:grid;place-items:center;margin-bottom:10px}
+.achievement h3{font-size:14px;margin:5px 0}
+.achievement p{min-height:30px;margin:8px 0 12px}
+.achievement.locked{opacity:.63}.achievement.locked .achievement-icon{filter:grayscale(1)}.achievement.earned{border-color:#b4ece0}
+.mission-card{padding:17px}
+.mission-card strong{font-size:13px}
+.gamification-mini{border:1px solid #e7e4fe;background:linear-gradient(110deg,#f3f1ff,#f0faf7);padding:20px;border-radius:19px}
+.gamification-mini h3{margin-bottom:5px}.gamification-mini p{font-size:12px;color:#767d97}
+.gamification-mini .statline{display:flex;justify-content:space-between;align-items:center;margin:15px 0 7px;font-size:12px}
+.gamification-mini .btn{margin-top:14px}
+@media(max-width:760px){
+ .mobile-nav button{font-size:9px}
+ .vocal-intro{padding:20px;overflow:hidden}.vocal-intro h2{font-size:20px}
+ .vocal-intro-art{padding-right:0;font-size:70px}
+ .vocal-intro p{font-size:11px}
+ .vocal-song .vocal-cover{height:113px;font-size:60px}
+ .vocal-main{padding:15px 10px 35px}.vocal-head h1{font-size:24px}
+ .vocal-karaoke{border-radius:18px;padding:16px 10px}
+ .vocal-lyrics{min-height:166px;padding:17px 7px}
+ .karaoke-line.active{font-size:23px}.karaoke-line{font-size:16px}
+ .vocal-note-ribbon{gap:4px}.vocal-note{min-width:43px;padding:8px 4px;font-size:10px}
+ .vocal-note small{font-size:9px}
+ .vocal-bottom{grid-template-columns:1fr!important}
+ .vocal-controls .btn{min-width:0;padding:11px 12px;font-size:11px}
+ .vocal-readings b{font-size:12px}
+ .achievement-icon{font-size:33px}
+ .mission-card{padding:13px}.mission-card strong{font-size:11px}
+}
