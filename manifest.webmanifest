@@ -1,0 +1,9 @@
+{
+  "name": "Musical Sense",
+  "short_name": "Musical Sense",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#101327",
+  "theme_color": "#171a35",
+  "description": "Aprenda música com reconhecimento pelo microfone"
+}
