@@ -1,9 +1,20 @@
 {
-  "name": "Musical Sense",
+  "name": "Musical Sense | Aprenda música",
   "short_name": "Musical Sense",
+  "description": "Aulas musicais guiadas com reconhecimento de notas pelo microfone e perfis individuais.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#101327",
-  "theme_color": "#171a35",
-  "description": "Aprenda música com reconhecimento pelo microfone"
+  "orientation": "any",
+  "background_color": "#f6f7fc",
+  "theme_color": "#25244b",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
