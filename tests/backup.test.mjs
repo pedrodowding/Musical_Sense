@@ -37,6 +37,19 @@ test("backup bloqueia perfis duplicados e nomes excessivamente longos",()=>{
  const result=parseBackup(makeBackup(x));
  assert.equal(result.users[1].name.length,30);
 });
+test("volume e timbre são preservados ao restaurar o backup",()=>{
+ const x=base();x.audioVolume=.55;x.pulseVolume=.25;x.soundTimbre="strings";
+ const data=parseBackup(makeBackup(x));
+ assert.equal(data.audioVolume,.55);assert.equal(data.pulseVolume,.25);
+ assert.equal(data.soundTimbre,"strings");
+});
+test("backup limita o volume restaurado ao máximo seguro",()=>{
+ const x=base();x.audioVolume=12;x.pulseVolume=-8;x.soundTimbre="<script>";
+ const restored=parseBackup(makeBackup(x));
+ assert.equal(restored.audioVolume,1);
+ assert.equal(restored.pulseVolume,0);
+ assert.equal(restored.soundTimbre,"auto");
+});
 test("backup restaura compensações padrão quando ausentes",()=>{
  const result=parseBackup(makeBackup(base()));
  assert.equal(result.perfLatency,160);
