@@ -183,7 +183,7 @@ export class SoundPlayer{
       this.ctx=new Ctx();
     }
     this.initMaster(this.ctx);
-    if(this.ctx.state==="suspended")await this.ctx.resume();
+    if(this.ctx.state!=="running")await this.ctx.resume();
     return this.ctx;
   }
   tone(ctx,midi,start,duration=.35,volume=.30){
@@ -237,7 +237,7 @@ export class SoundPlayer{
     const ctx=await this.context(),t=ctx.currentTime+.012;
     const o=ctx.createOscillator(),g=ctx.createGain();
     o.type="sine";o.frequency.value=strong?1260:880;
-    const peak=(strong?.22:.15)*this.metronomeVolume;
+    const peak=(strong?.32:.24)*this.metronomeVolume;
     g.gain.setValueAtTime(.0001,t);
     g.gain.exponentialRampToValueAtTime(peak,t+.004);
     g.gain.exponentialRampToValueAtTime(.0001,t+.09);
