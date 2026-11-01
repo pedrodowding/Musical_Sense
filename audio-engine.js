@@ -132,25 +132,128 @@ export class AudioEngine{
   }
   disconnectMidi(){this.midiHandlers.forEach(({input,handler})=>input.removeEventListener("midimessage",handler));this.midiHandlers=[];if(this.midiAccess)this.midiAccess.onstatechange=null;this.midiAccess=null}
 }
+/**
+ * Reprodutor sintetizado de notas e pulsos.
+ * Uma única saída master mantém o volume previsível em Safari, iPad e desktop.
+ * A compressão limita picos, mas não substitui o volume físico do dispositivo.
+ */
 export class SoundPlayer{
-  constructor(){this.ctx=null;this.timer=null;this.demoEnd=0;this.oscillators=new Set()}
-  async context(){if(!this.ctx){const Ctx=window.AudioContext||window.webkitAudioContext;this.ctx=new Ctx()}await this.ctx.resume();return this.ctx}
-  tone(ctx,midi,start,duration=.35,volume=.14){
+  constructor(){
+    this.ctx=null;this.timer=null;this.demoEnd=0;this.oscillators=new Set();
+    this.input=null;this.compressor=null;this.master=null;
+    this.volume=.85;this.metronomeVolume=.72;this.timbre="piano";
+  }
+  clamp(value,fallback=1){
+    const number=Number(value);
+    return Number.isFinite(number)?Math.min(1,Math.max(0,number)):fallback;
+  }
+  outputGain(){
+    return .96*Math.pow(this.volume,1.15);
+  }
+  setVolume(value){
+    this.volume=this.clamp(value,.85);
+    if(this.master&&this.ctx){
+      const gain=this.master.gain,now=this.ctx.currentTime,target=this.outputGain();
+      if(typeof gain.setTargetAtTime==="function")gain.setTargetAtTime(target,now,.025);
+      else gain.value=target;
+    }
+    return this.volume;
+  }
+  getVolume(){return this.volume}
+  setMetronomeVolume(value){this.metronomeVolume=this.clamp(value,.72);return this.metronomeVolume}
+  setTimbre(value){this.timbre=["piano","strings","soft"].includes(value)?value:"piano";return this.timbre}
+  initMaster(ctx){
+    if(this.master)return;
+    this.input=ctx.createGain();
+    this.compressor=typeof ctx.createDynamicsCompressor==="function"?ctx.createDynamicsCompressor():null;
+    this.master=ctx.createGain();
+    this.master.gain.value=this.outputGain();
+    if(this.compressor){
+      const c=this.compressor;
+      c.threshold.value=-12;c.knee.value=15;c.ratio.value=7;
+      c.attack.value=.005;c.release.value=.18;
+      this.input.connect(c);c.connect(this.master);
+    }else this.input.connect(this.master);
+    this.master.connect(ctx.destination);
+  }
+  async context(){
+    if(!this.ctx){
+      const Ctx=window.AudioContext||window.webkitAudioContext;
+      if(!Ctx)throw new Error("Este navegador não oferece saída Web Audio.");
+      this.ctx=new Ctx();
+    }
+    this.initMaster(this.ctx);
+    if(this.ctx.state==="suspended")await this.ctx.resume();
+    return this.ctx;
+  }
+  tone(ctx,midi,start,duration=.35,volume=.30){
     const f=noteFrequency(midi);
-    const g=ctx.createGain();g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(volume,start+.025);g.gain.exponentialRampToValueAtTime(.0001,start+duration+.12);g.connect(ctx.destination);
-    const oscs=[];[[1,1],[2,.18],[3,.07]].forEach(([multiple,level])=>{const o=ctx.createOscillator();o.type="sine";o.frequency.value=f*multiple;const gain=ctx.createGain();gain.gain.value=level;o.connect(gain);gain.connect(g);this.oscillators.add(o);o.onended=()=>this.oscillators.delete(o);o.start(start);o.stop(start+duration+.16);oscs.push(o)});
+    const valid=Number.isFinite(f)&&f>30&&f<20000;
+    if(!valid)return [];
+    const timbre=this.timbre;
+    const harmonics=timbre==="strings"?[[1,1],[2,.43],[3,.22],[4,.10]]:
+      timbre==="soft"?[[1,1],[2,.12],[3,.035]]:
+      [[1,1],[2,.34],[3,.14],[4,.06]];
+    const d=Math.max(.09,Math.min(3,Number(duration)||.35));
+    const peak=Math.min(.38,Math.max(.035,Number(volume)||.30));
+    const attack=timbre==="strings"?.007:timbre==="soft"?.032:.014;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(.0001,start);
+    g.gain.exponentialRampToValueAtTime(peak,start+attack);
+    if(timbre==="strings"){
+      g.gain.exponentialRampToValueAtTime(Math.max(.0001,peak*.22),start+d*.76);
+    }else{
+      g.gain.exponentialRampToValueAtTime(Math.max(.0001,peak*.68),start+d*.82);
+    }
+    g.gain.exponentialRampToValueAtTime(.0001,start+d+.095);
+    g.connect(this.input||ctx.destination);
+    const oscs=[];
+    for(const [multiple,level] of harmonics){
+      if(f*multiple>ctx.sampleRate*.47)continue;
+      const o=ctx.createOscillator();o.type="sine";o.frequency.value=f*multiple;
+      const harmonicGain=ctx.createGain();harmonicGain.gain.value=level;
+      o.connect(harmonicGain);harmonicGain.connect(g);
+      this.oscillators.add(o);o.onended=()=>this.oscillators.delete(o);
+      o.start(start);o.stop(start+d+.13);oscs.push(o);
+    }
     return oscs;
   }
   async play(notes,tempo=96){
-    const ctx=await this.context();const start=ctx.currentTime+.07;let cursor=start;
-    for(const entry of notes){const midi=typeof entry==="number"?entry:entry.m;const beats=(entry.beats||1);const duration=Math.min(1.4,(60/tempo)*beats);this.tone(ctx,midi,cursor,duration*.82);cursor+=duration}
-    this.demoEnd=performance.now()+(cursor-start)*1000+350;return Math.ceil((cursor-start)*1000+350)
+    const ctx=await this.context();
+    const speed=Math.min(220,Math.max(35,Number(tempo)||96));
+    const start=ctx.currentTime+.07;let cursor=start;
+    for(const entry of notes){
+      const midi=typeof entry==="number"?entry:entry.m;
+      const beats=Math.max(.25,Math.min(8,Number(entry?.beats)||1));
+      const duration=Math.min(3,(60/speed)*beats);
+      this.tone(ctx,midi,cursor,duration*.85);
+      cursor+=duration;
+    }
+    this.demoEnd=performance.now()+(cursor-start)*1000+250;
+    return Math.ceil((cursor-start)*1000+250);
   }
   async metronomeClick(strong=false){
-    const ctx=await this.context(),t=ctx.currentTime+.012,o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=strong?1100:800;
-    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.09,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.085);
-    o.connect(g);g.connect(ctx.destination);this.oscillators.add(o);o.onended=()=>this.oscillators.delete(o);o.start(t);o.stop(t+.1);
+    if(this.metronomeVolume<=0||this.volume<=0)return;
+    const ctx=await this.context(),t=ctx.currentTime+.012;
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type="sine";o.frequency.value=strong?1260:880;
+    const peak=(strong?.22:.15)*this.metronomeVolume;
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(peak,t+.004);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.09);
+    o.connect(g);g.connect(this.input||ctx.destination);
+    this.oscillators.add(o);o.onended=()=>this.oscillators.delete(o);
+    o.start(t);o.stop(t+.11);
   }
-  stop(){if(this.timer)clearInterval(this.timer);this.timer=null;for(const osc of this.oscillators){try{osc.stop()}catch{}}this.oscillators.clear()}
-  async metronome(bpm){this.stop();let i=0;await this.metronomeClick(true);this.timer=setInterval(()=>this.metronomeClick(++i%4===0),60000/bpm)}
+  stop(){
+    if(this.timer)clearInterval(this.timer);this.timer=null;
+    for(const osc of this.oscillators){try{osc.stop()}catch{}}
+    this.oscillators.clear();
+  }
+  async metronome(bpm){
+    this.stop();let i=0;
+    await this.metronomeClick(true);
+    const interval=60000/Math.min(220,Math.max(35,Number(bpm)||80));
+    this.timer=setInterval(()=>this.metronomeClick(++i%4===0).catch(()=>{}),interval);
+  }
 }
