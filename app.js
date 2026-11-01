@@ -190,6 +190,25 @@ async function enableMic(){
 }
 function onFrame(frame){
   lastFrame=frame;
+  if(page==="vocal-practice"&&vocal){
+    if(vocal.phase==="running")vocal.sample(frame,performance.now());
+    const level=$("#vocal-meter");if(level)level.style.width=Math.min(100,Math.round(frame.rms*1100))+"%";
+    const heard=$("#vocal-heard");if(heard)heard.textContent=frame.note==null?"Aguardando voz":noteName(frame.note);
+    const cents=$("#vocal-cents");if(cents)cents.textContent=frame.note==null?"—":(frame.cents>0?"+":"")+frame.cents+" cents";
+    const target=$("#vocal-target");if(target)target.textContent=noteName(vocal.song.steps[Math.min(vocal.index,vocal.song.steps.length-1)].m+vocal.transpose);
+    return;
+  }
+  if(page==="personal-practice"&&personalSession){
+    const p=personalSession;
+    const level=$("#vocal-meter");if(level)level.style.width=Math.min(100,Math.round(frame.rms*1100))+"%";
+    const heard=$("#vocal-heard");if(heard)heard.textContent=frame.note==null?"—":noteName(frame.note);
+    if(p.playing&&frame.note!==null&&frame.rms>=.008&&frame.confidence>=.7){
+      const now=performance.now(),dt=p.lastVoiceAt?Math.min(115,Math.max(0,now-p.lastVoiceAt)):65;
+      p.voicedMs+=dt;p.lastVoiceAt=now;
+      const counter=$("#personal-voice");if(counter)counter.textContent=Math.floor(p.voicedMs/1000)+"s";
+    }else p.lastVoiceAt=0;
+    return;
+  }
   if(page!=="practice"||!session)return;
   const level=$("#input-level");if(level)level.style.width=Math.min(100,frame.rms*1100)+"%";
   const heard=$("#heard");if(heard)heard.textContent=frame.note===null?"Nota: aguardando":"Nota: "+noteName(frame.note);
@@ -289,6 +308,118 @@ function resetPerformance(){
   session.performance=new PerformanceSession(session.steps,{bpm,latencyMs:db.perfLatency??160});
   session.index=0;session.hits=0;session.misses=0;session.feedback=[];session.coach="";
   session.startedAt=Date.now();session.stepStart=Date.now();render();
+}
+async function beginVocal(songId,{bpmOverride=null,transpose=0}={}){
+  const song=vocalById(songId);if(!song){toast("Canção não encontrada.");return}
+  audio.stop();audio.disconnectMidi();stopTimers();session=null;personalSession=null;
+  vocal=new SingingSession(song,{bpm:bpmOverride||song.bpm,transpose,latencyMs:db.vocalLatency??130});
+  vocal.sessionId="vocal-"+Date.now()+"-"+Math.random().toString(36).slice(2);
+  vocalAward=null;page="vocal-practice";audioStatus="off";audioError="";lastFrame=null;
+  audio.setSensitivity(.90);render();window.scrollTo(0,0);
+  await enableMic();
+}
+function animateVocal(now){
+  singingRAF=0;
+  if(page!=="vocal-practice"||!vocal||!["countin","running"].includes(vocal.phase))return;
+  const p=vocal,previous=p.index,phase=p.phase,rv=p.tick(now);
+  if(rv.beat)player.metronomeClick(rv.beatNumber%4===0).catch(()=>{});
+  if(p.phase==="finished"){finishVocal();return}
+  if(p.index!==previous||p.phase!==phase)render();
+  if(now-singingLastTick>115){
+    singingLastTick=now;
+    const line=$("#vocal-countdown");if(line)line.textContent=p.phase==="countin"?"Prepare-se: "+p.countdown(now):"";
+    const coach=$("#vocal-coach");if(coach)coach.textContent=p.lastFeedback;
+    const syllable=$("#vocal-syllable");if(syllable)syllable.textContent=p.song.steps[Math.min(p.index,p.song.steps.length-1)].syllable;
+  }
+  singingRAF=requestAnimationFrame(animateVocal);
+}
+async function toggleVocal(){
+  if(!vocal)return;
+  if(vocal.phase==="finished"){await beginVocal(vocal.song.id,{bpmOverride:vocal.bpm,transpose:vocal.transpose});return}
+  if(["running","countin"].includes(vocal.phase)){
+    vocal.pause(performance.now());if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;
+    render();return;
+  }
+  if(!audio.listening){
+    toast("Ative o microfone antes de começar a cantar.");
+    await enableMic();if(!audio.listening)return;
+  }
+  try{await player.context()}catch(e){toast("A contagem sonora pode estar indisponível neste navegador.")}
+  const now=performance.now();if(vocal.phase==="paused")vocal.resume(now);else vocal.start(now);
+  render();if(singingRAF)cancelAnimationFrame(singingRAF);
+  singingRAF=requestAnimationFrame(animateVocal);
+}
+async function restartVocal(){
+  if(!vocal)return;
+  await beginVocal(vocal.song.id,{bpmOverride:vocal.bpm,transpose:vocal.transpose});
+}
+function finishVocal(){
+  if(!vocal||page!=="vocal-practice")return;
+  const p=vocal,summary=p.summary(),seconds=Math.max(1,Math.round(p.song.totalBeats*p.beatMs/1000));
+  const passed=summary.accuracy>=60;
+  vocalAward=awardPractice(active(),{
+    sessionId:p.sessionId,kind:"vocal",mode:"singing",lessonId:p.song.id,
+    correct:summary.accepted,attempts:summary.total,seconds,baseXp:85,passed,
+    full:true,song:true,stars:summary.accuracy>=90?3:summary.accuracy>=70?2:1
+  });
+  if(!save())toast("Seu navegador não permitiu salvar o progresso.");
+  audio.stop();stopTimers();page="vocal-result";render();
+}
+async function vocalDemo(){
+  if(!vocal||demoBusy||["running","countin"].includes(vocal.phase))return;
+  demoBusy=true;try{
+    const notes=vocal.song.steps.slice(0,28).map(s=>({...s,m:s.m+vocal.transpose}));
+    const milliseconds=await player.play(notes,vocal.bpm);
+    audio.muteFor(milliseconds+200);toast("Melodia-guia iniciada. Use fones para evitar retorno no microfone.");
+    render();
+    setTimeout(()=>{demoBusy=false;if(page==="vocal-practice")render()},milliseconds);
+  }catch(e){demoBusy=false;toast("Não foi possível reproduzir a melodia.");}
+}
+async function beginPersonal(id){
+  const song=(active().personalLyrics||[]).find(s=>s.id===id);
+  if(!song){toast("Letra não encontrada.");return}
+  audio.stop();audio.disconnectMidi();stopTimers();session=null;vocal=null;vocalAward=null;
+  personalSession={song,sessionId:"personal-"+Date.now()+"-"+Math.random().toString(36).slice(2),elapsedMs:0,voicedMs:0,playing:false,startedAt:0,lastVoiceAt:0,micActive:false,completed:false};
+  page="personal-practice";audio.setSensitivity(.90);audioStatus="off";render();window.scrollTo(0,0);
+  await enableMic();
+}
+function animatePersonal(now){
+  singingRAF=0;
+  if(page!=="personal-practice"||!personalSession?.playing)return;
+  const p=personalSession;
+  p.elapsedMs=p.baseElapsed+Math.max(0,now-p.startedAt);
+  const line=p.song.lines;
+  const index=Math.max(0,line.findLastIndex(l=>l.atMs<=p.elapsedMs));
+  if(p.lastLine!==index){p.lastLine=index;render()}
+  const timer=$("#personal-timer");if(timer)timer.textContent=Math.floor(p.elapsedMs/1000)+"s";
+  if(p.elapsedMs>=p.song.durationMs){p.elapsedMs=p.song.durationMs;p.baseElapsed=p.elapsedMs;p.playing=false;render();return}
+  singingRAF=requestAnimationFrame(animatePersonal);
+}
+function togglePersonal(){
+  const p=personalSession;if(!p)return;
+  if(p.playing){p.elapsedMs=p.baseElapsed+performance.now()-p.startedAt;p.baseElapsed=p.elapsedMs;p.playing=false;
+    if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;render();return}
+  if(p.elapsedMs>=p.song.durationMs){p.elapsedMs=0;p.baseElapsed=0;p.lastLine=-1}
+  p.baseElapsed=p.elapsedMs;p.startedAt=performance.now();p.playing=true;
+  render();singingRAF=requestAnimationFrame(animatePersonal);
+}
+function restartPersonal(){
+  const p=personalSession;if(!p)return;
+  if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;
+  p.elapsedMs=0;p.baseElapsed=0;p.voicedMs=0;p.lastVoiceAt=0;p.playing=false;p.lastLine=-1;
+  render();
+}
+function finishPersonal(){
+  const p=personalSession;if(!p)return;
+  if(p.completed){changePage("singing");return}
+  if(p.playing){p.elapsedMs=p.baseElapsed+performance.now()-p.startedAt}
+  p.completed=true;p.playing=false;
+  const activeSeconds=Math.floor(p.voicedMs/1000);
+  const reward=awardPractice(active(),{sessionId:p.sessionId,kind:"personal",mode:"lyrics-only",lessonId:p.song.id,
+    correct:activeSeconds>=20?1:0,attempts:1,seconds:Math.floor(p.elapsedMs/1000),baseXp:0,passed:activeSeconds>=20,full:true});
+  if(!save())toast("Seu navegador não permitiu salvar o progresso.");
+  toast(activeSeconds>=20?"Prática registrada! +"+reward.xp+" XP por treinar a voz.":"Prática concluída. Cante por pelo menos 20 segundos para registrar XP.");
+  changePage("singing");
 }
 function updateAudioUI(){
   if(page!=="practice"||!session)return;
