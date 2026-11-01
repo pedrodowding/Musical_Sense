@@ -207,13 +207,13 @@ async function startLesson(id,requestMicrophone=true,options={}){
   if(options.reset){delete active().checkpoints[id];save()}
   const checkpoint=mode==="guided"&&!range&&!options.reset?active().checkpoints[id]:null;
   session={lesson,steps,index:0,hits:0,misses:0,assisted:0,feedback:[],showHint:false,wrongFlashUntil:0,
-    coach:"",stepStart:Date.now(),startedAt:Date.now(),lastCorrect:null,sensitivity:70,midiEnabled:false,result:null,mode,sectionRange:range,
+    coach:"",stepStart:Date.now(),startedAt:Date.now(),lastPracticeEventAt:Date.now(),activePracticeMs:0,lastCorrect:null,sensitivity:70,midiEnabled:false,result:null,mode,sectionRange:range,
     sessionId:"instrument-"+Date.now()+"-"+Math.random().toString(36).slice(2),
     performance:mode==="performance"?new PerformanceSession(steps,{bpm,latencyMs:db.perfLatency??160}):null
   };
   if(checkpoint&&checkpoint.mode==="guided"&&checkpoint.index>0&&checkpoint.index<steps.length){
     session.index=checkpoint.index;session.hits=checkpoint.hits||checkpoint.index;session.misses=checkpoint.misses||0;
-    session.assisted=checkpoint.assisted||0;session.feedback=Array(steps.length).fill(null).map((_,i)=>i<session.index?"correct":null);
+    session.assisted=checkpoint.assisted||0;session.activePracticeMs=checkpoint.activePracticeMs||0;session.feedback=Array(steps.length).fill(null).map((_,i)=>i<session.index?"correct":null);
   }
   page="practice";audioStatus="off";audioError="";lastFrame=null;audio.setSensitivity(.70);render();window.scrollTo(0,0);
   tipTimer=setInterval(()=>{if(page!=="practice"||!session||session.mode!=="guided")return;if(!session.showHint&&Date.now()-session.stepStart>9000){session.showHint=true;session.coach="Precisa de ajuda? A tecla lilás indica onde tocar.";render()}},1100);
@@ -266,13 +266,14 @@ function onNote(event){
   if(page!=="practice"||!session)return;
   const s=session,target=s.steps[s.index].m,m=event.note;
   if(s.mode==="performance"){const p=s.performance,rv=p.receive(event,performance.now());syncPerformanceState();if(p.phase==="finished"){finishLesson();return}if(rv.type==="hit"||rv.type==="wrong"){render()}else{const c=$("#performance-message");if(c)c.textContent=p.lastFeedback}return}
+  const now=Date.now();s.activePracticeMs+=Math.min(15000,Math.max(0,now-s.lastPracticeEventAt));s.lastPracticeEventAt=now;
   if(m===target&&Math.abs(event.cents||0)<=45){
     const assisted=s.showHint;
     s.feedback[s.index]=assisted?"hint":"correct";s.hits++;if(assisted)s.assisted++;
     s.lastCorrect=m;s.index++;s.showHint=false;s.coach="✓ Muito bem! Próxima nota.";s.stepStart=Date.now();s.wrongFlashUntil=0;
     if(s.mode==="guided"&&!s.sectionRange){
       active().checkpoints=active().checkpoints||{};
-      active().checkpoints[s.lesson.id]={mode:"guided",index:s.index,hits:s.hits,misses:s.misses,assisted:s.assisted,updatedAt:Date.now()};
+      active().checkpoints[s.lesson.id]={mode:"guided",index:s.index,hits:s.hits,misses:s.misses,assisted:s.assisted,activePracticeMs:s.activePracticeMs,updatedAt:Date.now()};
       save();
     }
     if(s.index>=s.steps.length){finishLesson();return}
@@ -291,7 +292,7 @@ function finishLesson(){
   const accuracy=performanceData?performanceData.accuracy:percent(s.hits,s.hits+s.misses);
   const passed=!performanceData||accuracy>=65;
   const stars=accuracy>=92&&(!performanceData||performanceData.rhythmAccuracy>=80)&&s.assisted<=2?3:accuracy>=72?2:1;
-  const seconds=Math.max(1,Math.round((Date.now()-s.startedAt)/1000));
+  const seconds=Math.max(1,Math.round(s.mode==="performance"?(s.performance.totalBeats*s.performance.beatMs/1000):s.activePracticeMs/1000));
   const award=awardPractice(u,{
     sessionId:s.sessionId,kind:"instrument",mode:s.mode,lessonId:s.lesson.id,
     correct:s.hits,attempts:performanceData?performanceData.total:s.hits+s.misses,
