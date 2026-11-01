@@ -34,7 +34,7 @@ function vocalPitches(s,noteName){
  return '<span class="vocal-note '+(active?"active":prev?.status||"")+'"><span>'+e(noteName(step.m+s.transpose))+'</span><small>'+e(step.syllable)+'</small></span>';
  }).join("")+'</div>';
 }
-export function renderVocalPractice(s,noteName,micState,frame){
+export function renderVocalPractice(s,noteName,micState,frame,soundVolume=85){
  const song=s.song,index=Math.min(s.index,song.steps.length-1),step=song.steps[index],phraseIndex=s.currentPhrase();
  const rows=song.phrases.map((phrase,i)=>{
   const current=i===phraseIndex;
@@ -52,6 +52,7 @@ export function renderVocalPractice(s,noteName,micState,frame){
  '<button class="btn '+(micState==="listening"?"ghost":"")+' sm" data-action="vocal-mic">'+(micState==="listening"?"Desligar microfone":"🎙 Ativar microfone")+'</button></section>'+
  '<section class="card"><h3>💡 Orientação</h3><p id="vocal-coach" class="muted small">'+e(s.lastFeedback)+'</p><div class="vocal-options"><label>Velocidade<select class="form-input" id="vocal-bpm" '+(["running","countin"].includes(s.phase)?"disabled":"")+'>'+[60,72,80,90,100].map(n=>'<option value="'+n+'" '+(s.bpm===n?"selected":"")+'>'+n+' BPM</option>').join("")+'</select></label><label>Registro vocal<select class="form-input" id="vocal-register" '+(["running","countin"].includes(s.phase)?"disabled":"")+'><option value="-12" '+(s.transpose===-12?"selected":"")+'>Uma oitava abaixo</option><option value="0" '+(s.transpose===0?"selected":"")+'>Original</option><option value="12" '+(s.transpose===12?"selected":"")+'>Uma oitava acima</option></select></label></div></section></div>'+
  '<div class="vocal-controls"><button class="btn" data-action="vocal-toggle">'+playLabel+'</button><button class="btn ghost" data-action="vocal-demo">♫ Ouvir melodia</button><button class="btn outline" data-action="vocal-restart">↻ Reiniciar</button></div>'+
+ '<div class="sound-inline vocal-volume" role="group" aria-label="Volume da guia vocal"><label for="sound-volume">🔊 Volume da melodia</label><input type="range" id="sound-volume" min="0" max="100" step="5" value="'+Math.round(soundVolume)+'" aria-label="Volume da melodia"><b id="sound-volume-value">'+Math.round(soundVolume)+'%</b><button class="btn sm ghost" data-action="sound-test">♫ Testar</button></div>'+
  '<p class="inline-tip">A análise avalia a frequência da voz e seu alinhamento com a melodia. Ela não reconhece nem certifica que você pronunciou cada palavra. Use fones para que a voz-guia não seja captada pelo microfone.</p></main></div>';
 }
 export function renderVocalResult(summary,xp,level,awards=[]){
