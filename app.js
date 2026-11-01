@@ -15,7 +15,7 @@ import {catalogEntries,catalogFilter,catalogEntryById} from "./catalog.js";
 import {instrumentContext,instrumentPicker,learningPath,catalogPage,catalogResultsMarkup,songDetailPage} from "./discovery-ui.js";
 const DBKEY="musical-sense-v3",OLDKEY="musical-sense-v1";
 const routes=[["home","⌂","Início"],["courses","◎","Trilha"],["library","♫","Músicas"],["singing","🎤","Cantar"],["workouts","◷","Treinos"],["profiles","♙","Perfis"]];
-const mobileRoutes=[["home","⌂","Início"],["courses","◎","Trilha"],["library","♫","Músicas"],["singing","🎤","Cantar"],["profiles","♙","Perfil"]];
+const mobileRoutes=[["home","🏠","Início"],["courses","🧭","Trilha"],["library","🎵","Músicas"],["singing","🎤","Cantar"],["profiles","👤","Perfil"]];
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const percent=(a,b)=>b?Math.round(a/b*100):0;
