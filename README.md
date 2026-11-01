@@ -2,6 +2,21 @@
 
 Aplicativo web de aprendizagem musical com aulas visuais e avaliação das notas tocadas em um **piano ou teclado físico** pelo microfone do navegador.
 
+## Atualização 3.1: som mais audível e controle de volume
+
+A reprodução de notas foi reconstruída sobre uma única saída Web Audio. Em vez de enviar os osciladores diretamente aos alto-falantes com ganho fixo baixo, o aplicativo utiliza um barramento com ganho master ajustável, compressor dinâmico para reduzir picos, envelope de notas mais definido e seleção de timbre sintetizado.
+
+- O volume principal padrão é **85%** e pode ser ajustado de 0 a 100%, diretamente em **Aula**, **Cantar** ou no botão **Som** no topo do aplicativo.
+- O metrônomo tem volume próprio (padrão 72%) e um botão para testar o pulso.
+- A página **Som** permite reproduzir uma curta sequência de notas, selecionar um timbre (automático, piano, cordas ou suave) e restaurar os padrões.
+- Preferências de áudio persistem no navegador e estão incluídas no arquivo de backup familiar.
+- Para reduzir estalos digitais, o ganho é interpolado suavemente; um compressor ajuda a controlar picos quando há mais de uma nota.
+- O som continua **sintetizado**, não é uma gravação de piano ou violão real.
+- Não é possível mudar programaticamente o volume físico de alto-falantes/fones no Safari; use os controles do aparelho.
+- Para usar microfone e reprodução juntos, recomendam-se fones para evitar que o som de saída seja captado como resposta.
+
+**Verificação executada:** testes simulados do grafo de áudio, geração de notas, cliques e botões/controles. A avaliação subjetiva de loudness, distorção e dinâmica no alto-falante interno do iPad ainda requer teste físico no dispositivo.
+
 ## Atualização 3.0: trilha por instrumento, música e UX mobile
 
 - **Escolha funcional de instrumento:** Piano, Teclado, Violão, Guitarra, Ukulele, Baixo e Voz. O instrumento ativo fica salvo no perfil; o histórico e XP não são perdidos ao trocar.
