@@ -85,32 +85,29 @@ function lessonCard(l){
   return '<div class="lesson-row"><span class="lesson-icon '+colored+'">'+l.icon+'</span><div class="grow"><div class="row wrap" style="gap:8px"><h3>'+esc(l.title)+'</h3>'+(done?'<span class="pill green">✓ Concluída</span>':'')+'</div><p>'+esc(l.subtitle)+'</p><div class="lesson-foot"><span>⏱ '+l.minutes+' min</span><span>⚡ '+l.xp+' XP</span><span>Nível '+l.level+'</span></div></div><button class="btn sm '+(done?"ghost":"")+' lesson-action" data-lesson="'+l.id+'">'+(done?"Refazer ↻":checkpoint?.index>0?"Continuar "+checkpoint.index+"/"+getSessionNotes(l).length+" →":"Começar →")+'</button></div>';
 }
 function courses(){
-  const filters=[["all","Todas"],["fundamentals","Fundamentos"],["solo","Melodias"],["harmony","Harmonia"]];
-  const items=LESSONS.filter(l=>courseFilter==="all"||l.course===courseFilter);
-  return '<div class="page-intro"><span class="eyebrow">UMA NOTA POR VEZ</span><h1>Uma jornada feita para você 🎹</h1><p>De sua primeira nota até pequenas melodias, com aulas curtas e retorno ao tocar seu instrumento de verdade.</p></div>'+
-  '<div class="grid three">'+COURSES.map(courseCard).join("")+'</div>'+
-  '<div class="section-head"><h2>Explore as aulas</h2><span class="muted small">'+items.length+' disponíveis</span></div><div class="taglist">'+filters.map(([id,label])=>'<button class="chip '+(courseFilter===id?"active":"")+'" data-filter="'+id+'">'+label+'</button>').join("")+'</div><div class="lesson-list">'+items.map(lessonCard).join("")+'</div>';
+ const u=active();
+ return '<div class="page-intro"><span class="eyebrow">UM PASSO DE CADA VEZ</span><h1>Sua trilha de aprendizagem</h1><p>Uma sequência clara de lições para seu instrumento, sem bloquear a liberdade de praticar.</p></div>'+
+ learningPath({instrument:u.instrument,lessons:currentLessons(),completed:u.completed||{},checkpoints:u.checkpoints||{}});
 }
 function library(){
-  const genres=["Todas","Clássicas","Tradicionais","Exercícios","Canto"],
-    items=SONGS.filter(s=>songFilter==="Todas"||s.genre===songFilter),
-    vocals=VOCAL_SONGS.filter(s=>songFilter==="Todas"||songFilter==="Canto");
-  return '<div class="page-intro"><span class="eyebrow">BIBLIOTECA MUSICAL</span><h1>Toque ou cante sua próxima música 🎵</h1><p>Melodias tradicionais, exercícios e canções vocais originais com letras sincronizadas. Músicas comerciais entram apenas após o licenciamento adequado.</p></div>'+
-  '<div class="card" style="background:linear-gradient(120deg,#e9e3ff,#dff8f3);margin-bottom:20px"><span class="pill">🎵 REPERTÓRIO INICIAL</span><h2 style="margin:12px 0 7px">Sua música, seu ritmo</h2><p class="muted small" style="margin:0">No piano, acompanhe notas. No canto, acompanhe a letra e pratique sua afinação.</p></div>'+
-  '<div class="taglist">'+genres.map(g=>'<button class="chip '+(songFilter===g?"active":"")+'" data-genre="'+esc(g)+'">'+esc(g)+'</button>').join("")+'</div>'+
-  items.map(s=>'<div class="song-row"><span class="song-cover">'+s.cover+'</span><div class="grow"><h3>'+esc(s.name)+'</h3><p>'+esc(s.artist)+' · '+esc(s.level)+' · 🎹 Piano</p></div><button class="btn sm" data-lesson="'+s.id+'">Tocar ▶</button></div>').join("")+
-  vocals.map(s=>'<div class="song-row"><span class="song-cover">'+s.icon+'</span><div class="grow"><h3>'+esc(s.title)+'</h3><p>'+esc(s.artist)+' · '+esc(s.level)+' · 🎤 Canto com letra</p></div><button class="btn sm" data-vocal="'+s.id+'">Cantar ▶</button></div>').join("")+
-  '<div class="card" style="margin-top:18px"><h3>📝 Suas próprias letras</h3><p class="muted small">Importe letras autorizadas em TXT ou LRC para acompanhar no seu ritmo. Letras sem melodia não recebem nota de afinação.</p><button class="btn ghost sm" data-route="singing">Abrir minha biblioteca de letras →</button></div>'+
-  '<p class="inline-tip">Áudios de demonstração são sintetizados. Não extraímos letras ou áudio do YouTube, Spotify ou outros serviços.</p>';
+ return catalogPage({entries:fullCatalog(),query:catalogQuery,scope:catalogScope,difficulty:catalogDifficulty,
+   favorites:active().favorites||[],instrument:active().instrument});
+}
+function songDetail(){
+ return songDetailPage(selectedCatalogEntry(),{favorite:(active().favorites||[]).includes(songDetailId),instrument:active().instrument});
+}
+function instrumentsPage(){
+ return instrumentPicker(active().instrument);
 }
 function workouts(){
-  const u=active(),today=localDay(),sessionsToday=(u.history||[]).filter(h=>h.day===today),
-    secsToday=sessionsToday.reduce((acc,h)=>acc+(h.seconds||0),0),minToday=Math.floor(secsToday/60);
-  const options=[LESSONS[0],LESSONS[2],LESSONS.find(l=>l.id==="rhythm")];
-  return '<div class="page-intro"><span class="eyebrow">PEQUENAS VITÓRIAS, TODOS OS DIAS</span><h1>Treinos de 5 minutos ⏱</h1><p>Exercícios rápidos para leitura, precisão, coordenação e aquecimento vocal.</p></div>'+
-  '<div class="card workout"><span class="pill dark">DESAFIO DO DIA</span><h2 style="margin:14px 0 8px">Sua meta: 5 minutos de música</h2><p>'+Math.min(5,minToday)+' de 5 minutos de prática hoje</p><div class="progress-track" style="background:#5a5a89;max-width:440px"><div class="progress-fill" style="width:'+Math.min(100,percent(secsToday,300))+'%"></div></div><p class="small" style="margin:10px 0 0">O tempo registra práticas finalizadas neste dispositivo.</p></div>'+
-  '<div class="section-head"><h2>Escolha um treino</h2></div><div class="lesson-list">'+options.map(lessonCard).join("")+
-  '<div class="lesson-row"><span class="lesson-icon teal">🎤</span><div class="grow"><h3>Aquecimento vocal</h3><p>Descubra seu alcance e cante notas longas.</p><div class="lesson-foot"><span>⏱ 3 min</span><span>🎯 Afinação</span></div></div><button class="btn sm lesson-action" data-vocal="voice-warmup">Cantar →</button></div></div>';
+ const u=active(),today=localDay(),seconds=(u.history||[]).filter(h=>h.day===today).reduce((sum,h)=>sum+(Number(h.seconds)||0),0),
+   options=currentLessons().filter(l=>["notes","reading","technique","rhythm"].includes(l.kind)).slice(0,3),
+   isVoice=currentInstrument().id==="voice";
+ return instrumentContext(u.instrument)+'<div class="page-intro"><span class="eyebrow">CONSTÂNCIA MUSICAL</span><h1>Treinos rápidos ⏱</h1><p>Escolha uma habilidade para praticar em sessões curtas.</p></div>'+
+ '<div class="card workout"><span class="pill dark">DESAFIO DO DIA</span><h2 style="margin:13px 0 8px">Meta: cinco minutos</h2><p>'+Math.floor(Math.min(300,seconds)/60)+' de 5 minutos registrados hoje.</p><div class="progress-track" style="background:#5a5a89;max-width:440px"><div class="progress-fill" style="width:'+Math.min(100,percent(seconds,300))+'%"></div></div><p class="small" style="margin:10px 0 0">O aplicativo registra tempo nas práticas concluídas.</p></div>'+
+ '<div class="section-head"><h2>Escolha uma atividade</h2></div><div class="lesson-list">'+options.map(lessonCard).join("")+
+ '<div class="lesson-row"><span class="lesson-icon teal">🎤</span><div class="grow"><h3>Aquecimento vocal</h3><p>Vocalize e exercite a afinação.</p><div class="lesson-foot"><span>🎤 Canto</span></div></div><button class="btn sm lesson-action" data-vocal="voice-warmup">Cantar →</button></div></div>'+
+ (isVoice?'<p class="inline-tip">Você escolheu voz. Os exercícios de notas do piano não são apresentados nesta trilha.</p>':"");
 }
 function diagnostics(){
  let storageStatus="Disponível";try{const key="musical-sense-diagnostic";localStorage.setItem(key,"ok");localStorage.removeItem(key)}catch(e){storageStatus="Bloqueado ou indisponível"}
@@ -210,7 +207,7 @@ function result(){
 }
 function render(){
   if(!db.users.some(u=>u.id===db.active))db.active=db.users[0].id;
-  const content=page==="home"?home():page==="courses"?courses():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics((active().personalLyrics||[]).find(x=>x.id===editingSongId)):page==="diagnostics"?diagnostics():page==="library"?library():page==="workouts"?workouts():profiles();
+  const content=page==="home"?home():page==="courses"?courses():page==="instruments"?instrumentsPage():page==="library"?library():page==="song-detail"?songDetail():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics((active().personalLyrics||[]).find(x=>x.id===editingSongId)):page==="diagnostics"?diagnostics():page==="workouts"?workouts():profiles();
   $("#app").innerHTML=page==="practice"&&session?practice():page==="result"&&session?result():page==="vocal-practice"&&vocal?renderVocalPractice(vocal,noteName,audioStatus,lastFrame):page==="vocal-result"&&vocal?renderVocalResult(vocal.summary(),vocalAward?.xp||0,vocalAward?.level||1,(vocalAward?.badges||[]).map(id=>BADGES.find(b=>b.id===id)?.name||id)):page==="personal-practice"&&personalSession?renderPersonalPractice(personalSession.song,{...personalSession,micActive:audio.listening},lastFrame,noteName):shell(content);
   document.title=(page==="practice"&&session?session.lesson.title+" | ":page==="vocal-practice"&&vocal?vocal.song.title+" | ":"")+"Musical Sense";
   updateAudioUI();
