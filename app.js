@@ -214,6 +214,7 @@ function render(){
 }
 function stopTimers(){clearInterval(tipTimer);tipTimer=null;if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;player.stop();metronome=false;demoBusy=false}
 function changePage(next){
+  if(page==="song-detail"){player.stop();demoBusy=false}
   if(["practice","result","vocal-practice","vocal-result","personal-practice","diagnostics"].includes(page)){audio.stop();audio.disconnectMidi();stopTimers();session=null;vocal=null;personalSession=null}
   page=next;render();window.scrollTo(0,0);
 }
@@ -496,6 +497,17 @@ function updateAudioUI(){
   const mic=$("#mic-btn");if(mic)mic.textContent=audio.listening?"Desligar":"🎙 Ativar microfone";
   const coach=$("#coach-message");if(coach)coach.textContent=coachMessage();
 }
+async function previewSong(){
+  const item=selectedCatalogEntry();if(!item||!item.notes?.length||demoBusy)return;
+  demoBusy=true;
+  try{
+    player.stop();
+    const notes=item.notes.slice(0,12);
+    const duration=await player.play(notes,item.bpm||80);
+    toast("Reproduzindo uma prévia sintetizada da melodia.");
+    setTimeout(()=>{demoBusy=false},duration+100);
+  }catch(err){demoBusy=false;toast("A prévia não está disponível neste navegador.")}
+}
 async function hearDemo(){
   if(!session||demoBusy)return;
   demoBusy=true;const notes=session.steps.slice(session.index,Math.min(session.steps.length,session.index+8));
@@ -595,6 +607,7 @@ document.addEventListener("click",async e=>{
   const action=d.action;
   if(!action)return;
   if(action==="microphone"){await enableMic();return}
+  if(action==="preview-song"){await previewSong();return}
   if(action==="catalog-reset"){catalogQuery="";catalogScope="all";catalogDifficulty="all";render();return}
   if(action==="diagnose-mic"){await enableMic();return}
   if(action==="backup-export"){
