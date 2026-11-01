@@ -117,7 +117,7 @@ export class AudioEngine{
   setSensitivity(value){this.threshold=.005+(.035-.005)*(1-Math.max(0,Math.min(1,value)))}
   muteFor(ms){this.ignoreUntil=performance.now()+ms;this.reset()}
   stop(){
-    this.generation++;
+    this.generation++;this.openPromise=null;
     this.active=false;if(this.raf)cancelAnimationFrame(this.raf);this.raf=0;
     if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null}
     if(this.ctx){const c=this.ctx;this.ctx=null;c.close().catch(()=>{})}
