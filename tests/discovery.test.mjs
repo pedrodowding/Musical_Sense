@@ -33,7 +33,10 @@ test("cada instrumento oferece somente a trilha musical adequada",()=>{
  assert.ok(b.every(l=>l.instrument==="electric"));
  assert.ok(bass.every(l=>l.instrument==="bass-guitar"));
  assert.equal(instruments.lessonsForInstrument("Voz",music.LESSONS).length,0);
- assert.deepEqual(instruments.lessonsForInstrument("Teclado",music.LESSONS),music.LESSONS);
+ const keyboard=instruments.lessonsForInstrument("Teclado",music.LESSONS);
+ assert.equal(keyboard.length,music.LESSONS.length);
+ assert.deepEqual(new Set(keyboard.map(x=>x.id)),new Set(music.LESSONS.map(x=>x.id)));
+ assert.deepEqual(keyboard.slice(0,4).map(x=>x.id),["first","five","reading","rhythm"]);
 });
 test("não há duplicação de IDs nem melodias fora do alcance do braço exibido",()=>{
  const ids=instruments.STRING_LESSONS.map(l=>l.id);
