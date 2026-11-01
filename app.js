@@ -163,7 +163,7 @@ function result(){
 function render(){
   if(!db.users.some(u=>u.id===db.active))db.active=db.users[0].id;
   const content=page==="home"?home():page==="courses"?courses():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics():page==="library"?library():page==="workouts"?workouts():profiles();
-  $("#app").innerHTML=page==="practice"&&session?practice():page==="result"&&session?result():page==="vocal-practice"&&vocal?renderVocalPractice(vocal,noteName,audioStatus,lastFrame):page==="vocal-result"&&vocal?renderVocalResult(vocal.summary(),vocalAward?.xp||0,vocalAward?.level||1,(vocalAward?.badges||[]).map(id=>BADGES.find(b=>b.id===id)?.name||id)):page==="personal-practice"&&personalSession?renderPersonalPractice(personalSession.song,personalSession,lastFrame,noteName):shell(content);
+  $("#app").innerHTML=page==="practice"&&session?practice():page==="result"&&session?result():page==="vocal-practice"&&vocal?renderVocalPractice(vocal,noteName,audioStatus,lastFrame):page==="vocal-result"&&vocal?renderVocalResult(vocal.summary(),vocalAward?.xp||0,vocalAward?.level||1,(vocalAward?.badges||[]).map(id=>BADGES.find(b=>b.id===id)?.name||id)):page==="personal-practice"&&personalSession?renderPersonalPractice(personalSession.song,{...personalSession,micActive:audio.listening},lastFrame,noteName):shell(content);
   document.title=(page==="practice"&&session?session.lesson.title+" | ":page==="vocal-practice"&&vocal?vocal.song.title+" | ":"")+"Musical Sense";
   updateAudioUI();
 }
@@ -467,11 +467,32 @@ document.addEventListener("click",async e=>{
   if(d.genre){songFilter=d.genre;render();return}
   if(d.profile){db.active=d.profile;save();changePage("home");return}
   if(d.lesson){await startLesson(d.lesson);return}
+  if(d.vocal){await beginVocal(d.vocal);return}
+  if(d.personal){await beginPersonal(d.personal);return}
+  if(d.removePersonal){
+    const song=(active().personalLyrics||[]).find(x=>x.id===d.removePersonal);
+    if(song&&window.confirm("Remover a letra “"+song.title+"” deste dispositivo?")){
+      active().personalLyrics=active().personalLyrics.filter(x=>x.id!==d.removePersonal);
+      if(!save())toast("Não foi possível salvar a alteração.");
+      render();
+    }
+    return;
+  }
   if(d.mode){if(!session||d.mode===session.mode)return;await startLesson(session.lesson.id,true,{mode:d.mode,range:session.sectionRange});return}
   if(d.performanceBpm){if(!session||session.mode!=="performance"||["running","countin"].includes(session.performance.phase))return;bpm=Number(d.performanceBpm);resetPerformance();return}
   const action=d.action;
   if(!action)return;
   if(action==="microphone"){await enableMic();return}
+  if(action==="lyrics-import"){changePage("lyrics-import");return}
+  if(action==="singing-leave"){changePage("singing");return}
+  if(action==="vocal-mic"){await enableMic();return}
+  if(action==="vocal-toggle"){await toggleVocal();return}
+  if(action==="vocal-restart"){await restartVocal();return}
+  if(action==="vocal-demo"){await vocalDemo();return}
+  if(action==="vocal-repeat"){if(vocal)await beginVocal(vocal.song.id,{bpmOverride:vocal.bpm,transpose:vocal.transpose});return}
+  if(action==="personal-toggle"){togglePersonal();return}
+  if(action==="personal-restart"){restartPersonal();return}
+  if(action==="personal-finish"){finishPersonal();return}
   if(action==="performance-toggle"){await togglePerformance();return}
   if(action==="performance-reset"){resetPerformance();return}
   if(action==="midi"){await connectMidi();return}
@@ -487,6 +508,17 @@ document.addEventListener("click",async e=>{
   if(action==="next"){const idx=LESSONS.findIndex(l=>l.id===session.lesson.id);await startLesson(LESSONS[(idx+1)%LESSONS.length].id);return}
 });
 document.addEventListener("submit",e=>{
+  if(e.target.id==="lyrics-form"){
+    e.preventDefault();const form=new FormData(e.target);
+    try{
+      const u=active();if((u.personalLyrics||[]).length>=30)throw Error("Limite de 30 letras por perfil neste aparelho.");
+      const song=createPersonalSong({title:form.get("title"),artist:form.get("artist"),lyrics:form.get("lyrics"),rightsConfirmed:form.get("rights")==="on"});
+      u.personalLyrics=u.personalLyrics||[];u.personalLyrics.push(song);
+      if(!save()){u.personalLyrics.pop();throw Error("Não foi possível armazenar a letra. Libere espaço ou habilite o armazenamento local.");}
+      changePage("singing");toast("Letra salva no perfil "+u.name+".");
+    }catch(err){toast(err.message||"Confira os campos da letra.");}
+    return;
+  }
   if(e.target.id!=="profile-form")return;
   e.preventDefault();
   const fd=new FormData(e.target),name=String(fd.get("name")||"").trim(),instrument=String(fd.get("instrument")||"Piano");
@@ -494,8 +526,29 @@ document.addEventListener("submit",e=>{
   if(db.users.length>=8){toast("O limite desta versão é de oito perfis.");return}
   const u=initialUser(name,instrument);db.users.push(u);db.active=u.id;save();changePage("home");toast("Perfil criado. Bons estudos!");
 });
+document.addEventListener("change",e=>{
+  if(!vocal||page!=="vocal-practice")return;
+  const id=e.target.id;
+  if(id!=="vocal-bpm"&&id!=="vocal-register")return;
+  if(["running","countin"].includes(vocal.phase)){toast("Pause para alterar os ajustes.");render();return}
+  const bpmValue=id==="vocal-bpm"?Number(e.target.value):vocal.bpm;
+  const registerValue=id==="vocal-register"?Number(e.target.value):vocal.transpose;
+  const song=vocal.song;
+  vocal=new SingingSession(song,{bpm:bpmValue,transpose:registerValue,latencyMs:db.vocalLatency??130});
+  vocal.sessionId="vocal-"+Date.now()+"-"+Math.random().toString(36).slice(2);
+  if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;
+  render();toast("Ajuste aplicado. Reinicie a música.");
+});
 document.addEventListener("input",e=>{if(!session)return;if(e.target.id==="sensitivity"){session.sensitivity=Number(e.target.value);audio.setSensitivity(session.sensitivity/100)}if(e.target.id==="latency"&&session.performance){session.performance.setLatency(e.target.value);db.perfLatency=session.performance.latencyMs;save();const label=$("#latency-value");if(label)label.textContent=session.performance.latencyMs+" ms"}});
-document.addEventListener("visibilitychange",()=>{if(document.hidden){if(session?.performance&&["running","countin"].includes(session.performance.phase))session.performance.pause(performance.now());if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;if(audio.listening)audio.stop();player.stop();metronome=false;if(page==="practice"){audioError="";audioStatus="off";render()}}});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){
+  if(session?.performance&&["running","countin"].includes(session.performance.phase))session.performance.pause(performance.now());
+  if(vocal&&["running","countin"].includes(vocal.phase))vocal.pause(performance.now());
+  if(personalSession?.playing){personalSession.elapsedMs=personalSession.baseElapsed+performance.now()-personalSession.startedAt;personalSession.baseElapsed=personalSession.elapsedMs;personalSession.playing=false}
+  if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;
+  if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;
+  if(audio.listening)audio.stop();player.stop();metronome=false;
+  if(["practice","vocal-practice","personal-practice"].includes(page)){audioError="";audioStatus="off";render()}
+}});
 window.addEventListener("pagehide",()=>{audio.stop();audio.disconnectMidi();stopTimers()});
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));
 render();
