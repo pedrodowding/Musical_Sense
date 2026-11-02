@@ -15,7 +15,7 @@ jobs:
           node-version: "22"
       - name: Check module syntax
         run: |
-          for file in app.js music-data.js audio-engine.js performance-engine.js performance-view.js singing-data.js singing-engine.js lyrics-library.js singing-ui.js gamification.js backup.js instrument-data.js instrument-ui.js catalog.js discovery-ui.js account-ui.js home-ui.js catalog-model.js catalog-published.js score-import.js score-import-ui.js sw.js; do
+          for file in app.js music-data.js audio-engine.js sample-bank.js instrument-audio.js performance-engine.js performance-view.js singing-data.js singing-engine.js lyrics-library.js singing-ui.js gamification.js backup.js instrument-data.js instrument-ui.js catalog.js discovery-ui.js account-ui.js home-ui.js catalog-model.js catalog-published.js score-import.js score-import-ui.js sw.js; do
             node --input-type=module --check < "$file"
           done
       - name: Validate reviewed catalog and publication artifact

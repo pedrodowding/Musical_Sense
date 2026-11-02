@@ -45,13 +45,22 @@ let db=load(),page="home",courseFilter="all",songFilter="Todas",session=null,aud
 db.users.forEach(u=>{ensureProgress(u);u.personalLyrics=safeLibrary(u.personalLyrics)});
 let vocal=null,vocalAward=null,personalSession=null,singingRAF=0,singingLastTick=0,vocalFrame=null,editingSongId=null;
 let catalogQuery="",catalogScope="mine",catalogDifficulty="all",catalogType="all",catalogGenre="all",songDetailId=null,scorePreview=null,scoreError="";
-let performanceRAF=0,lastVisualTick=0;
+let performanceRAF=0,lastVisualTick=0,calibrationBusy=false;
 const player=new SoundPlayer();
 player.setVolume(db.audioVolume??.85);
 player.setMetronomeVolume(db.pulseVolume??.72);
+player.setSampleMode(db.sampleMode||"real");
 const audio=new AudioEngine(frame=>onFrame(frame),ev=>onNote(ev),(status,error)=>{audioStatus=status;if(error)audioError=error;updateAudioUI()});
 const active=()=>db.users.find(u=>u.id===db.active)||db.users[0];
 const currentInstrument=()=>instrumentInfo(active().instrument);
+function applyMicrophoneProfile(instrument=active().instrument){
+ const id=instrumentInfo(instrument).id;
+ audio.setProfile(id);
+ const reading=active().audioCalibrations?.[id];
+ if(reading&&Number.isFinite(Number(reading.noiseFloor)))audio.setNoiseFloor(reading.noiseFloor);
+ return id;
+}
+applyMicrophoneProfile();
 function soundTimbre(instrument=active().instrument){
  const setting=db.soundTimbre||"auto";
  if(setting!=="auto")return setting;
@@ -65,12 +74,20 @@ function volumeInline(){
  return '<div class="sound-inline" role="group" aria-label="Volume da guia musical"><label for="sound-volume">🔊 Som do app</label><input type="range" id="sound-volume" min="0" max="100" step="5" value="'+volume+'" aria-label="Volume da guia musical"><b id="sound-volume-value">'+volume+'%</b><button class="btn sm ghost" data-action="sound-test">♫ Testar</button></div>';
 }
 function soundSettings(){
- const volume=Math.round(player.getVolume()*100),pulse=Math.round(player.metronomeVolume*100),timbre=db.soundTimbre||"auto";
+ const volume=Math.round(player.getVolume()*100),pulse=Math.round(player.metronomeVolume*100),timbre=db.soundTimbre||"auto",mode=player.getSampleMode(),instrument=currentInstrument(),calibration=active().audioCalibrations?.[instrument.id];
  const presets=[["auto","Automático pelo instrumento"],["ukulele","Ukulele (corda pinçada)"],["acoustic","Violão (corda pinçada)"],["electric","Guitarra (corda sintetizada)"],["bass","Baixo (corda sintetizada)"],["piano","Piano sintetizado"],["strings","Cordas sintetizadas (legado)"],["soft","Suave (guia vocal)"]];
  return '<div class="page-intro"><span class="eyebrow">AJUSTES DE ÁUDIO</span><h1>Ouça cada nota com clareza 🔊</h1><p>Configure o volume dos exemplos e do metrônomo, ouça um teste e escolha o timbre que prefere.</p></div>'+
  '<div class="card sound-settings"><div class="sound-setting"><div><h2>🔊 Volume das melodias</h2><p class="muted small">Ajusta notas demonstradas, prévias e sons das lições.</p></div><div class="sound-setting-input"><input id="sound-volume" type="range" min="0" max="100" step="5" value="'+volume+'" aria-label="Volume principal"><strong id="sound-volume-value">'+volume+'%</strong></div></div>'+
  '<div class="sound-setting"><div><h2>🥁 Volume do metrônomo</h2><p class="muted small">Equilibre o pulso com o som dos exercícios.</p></div><div class="sound-setting-input"><input id="pulse-volume" type="range" min="0" max="100" step="5" value="'+pulse+'" aria-label="Volume do metrônomo"><strong id="pulse-volume-value">'+pulse+'%</strong></div></div>'+
- '<div class="sound-setting"><div><h2>🎹 Timbre da guia</h2><p class="muted small">São sons sintetizados, não amostras de instrumentos reais.</p></div><select id="sound-timbre" class="form-input">'+presets.map(([id,label])=>'<option value="'+id+'" '+(timbre===id?"selected":"")+'>'+label+'</option>').join("")+'</select></div>'+
+ '<div class="sound-setting"><div><h2>🎼 Fonte do som</h2><p class="muted small">Amostras gravadas CC0 são carregadas sob demanda. Se o navegador não reconhecer o formato, o sintetizador funciona como alternativa.</p></div>'+
+ '<select id="sound-source" class="form-input" aria-label="Fonte do som"><option value="real" '+(mode==="real"?"selected":"")+'>Gravações reais CC0 (recomendado)</option>'+
+ '<option value="synth" '+(mode==="synth"?"selected":"")+'>Som sintetizado (compatibilidade)</option></select></div>'+
+ '<div class="sound-setting"><div><h2>🎹 Timbre da guia</h2><p class="muted small">O modo automático usa '+esc(instrument.name)+'. Para voz, a referência permanece sintetizada.</p></div><select id="sound-timbre" class="form-input">'+presets.map(([id,label])=>'<option value="'+id+'" '+(timbre===id?"selected":"")+'>'+label+'</option>').join("")+'</select></div>'+
+ '<div class="sound-setting"><div><h2>🎙 Calibrar o microfone de '+esc(instrument.name)+'</h2>'+
+ '<p class="muted small">Fique em silêncio por cerca de três segundos. O app mede apenas o volume ambiente no aparelho, sem guardar ou transmitir gravações.</p>'+
+ (calibration?'<p class="muted small">Última calibração: '+esc(calibration.environment||"ambiente avaliado")+' · nível de ruído '+Math.round((calibration.noiseFloor||0)*10000)/100+'%.</p>':"")+
+ '</div><button type="button" class="btn outline" data-action="mic-calibrate" '+(calibrationBusy?"disabled":"")+'>'+
+ (calibrationBusy?"Calibrando…":"Calibrar agora")+'</button></div>'+
  '<div class="row wrap sound-actions"><button class="btn" data-action="sound-test">♫ Ouvir melodia</button><button class="btn outline" data-action="pulse-test">🥁 Ouvir pulso</button><button class="btn ghost" data-action="sound-reset">Restaurar padrão</button></div>'+
  '<p class="inline-tip">No modo automático, a guia usa síntese de corda pinçada para ukulele, violão, guitarra e baixo. Não é uma gravação real desses instrumentos. Comece com volume moderado, especialmente ao usar fones. O controle do aplicativo não altera o volume físico do iPad. Para evitar que o microfone ouça o próprio aplicativo, use fones de ouvido durante a prática.</p></div>';
 }
@@ -328,6 +345,7 @@ function render(){
 function stopTimers(){clearInterval(tipTimer);tipTimer=null;if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;player.stop();metronome=false;demoBusy=false}
 function changePage(next){
   if(page==="song-detail"||page==="sound"||page==="score-import"){player.stop();demoBusy=false}
+  if(page==="sound"&&calibrationBusy){calibrationBusy=false;audio.stop()}
   if(["practice","result","vocal-practice","vocal-result","personal-practice","diagnostics"].includes(page)){audio.stop();audio.disconnectMidi();stopTimers();session=null;vocal=null;personalSession=null}
   const dlg=$("#profile-dialog");if(dlg?.open)dlg.close();
   page=next;render();window.scrollTo(0,0);
@@ -348,6 +366,7 @@ async function startLesson(id,requestMicrophone=true,options={}){
     }
   }
   applyTimbre(lesson.instrument||active().instrument);
+  applyMicrophoneProfile(lesson.instrument||active().instrument);
   const allSteps=getSessionNotes(lesson),range=options.range&&options.range.end>options.range.start?options.range:null,steps=range?allSteps.slice(range.start,range.end):allSteps,mode=options.mode==="performance"?"performance":"guided";
   active().checkpoints=active().checkpoints||{};
   if(options.reset){delete active().checkpoints[id];save()}
@@ -367,6 +386,8 @@ async function startLesson(id,requestMicrophone=true,options={}){
 }
 async function enableMic(){
   if(audio.listening){audio.stop();updateAudioUI();render();return}
+  if(!["practice","vocal-practice","personal-practice","diagnostics","sound"].includes(page))return;
+  if(page==="diagnostics"||page==="sound")applyMicrophoneProfile();
   try{await audio.start();updateAudioUI();render()}catch(e){audioError=e.message;audioStatus="error";render();toast("Microfone: "+e.message)}
 }
 function onFrame(frame){
@@ -511,7 +532,7 @@ async function beginVocal(songId,{bpmOverride=null,transpose=0}={}){
   vocal=new SingingSession(song,{bpm:bpmOverride||song.bpm,transpose,latencyMs:db.vocalLatency??130});
   vocal.sessionId="vocal-"+Date.now()+"-"+Math.random().toString(36).slice(2);
   vocalAward=null;page="vocal-practice";audioStatus="off";audioError="";lastFrame=null;
-  audio.setSensitivity(.90);render();window.scrollTo(0,0);
+  applyMicrophoneProfile("voice");audio.setSensitivity(.90);render();window.scrollTo(0,0);
   await enableMic();
 }
 function animateVocal(now){
@@ -577,7 +598,7 @@ async function beginPersonal(id){
   if(!song){toast("Letra não encontrada.");return}
   audio.stop();audio.disconnectMidi();stopTimers();session=null;vocal=null;vocalAward=null;
   personalSession={song,sessionId:"personal-"+Date.now()+"-"+Math.random().toString(36).slice(2),elapsedMs:0,voicedMs:0,playing:false,startedAt:0,lastVoiceAt:0,micActive:false,completed:false};
-  page="personal-practice";audio.setSensitivity(.90);audioStatus="off";render();window.scrollTo(0,0);
+  page="personal-practice";applyMicrophoneProfile("voice");audio.setSensitivity(.90);audioStatus="off";render();window.scrollTo(0,0);
   await enableMic();
 }
 function animatePersonal(now){
@@ -633,7 +654,7 @@ async function previewSong(){
     const notes=item.notes.slice(0,12);
     applyTimbre(item.instrument);
     const duration=await player.play(notes,item.bpm||80);
-    toast("Reproduzindo uma prévia sintetizada da melodia.");
+    toast("Prévia da melodia: "+(player.soundSource?.()==="real"?"gravação CC0":"síntese local")+".");
     setTimeout(()=>{demoBusy=false},duration+100);
   }catch(err){demoBusy=false;toast("A prévia não está disponível neste navegador.")}
 }
@@ -644,7 +665,7 @@ async function hearDemo(){
     applyTimbre(session.lesson.instrument||active().instrument);
     const milliseconds=await player.play(notes,bpm);
     audio.muteFor(milliseconds+150);
-    toast("Ouça a sequência e depois toque no seu instrumento.");
+    toast("Ouça a sequência com "+(player.soundSource?.()==="real"?"gravação CC0":"síntese local")+" e depois toque.");
     render();
     setTimeout(()=>{demoBusy=false;if(page==="practice")render()},milliseconds);
   }catch(e){demoBusy=false;toast("Não foi possível reproduzir o exemplo.");render()}
@@ -676,7 +697,7 @@ document.addEventListener("click",async e=>{
   if(d.instrument){
     const info=INSTRUMENTS.find(item=>item.id===d.instrument);if(!info)return;
     const u=active(),before=u.instrument,oldTimbre=db.soundTimbre;
-    player.stop();demoBusy=false;u.instrument=info.name;db.soundTimbre="auto";applyTimbre(info.name);
+    player.stop();demoBusy=false;u.instrument=info.name;db.soundTimbre="auto";applyTimbre(info.name);applyMicrophoneProfile(info.id);
     if(!save()){u.instrument=before;db.soundTimbre=oldTimbre;applyTimbre();toast("Não foi possível salvar a troca de instrumento.");return}
     catalogScope="mine";catalogQuery="";catalogDifficulty="all";catalogType="all";catalogGenre="all";courseFilter="all";songDetailId=null;
     changePage("home");toast("Agora você está aprendendo "+info.name+". Aulas e demonstrações atualizadas.");
@@ -703,7 +724,7 @@ document.addEventListener("click",async e=>{
         if(!save()){u.instrument=before;db.soundTimbre=oldTimbre;toast("Não foi possível trocar o instrumento.");return}
         catalogScope="mine";catalogQuery="";catalogDifficulty="all";catalogType="all";catalogGenre="all";
       }
-      applyTimbre(target.id);await startLesson(item.lessonId);return;
+      applyTimbre(target.id);applyMicrophoneProfile(target.id);await startLesson(item.lessonId);return;
     }
     if(item.kind==="vocal"){await beginVocal(item.vocalId);return}
     if(item.kind==="personal"){await beginPersonal(item.personalId);return}
@@ -732,7 +753,7 @@ document.addEventListener("click",async e=>{
     if(db.active===target.id){const dlg=$("#profile-dialog");if(dlg?.open)dlg.close();return}
     const previous=db.active;db.active=target.id;
     if(!save()){db.active=previous;toast("Não foi possível salvar a troca de aluno.");return}
-    db.soundTimbre="auto";save();applyTimbre(target.instrument);catalogScope="mine";catalogQuery="";catalogDifficulty="all";catalogType="all";catalogGenre="all";
+    db.soundTimbre="auto";save();applyTimbre(target.instrument);applyMicrophoneProfile(target.instrument);catalogScope="mine";catalogQuery="";catalogDifficulty="all";catalogType="all";catalogGenre="all";
     changePage("home");toast("Agora você está no perfil de "+target.name+".");return;
   }
   if(d.lesson){await startLesson(d.lesson);return}
@@ -774,7 +795,7 @@ document.addEventListener("click",async e=>{
         currentLessons()[0]?.steps?.slice(0,5)||[{m:60,beats:1},{m:64,beats:1},{m:67,beats:1},{m:72,beats:2}];
       const duration=await player.play(demo,110);
       if(audio.listening)audio.muteFor(duration+160);
-      toast("Teste de áudio iniciado. Ajuste o volume enquanto ouve.");
+      toast("Teste iniciado com "+(player.soundSource?.()==="real"?"gravações reais CC0":"síntese local")+". Ajuste o volume enquanto ouve.");
     }catch(e){toast("Não foi possível reproduzir o som. Toque novamente para liberar áudio no navegador.")}
     return;
   }
@@ -782,10 +803,36 @@ document.addEventListener("click",async e=>{
     try{await player.metronomeClick(true);toast("Pulso reproduzido.")}catch(e){toast("Não foi possível reproduzir o pulso.")}
     return;
   }
+  if(action==="mic-calibrate"){
+    if(calibrationBusy)return;
+    calibrationBusy=true;
+    const instrument=currentInstrument().id;
+    try{
+      audio.stop();applyMicrophoneProfile(instrument);
+      await audio.start();
+      if(!audio.beginCalibration())throw Error("Microfone não iniciou.");
+      render();toast("Calibrando o ambiente. Não toque nem cante até concluir.");
+      setTimeout(()=>{
+        if(!calibrationBusy)return;
+        const result=audio.finishCalibration();
+        audio.stop();calibrationBusy=false;
+        if(currentInstrument().id===instrument&&result.ok){
+          const u=active();u.audioCalibrations=u.audioCalibrations||{};
+          u.audioCalibrations[instrument]={noiseFloor:result.noiseFloor,environment:result.environment,at:Date.now()};
+          save();applyMicrophoneProfile(instrument);
+        }
+        render();
+        toast(result.ok?"Microfone calibrado para "+instrumentInfo(instrument).name+". Ambiente "+result.environment+".":result.reason||"Calibração incompleta.");
+      },3200);
+    }catch(error){
+      audio.stop();calibrationBusy=false;render();toast(error.message||"Não foi possível calibrar o microfone.");
+    }
+    return;
+  }
   if(action==="sound-reset"){
     db.audioVolume=player.setVolume(.85);
     db.pulseVolume=player.setMetronomeVolume(.72);
-    db.soundTimbre="auto";applyTimbre();save();render();toast("Configurações de áudio restauradas.");return;
+    db.soundTimbre="auto";db.sampleMode="real";player.setSampleMode("real");applyTimbre();save();render();toast("Configurações de áudio restauradas.");return;
   }
   if(action==="preview-song"){await previewSong();return}
   if(action==="import-audition"){
@@ -794,7 +841,7 @@ document.addEventListener("click",async e=>{
       player.stop();demoBusy=true;
       const selection=$("#import-instrument")?.value||"piano";applyTimbre(selection);
       const duration=await player.play(scorePreview.notes.slice(0,16),scorePreview.bpm);
-      toast("Prévia sintetizada iniciada. Nenhum arquivo foi enviado ou publicado.");
+      toast("Prévia do arquivo reproduzida por "+(player.soundSource?.()==="real"?"gravações CC0":"síntese local")+". Nada foi publicado.");
       setTimeout(()=>{demoBusy=false},duration+150);
     }catch(e){demoBusy=false;toast("Não foi possível reproduzir a prévia.")}
     return;
@@ -908,10 +955,17 @@ document.addEventListener("change",async e=>{
   if(e.target.id==="sound-volume"||e.target.id==="pulse-volume"){
     db.audioVolume=player.getVolume();db.pulseVolume=player.metronomeVolume;save();return;
   }
+  if(e.target.id==="sound-source"){
+    const mode=e.target.value;
+    if(!["real","synth"].includes(mode))return;
+    player.stop();player.setSampleMode(mode);db.sampleMode=mode;save();
+    toast(mode==="real"?"Gravações CC0 ativadas. O primeiro exemplo pode levar alguns segundos para carregar.":"Síntese local ativada.");
+    return;
+  }
   if(e.target.id==="sound-timbre"){
     const value=e.target.value;
     if(!["auto","piano","strings","soft","ukulele","acoustic","electric","bass"].includes(value))return;
-    db.soundTimbre=value;applyTimbre();save();toast("Timbre atualizado.");return;
+    db.soundTimbre=value;player.stop();applyTimbre();save();toast("Timbre atualizado.");return;
   }
   if(e.target.id==="catalog-difficulty"){catalogDifficulty=e.target.value;render();return}
   if(e.target.id==="catalog-genre"){catalogGenre=e.target.value;render();return}
@@ -923,7 +977,7 @@ document.addEventListener("change",async e=>{
       if(!window.confirm("Restaurar "+restored.users.length+" perfil(is)? Isso substituirá o progresso e as letras pessoais atuais neste dispositivo."))return;
       const previous=db;db=restored;
       if(!save()){db=previous;throw Error("O armazenamento local não permitiu restaurar este backup.");}
-      player.setVolume(db.audioVolume??.85);player.setMetronomeVolume(db.pulseVolume??.72);applyTimbre();
+      player.setVolume(db.audioVolume??.85);player.setMetronomeVolume(db.pulseVolume??.72);player.setSampleMode(db.sampleMode||"real");applyTimbre();applyMicrophoneProfile();
       changePage("profiles");toast("Backup restaurado com sucesso.");
     }catch(err){toast(err.message||"Falha ao restaurar backup.");}
     return;

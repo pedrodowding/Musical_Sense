@@ -45,12 +45,13 @@ function boot(){
  const localStorage={getItem(){return state.persisted},setItem(_,value){state.writes++;state.persisted=value},removeItem(){}};
  class Audio{constructor(onFrame,onNote,onStatus){this.status=onStatus;this.active=false}
   get listening(){return this.active}async start(){this.active=true;this.status("listening")}
-  stop(){this.active=false;this.status("off")}disconnectMidi(){}setSensitivity(){}muteFor(){}
+  stop(){this.active=false;this.status("off")}disconnectMidi(){}setSensitivity(){}setProfile(){}setNoiseFloor(){}beginCalibration(){return true}finishCalibration(){return {ok:true,noiseFloor:.002,environment:"silencioso"}}muteFor(){}
  }
  class Player{constructor(){this.volume=.85;this.metronomeVolume=.72;this.timbre="piano"}
   stop(){}async context(){}async metronomeClick(){}async play(){return 1000}
   setVolume(x){this.volume=x;return x}getVolume(){return this.volume}
   setMetronomeVolume(x){this.metronomeVolume=x;return x}setTimbre(x){this.timbre=x}
+  setSampleMode(x){this.sampleMode=x;return x}getSampleMode(){return this.sampleMode||"real"}soundSource(){return "synth"}
  }
  class Form{constructor(element){this.fields=element.fields||{}}get(key){return this.fields[key]}}
  const bindings={...music,...instruments,...instrumentUI,...singing,...catalog,...discovery,...lyrics,...game,...backup,

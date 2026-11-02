@@ -1,0 +1,10 @@
+/* Fase 4: som real CC0, escolha do modo e calibração local de microfone */
+.sound-settings #sound-source{width:100%;min-height:49px}
+.sound-settings [data-action="mic-calibrate"]{min-height:48px;min-width:148px}
+.sound-settings .sound-setting .muted+.muted{margin-top:8px}
+.sound-settings .sound-setting>div{min-width:0}
+.sound-settings .sound-setting select{max-width:360px}
+@media(max-width:760px){
+ .sound-settings [data-action="mic-calibrate"]{width:100%}
+ .sound-settings .sound-setting select{max-width:none}
+}

@@ -1,39 +1,64 @@
 
 import {noteFrequency} from "./music-data.js";
-export function estimatePitch(samples,rate){
-  const n=samples.length,window=Math.floor(n/2),max=Math.min(Math.floor(rate/65),window-1),min=Math.max(2,Math.floor(rate/1250));
-  let sumSq=0;for(let i=0;i<n;i++)sumSq+=samples[i]*samples[i];
-  const rms=Math.sqrt(sumSq/n);
-  if(rms<0.004)return {hz:0,confidence:0,rms};
-  const diff=new Float32Array(max+1);
-  const count=Math.min(window,n-max);
-  for(let tau=1;tau<=max;tau++){
-    let total=0;
-    for(let i=0;i<count;i+=2){const delta=samples[i]-samples[i+tau];total+=delta*delta}
-    diff[tau]=total;
+import {RealSampleBank} from "./sample-bank.js";
+import {audioProfile,sensitivityThreshold,calibrateNoise} from "./instrument-audio.js";
+/**
+ * YIN/CMNDF com correção de oitava, janela DC-invariante e limite de registro
+ * configurável por instrumento. Um pico sem periodicidade não é aceito.
+ */
+export function estimatePitch(samples,rate,{minHz=60,maxHz=1450}={}){
+ const n=samples?.length||0;
+ if(n<512||!Number.isFinite(rate)||rate<8000)return {hz:0,confidence:0,rms:0};
+ let energy=0;
+ for(let i=0;i<n;i++)energy+=samples[i]*samples[i];
+ const rms=Math.sqrt(energy/n);
+ if(rms<.0025)return {hz:0,confidence:0,rms};
+ const minTau=Math.max(2,Math.floor(rate/Math.min(maxHz,rate*.45)));
+ const maxTau=Math.min(Math.floor(rate/Math.max(35,minHz)),Math.floor(n*.45));
+ if(maxTau<=minTau)return {hz:0,confidence:0,rms};
+ const samplesCount=Math.min(2400,n-maxTau);
+ const step=n>5000?3:2;
+ const diff=new Float64Array(maxTau+1),cmnd=new Float64Array(maxTau+1);
+ for(let tau=1;tau<=maxTau;tau++){
+  let total=0;
+  for(let j=0;j<samplesCount;j+=step){
+   const d=samples[j]-samples[j+tau];
+   total+=d*d;
   }
-  let running=0,bestTau=0,lowest=1;
-  for(let tau=1;tau<=max;tau++){
-    running+=diff[tau];
-    if(tau<min)continue;
-    const normalized=diff[tau]*tau/(running+1e-12);
-    if(normalized<lowest){lowest=normalized;bestTau=tau}
-    if(normalized<.14){
-      let local=tau;
-      while(local+1<=max&&diff[local+1]<diff[local])local++;
-      bestTau=local;
-      break;
-    }
+  diff[tau]=total;
+ }
+ let sum=0,best=0,bestScore=1;
+ cmnd[0]=1;
+ for(let tau=1;tau<=maxTau;tau++){
+  sum+=diff[tau];
+  cmnd[tau]=sum>1e-11?diff[tau]*tau/sum:1;
+  if(tau<minTau)continue;
+  const score=cmnd[tau];
+  if(score<bestScore){bestScore=score;best=tau}
+ }
+ if(!best||bestScore>.25)return {hz:0,confidence:Math.max(0,1-bestScore),rms};
+ // Primeiro mínimo local robusto antes do mínimo global evita erros de suboitava.
+ let candidate=best;
+ for(let tau=minTau;tau<maxTau;tau++){
+  if(cmnd[tau]<.135&&cmnd[tau]<=cmnd[tau+1]){
+   candidate=tau;
+   while(candidate+1<=maxTau&&cmnd[candidate+1]<cmnd[candidate])candidate++;
+   break;
   }
-  if(!bestTau||lowest>.24)return {hz:0,confidence:Math.max(0,1-lowest),rms};
-  let offset=0;
-  if(bestTau>1&&bestTau<max){
-    const a=diff[bestTau-1],b=diff[bestTau],c=diff[bestTau+1];
-    const den=a-2*b+c;
-    if(Math.abs(den)>1e-8)offset=Math.max(-.5,Math.min(.5,.5*(a-c)/den));
-  }
-  const hz=rate/(bestTau+offset);
-  return {hz:hz>=65&&hz<=1250?hz:0,confidence:Math.max(0,1-lowest),rms};
+ }
+ // Se a segunda periodicidade for muito mais forte, o primeiro pico era
+ // provavelmente um harmônico par, e a frequência real era uma oitava abaixo.
+ const doubled=candidate*2;
+ if(doubled<=maxTau&&cmnd[candidate]>.068&&cmnd[doubled]+.055<cmnd[candidate])candidate=doubled;
+ const score=cmnd[candidate];
+ if(score>.27)return {hz:0,confidence:Math.max(0,1-score),rms};
+ let offset=0;
+ if(candidate>1&&candidate<maxTau){
+  const l=cmnd[candidate-1],m=cmnd[candidate],r=cmnd[candidate+1],den=l-2*m+r;
+  if(Math.abs(den)>1e-10)offset=Math.max(-.5,Math.min(.5,(l-r)/den*.5));
+ }
+ const hz=rate/(candidate+offset);
+ return {hz:hz>=minHz&&hz<=maxHz?hz:0,confidence:Math.max(0,Math.min(1,1-score)),rms};
 }
 export class AudioEngine{
   constructor(onFrame,onNote,onStatus){
@@ -41,7 +66,8 @@ export class AudioEngine{
     this.ctx=null;this.stream=null;this.analyser=null;this.source=null;
     this.active=false;this.raf=0;this.lastAnalysis=0;this.candidate=null;this.candidateFrames=0;
     this.latched=null;this.quietFrames=0;this.prevRms=0;this.lastEmitted=0;
-    this.threshold=.012;this.ignoreUntil=0;this.midiAccess=null;this.midiHandlers=[];this.generation=0;this.openPromise=null;
+    this.profile="piano";this.sensitivity=.7;this.noiseFloor=0;this.threshold=sensitivityThreshold(this.profile,this.sensitivity);
+    this.filter=null;this.calibration=null;this.ignoreUntil=0;this.midiAccess=null;this.midiHandlers=[];this.generation=0;this.openPromise=null;
   }
   get listening(){return this.active}
   async start(){
@@ -65,11 +91,12 @@ export class AudioEngine{
       ctx=new Ctx();this.ctx=ctx;await ctx.resume();
       if(cancelled()){stream.getTracks().forEach(t=>t.stop());ctx.close().catch(()=>{});return}
       const source=ctx.createMediaStreamSource(stream);
-      const filter=ctx.createBiquadFilter();filter.type="highpass";filter.frequency.value=67;
-      const analyser=ctx.createAnalyser();analyser.fftSize=4096;analyser.smoothingTimeConstant=0;
+      const cfg=audioProfile(this.profile);
+      const filter=ctx.createBiquadFilter();filter.type="highpass";filter.frequency.value=cfg.highpass;
+      const analyser=ctx.createAnalyser();analyser.fftSize=cfg.fftSize;analyser.smoothingTimeConstant=0;
       source.connect(filter);filter.connect(analyser);
       if(cancelled()){stream.getTracks().forEach(t=>t.stop());ctx.close().catch(()=>{});return}
-      this.source=source;this.analyser=analyser;this.active=true;
+      this.source=source;this.filter=filter;this.analyser=analyser;this.active=true;
       this.reset();this.onStatus("listening");
       this.raf=requestAnimationFrame(t=>this.loop(t));
       stream.getAudioTracks().forEach(track=>track.addEventListener("ended",()=>this.stop()));
@@ -82,13 +109,15 @@ export class AudioEngine{
   loop(time){
     if(!this.active||!this.analyser||!this.ctx)return;
     this.raf=requestAnimationFrame(t=>this.loop(t));
-    if(time-this.lastAnalysis<65)return;
+    const cfg=audioProfile(this.profile);
+    if(time-this.lastAnalysis<cfg.analysisMs)return;
     this.lastAnalysis=time;
     const buf=new Float32Array(this.analyser.fftSize);
     this.analyser.getFloatTimeDomainData(buf);
     let energy=0;for(let i=0;i<buf.length;i++)energy+=buf[i]*buf[i];
     const rms=Math.sqrt(energy/buf.length);
     if(time<this.ignoreUntil){this.reset();this.onFrame({rms,hz:0,note:null,confidence:0,cents:0,ignored:true});return}
+    if(this.calibration){this.calibration.push(rms);this.onFrame({rms,hz:0,note:null,confidence:0,cents:0,calibrating:true});return}
     if(rms<this.threshold){
       this.quietFrames++;
       if(this.quietFrames>=2){this.candidate=null;this.candidateFrames=0;this.latched=null}
@@ -97,7 +126,7 @@ export class AudioEngine{
       return;
     }
     this.quietFrames=0;
-    const result=estimatePitch(buf,this.ctx.sampleRate);
+    const result=estimatePitch(buf,this.ctx.sampleRate,{minHz:cfg.minHz,maxHz:cfg.maxHz});
     const semitone=result.hz?69+12*Math.log2(result.hz/440):0;
     const note=result.hz?Math.round(semitone):null;
     const cents=result.hz?Math.round((semitone-note)*100):0;
@@ -108,20 +137,42 @@ export class AudioEngine{
     if(onset&&this.latched===note)this.latched=null;
     if(this.candidate===note)this.candidateFrames++;
     else{this.candidate=note;this.candidateFrames=1}
-    if(this.candidateFrames>=3&&this.latched!==note&&time-this.lastEmitted>270){
+    if(this.candidateFrames>=cfg.stableFrames&&this.latched!==note&&time-this.lastEmitted>270){
       this.latched=note;this.lastEmitted=time;
       this.onNote({note,hz:result.hz,cents,confidence:result.confidence,source:"microphone"});
     }
     this.prevRms=rms;
   }
-  setSensitivity(value){this.threshold=.005+(.035-.005)*(1-Math.max(0,Math.min(1,value)))}
+  setSensitivity(value){
+    const n=Number(value);this.sensitivity=Math.max(0,Math.min(1,Number.isFinite(n)?n:.7));
+    this.threshold=sensitivityThreshold(this.profile,this.sensitivity,this.noiseFloor);
+  }
+  setProfile(id){
+    const next=audioProfile(id);this.profile=id in {piano:1,keyboard:1,acoustic:1,electric:1,ukulele:1,"bass-guitar":1,voice:1}?id:"piano";
+    this.noiseFloor=0;this.setSensitivity(this.sensitivity);
+    if(this.analyser)this.analyser.fftSize=next.fftSize;
+    if(this.filter)this.filter.frequency.value=next.highpass;
+    this.reset();return {...next};
+  }
+  setNoiseFloor(level){
+    this.noiseFloor=Number.isFinite(Number(level))?Math.max(0,Math.min(.08,Number(level))):0;
+    this.setSensitivity(this.sensitivity);return this.threshold;
+  }
+  beginCalibration(){if(!this.active)return false;this.calibration=[];this.reset();return true}
+  finishCalibration(){
+    if(!this.calibration)return {ok:false,reason:"A calibração não foi iniciada."};
+    const samples=this.calibration;this.calibration=null;this.reset();
+    const result=calibrateNoise(samples,this.profile,this.sensitivity);
+    if(result.ok)this.setNoiseFloor(result.noiseFloor);
+    return result;
+  }
   muteFor(ms){this.ignoreUntil=performance.now()+ms;this.reset()}
   stop(){
     this.generation++;this.openPromise=null;
     this.active=false;if(this.raf)cancelAnimationFrame(this.raf);this.raf=0;
     if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null}
     if(this.ctx){const c=this.ctx;this.ctx=null;c.close().catch(()=>{})}
-    this.source=null;this.analyser=null;this.reset();
+    this.source=null;this.filter=null;this.analyser=null;this.calibration=null;this.reset();
     this.onStatus("off");
   }
   async enableMidi(){
@@ -191,6 +242,7 @@ export class SoundPlayer{
     this.ctx=null;this.timer=null;this.demoEnd=0;this.oscillators=new Set();this.sources=new Set();
     this.input=null;this.compressor=null;this.master=null;
     this.volume=.85;this.metronomeVolume=.72;this.timbre="piano";
+    this.sampleMode="real";this.sampleBank=new RealSampleBank();this.playEpoch=0;this.lastSoundSource="synth";
   }
   clamp(value,fallback=1){
     const number=Number(value);
@@ -211,6 +263,9 @@ export class SoundPlayer{
   getVolume(){return this.volume}
   setMetronomeVolume(value){this.metronomeVolume=this.clamp(value,.72);return this.metronomeVolume}
   setTimbre(value){this.timbre=["piano","strings","soft","ukulele","acoustic","electric","bass"].includes(value)?value:"piano";return this.timbre}
+  setSampleMode(value){this.sampleMode=value==="synth"?"synth":"real";return this.sampleMode}
+  getSampleMode(){return this.sampleMode}
+  soundSource(){return this.lastSoundSource}
   initMaster(ctx){
     if(this.master)return;
     this.input=ctx.createGain();
@@ -240,6 +295,24 @@ export class SoundPlayer{
     const valid=Number.isFinite(f)&&f>30&&f<20000;
     if(!valid)return [];
     const timbre=this.timbre;
+    const recorded=this.sampleMode==="real"?this.sampleBank.choice(timbre,midi):null;
+    if(recorded&&typeof ctx.createBufferSource==="function"){
+      const d=Math.max(.09,Math.min(3,Number(duration)||.35)),release=Math.min(.24,recorded.buffer.duration/Math.max(.01,recorded.playbackRate)*.2);
+      const source=ctx.createBufferSource(),envelope=ctx.createGain();
+      source.buffer=recorded.buffer;
+      if(source.playbackRate)source.playbackRate.value=recorded.playbackRate;
+      const peak=Math.min(.5,Math.max(.07,Number(volume)||.3));
+      envelope.gain.setValueAtTime(.0001,start);
+      envelope.gain.exponentialRampToValueAtTime(peak,start+.012);
+      envelope.gain.setValueAtTime(peak,start+Math.min(d*.45,.20));
+      envelope.gain.exponentialRampToValueAtTime(.0001,start+d+release);
+      source.connect(envelope);envelope.connect(this.input||ctx.destination);
+      this.sources.add(source);source.onended=()=>this.sources.delete(source);
+      source.start(start);source.stop(start+Math.min(d+release+.025,recorded.buffer.duration/recorded.playbackRate));
+      this.lastSoundSource="real";
+      return [source];
+    }
+    this.lastSoundSource="synth";
     if(["ukulele","acoustic","electric","bass","strings"].includes(timbre)
        &&typeof ctx.createBuffer==="function"&&typeof ctx.createBufferSource==="function"){
       const d=Math.max(.09,Math.min(3,Number(duration)||.35));
@@ -290,7 +363,10 @@ export class SoundPlayer{
     return oscs;
   }
   async play(notes,tempo=96){
+    const generation=this.playEpoch;
     const ctx=await this.context();
+    if(this.sampleMode==="real")await this.sampleBank.load(ctx,this.timbre);
+    if(generation!==this.playEpoch)return 0;
     const speed=Math.min(220,Math.max(35,Number(tempo)||96));
     const start=ctx.currentTime+.07;let cursor=start;
     for(const entry of notes){
@@ -317,6 +393,7 @@ export class SoundPlayer{
     o.start(t);o.stop(t+.11);
   }
   stop(){
+    this.playEpoch++;
     if(this.timer)clearInterval(this.timer);this.timer=null;
     for(const osc of this.oscillators){try{osc.stop()}catch{}}
     this.oscillators.clear();

@@ -2,6 +2,14 @@
 
 Aplicativo web de aprendizagem musical com aulas visuais e avaliação das notas tocadas em um **piano ou teclado físico** pelo microfone do navegador.
 
+## Fase 4: áudio real e afinação por instrumento
+
+O Musical Sense agora utiliza até **11 amostras de instrumentos reais sob licença CC0**, distribuídas por piano, violão, guitarra elétrica, ukulele e baixo. As gravações são carregadas apenas ao demonstrar notas, com alternativa sintetizada para navegadores que não reconhecem OGG/FLAC. As fontes estão em [docs/SAMPLE_CREDITS.md](docs/SAMPLE_CREDITS.md).
+
+O detector de notas foi aprimorado com perfis individuais, YIN/CMNDF revisado e captura otimizada para frequências graves do baixo. A nova função **Calibrar microfone**, disponível em Som, mede somente a intensidade ambiente (RMS), sem salvar gravações, por aluno e instrumento.
+
+Amostras reais ainda são poucas por instrumento e transpostas digitalmente. A qualidade auditiva no Safari/iPad físico precisa de validação. Consulte [docs/PHASE4_AUDIO.md](docs/PHASE4_AUDIO.md).
+
 ## Fase 3: repertório original e interface adaptativa por instrumento
 
 **Repertório:** 32 novas melodias didáticas originais: oito para piano/teclado, cinco para violão, cinco para guitarra, cinco para ukulele, cinco para baixo e quatro canções vocais com letras e notas sincronizadas. O catálogo passa de 32 para 64 entradas, sendo 50 melodias/canções e 14 exercícios/vocalizes. São peças curtas de estudo, não músicas comerciais nem gravações reais.

@@ -48,11 +48,12 @@ function boot(){
   get listening(){return this.active}
   async start(){this.active=true;this.status("listening")}
   stop(){this.active=false;this.status("off")}
-  disconnectMidi(){}setSensitivity(){}muteFor(){}
+  disconnectMidi(){}setSensitivity(){}setProfile(){}setNoiseFloor(){}beginCalibration(){return true}finishCalibration(){return {ok:true,noiseFloor:.002,environment:"silencioso"}}muteFor(){}
  }
  class Player{constructor(){this.volume=.85;this.metronomeVolume=.72;this.timbre="piano"}
   setVolume(value){this.volume=value;return value}getVolume(){return this.volume}
   setMetronomeVolume(value){this.metronomeVolume=value;return value}setTimbre(value){this.timbre=value;return value}
+  setSampleMode(x){this.sampleMode=x;return x}getSampleMode(){return this.sampleMode||"real"}soundSource(){return "synth"}
   stop(){}async context(){}async metronomeClick(){}async play(){return 200}}
  const bindings={...music,...instruments,...instrumentUI,...singing,...catalog,...discovery,
   ...lyrics,...game,...backup,...scoreImport,...scoreImportUI,...model,...singingEngine,...performanceEngine,...singingUI,...performanceUI,...accountUI,...homeUI,
