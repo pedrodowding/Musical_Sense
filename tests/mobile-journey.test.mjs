@@ -62,7 +62,7 @@ function boot(){
 test("início oferece troca de instrumento e apenas cinco abas no mobile",()=>{
  const {state}=boot();
  assert.ok(state.html.includes('data-route="instruments"'));
- const nav=state.html.split('<nav class="mobile-nav"')[1];
+ const nav=state.html.split('<nav class="mobile-nav"')[1].split("</nav>")[0];
  assert.ok(nav);
  assert.equal((nav.match(/<button /g)||[]).length,5);
 });
