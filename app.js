@@ -17,9 +17,13 @@ import {scoreImportPage} from "./score-import-ui.js";
 import {validateEditorialCatalog} from "./catalog-model.js";
 import {instrumentContext,instrumentPicker,learningPath,catalogPage,catalogResultsMarkup,songDetailPage} from "./discovery-ui.js";
 import {profileSwitcher,profileHub,familyProfilesPage,progressPage,myMusicPage,settingsPage} from "./account-ui.js";
+import {homeDashboard} from "./home-ui.js";
 const DBKEY="musical-sense-v3",OLDKEY="musical-sense-v1";
-const routes=[["home","⌂","Início"],["courses","◎","Trilha"],["library","♫","Músicas"],["singing","🎤","Cantar"],["workouts","◷","Treinos"],["profiles","♙","Meu espaço"]];
-const mobileRoutes=[["home","🏠","Início"],["courses","🧭","Trilha"],["library","🎵","Músicas"],["singing","🎤","Cantar"],["profiles","👤","Perfil"]];
+const primaryRoutes=voice=>[["home","🏠","Início"],["courses","🧭","Trilha"],["library","🎵","Músicas"],
+ voice?["singing","🎤","Cantar"]:["workouts","⏱","Praticar"],["profiles","👤","Perfil"]];
+const secondaryRoutes=voice=>voice?[["workouts","⏱","Treinos"],["achievements","🏆","Conquistas"],["sound","🔊","Som"]]:
+ [["singing","🎤","Explorar canto"],["achievements","🏆","Conquistas"],["sound","🔊","Som"]];
+const accountPages=["profiles","instruments","family","settings","progress","my-music","achievements","sound","diagnostics"];
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const percent=(a,b)=>b?Math.round(a/b*100):0;
@@ -78,38 +82,51 @@ const fullCatalog=()=>catalogEntries(catalogData());
 const selectedCatalogEntry=()=>catalogEntryById(songDetailId,catalogData());
 const save=()=>{try{localStorage.setItem(DBKEY,JSON.stringify(db));return true}catch(e){console.warn("Armazenamento local indisponível",e);return false}};
 function toast(message){const prev=$("#toast");if(prev)prev.remove();const node=document.createElement("div");node.id="toast";node.className="toast";node.role="status";node.textContent=message;document.body.appendChild(node);clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.remove(),3500)}
-function navButton(item){const [id,icon,label]=item;return '<button class="nav-btn '+(page===id?"active":"")+'" data-route="'+id+'"><span class="i">'+icon+'</span><span>'+label+'</span></button>'}
+function navButton(item){
+ const [id,icon,label]=item,selected=page===id||(page==="song-detail"&&id==="library")||
+ (id==="profiles"&&accountPages.includes(page))||(page==="score-import"&&id==="library");
+ return '<button class="nav-btn '+(selected?"active":"")+'" data-route="'+id+'" '+(selected?'aria-current="page"':'')+
+ '><span class="i">'+icon+'</span><span>'+label+'</span></button>';
+}
 function mobileButton(item){
-  const [id,icon,label]=item;
-  const accountPages=["profiles","instruments","family","settings","progress","my-music","achievements","sound","diagnostics"];
-  const selected=page===id||(page==="song-detail"&&id==="library")||(page==="lyrics-import"&&id==="singing")||(accountPages.includes(page)&&id==="profiles");
-  return '<button class="'+(selected?"active":"")+'" data-route="'+id+'" aria-label="'+label+'" '+(selected?'aria-current="page"':'')+'><span class="icon">'+icon+'</span><span>'+label+'</span></button>';
+ const [id,icon,label]=item,voice=currentInstrument().id==="voice";
+ const selected=page===id||(page==="song-detail"&&id==="library")||(page==="score-import"&&id==="library")||
+ (page==="lyrics-import"&&id==="singing")||(accountPages.includes(page)&&id==="profiles")||
+ (voice&&page==="workouts"&&id==="singing");
+ return '<button class="'+(selected?"active":"")+'" data-route="'+id+'" aria-label="'+label+'" '+
+ (selected?'aria-current="page"':'')+'><span class="icon">'+icon+'</span><span>'+label+'</span></button>';
 }
 function shell(content){
-  const u=active(),complete=currentLessons().filter(l=>u.completed[l.id]).length;
-  return '<div class="shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">♫</span> Musical Sense</div><div class="side-caption">EXPLORAR</div>'+
-  routes.map(navButton).join("")+'<div class="sidebar-spacer"></div><div class="sidebar-panel"><strong>🎯 Seu progresso</strong><p>'+complete+' aulas concluídas · '+u.xp+' XP</p><div class="progress-track" style="margin-top:12px"><div class="progress-fill" style="width:'+percent(complete,Math.max(1,currentLessons().length))+'%"></div></div></div></aside>'+
-  '<div class="main"><div class="content"><div class="topbar"><span class="eyebrow">APRENDA NO SEU TEMPO</span><div class="top-actions"><span class="bubble">⚡ '+u.xp+' XP</span><button class="sound-top-btn" data-route="sound" aria-label="Configurar volume" title="Configurar volume">🔊 <span>Som</span></button><button class="profile-switch" data-action="open-profile-switch" aria-haspopup="dialog" aria-controls="profile-dialog" aria-label="Trocar de aluno" title="Trocar aluno"><span class="avatar">'+esc(u.name.trim().charAt(0).toUpperCase())+'</span>'+esc(u.name.split(" ")[0])+' ▾</button></div></div>'+
-  content+'</div></div></div><nav class="mobile-nav" aria-label="Navegação principal">'+mobileRoutes.map(mobileButton).join("")+'</nav>'+profileSwitcher(db.users,db.active);
+ const u=active(),info=currentInstrument(),voice=info.id==="voice",menu=primaryRoutes(voice),
+  account=menu[4],completed=voice?Object.keys(u.vocalCompleted||{}).length:
+  currentLessons().filter(l=>u.completed[l.id]).length,total=voice?VOCAL_SONGS.length:currentLessons().length;
+ return '<div class="shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">♫</span> Musical Sense</div>'+
+ '<div class="side-caption">APRENDER</div>'+menu.slice(0,3).map(navButton).join("")+
+ '<div class="side-caption">PRATICAR</div>'+navButton(menu[3])+
+ '<details class="sidebar-details"><summary>Mais opções <span aria-hidden="true">⌄</span></summary><div>'+secondaryRoutes(voice).map(navButton).join("")+'</div></details>'+
+ '<div class="sidebar-spacer"></div><div class="side-caption">MEU ESPAÇO</div>'+navButton(account)+
+ '<div class="sidebar-panel"><strong>'+info.icon+' '+esc(info.name)+'</strong><p>'+completed+' de '+total+' atividades concluídas</p></div></aside>'+
+ '<div class="main"><div class="content"><div class="topbar"><span class="eyebrow">APRENDA NO SEU RITMO</span>'+
+ '<div class="top-actions"><button class="top-instrument-btn" data-route="instruments" title="Trocar instrumento" aria-label="Instrumento atual: '+esc(info.name)+'. Trocar instrumento">'+
+ info.icon+' <span class="top-instrument-name">'+esc(info.name)+'</span></button>'+
+ '<button class="sound-top-btn" data-route="sound" aria-label="Configurar volume" title="Configurar volume">🔊 <span>Som</span></button>'+
+ '<button class="profile-switch" data-action="open-profile-switch" aria-haspopup="dialog" aria-controls="profile-dialog" aria-label="Trocar de aluno" title="Trocar aluno">'+
+ '<span class="avatar">'+esc(u.name.trim().charAt(0).toUpperCase())+'</span>'+esc(u.name.split(" ")[0])+' ▾</button></div></div>'+
+ content+'</div></div></div>'+
+ '<nav class="mobile-nav" aria-label="Navegação principal">'+menu.map(mobileButton).join("")+'</nav>'+
+ profileSwitcher(db.users,db.active);
 }
 function metric(label,value,icon,color){return '<div class="card stat"><span class="stat-icon '+color+'">'+icon+'</span><div><b>'+esc(value)+'</b><span>'+esc(label)+'</span></div></div>'}
 function home(){
-  const u=active(),info=currentInstrument(),lessons=currentLessons(),complete=lessons.filter(l=>u.completed[l.id]).length,
-    next=lessons.find(l=>!u.completed[l.id])||lessons[0],level=levelInfo(u.xp),streak=streakInfo(u);
-  const isVoice=info.id==="voice",cta=isVoice?'<button class="btn white" data-vocal="voice-warmup">🎤 Aquecer minha voz</button>':next?'<button class="btn white" data-lesson="'+esc(next.id)+'">▶ '+(complete?"Continuar minha trilha":"Começar primeira aula")+'</button>':'<button class="btn white" data-route="instruments">Escolher instrumento</button>';
-  const title=isVoice?"Sua voz é seu instrumento.":complete?"Cada nota leva você mais longe.":"Sua jornada musical começa aqui.";
-  let out=instrumentContext(u.instrument)+
-    '<section class="hero"><div class="hero-copy"><span class="pill dark">'+info.icon+' '+esc(info.name.toUpperCase())+' · NÍVEL '+level.level+'</span><h1>'+title+'</h1><p>'+(isVoice?"Pratique afinação e cante com letras sincronizadas.":"Aprenda em lições curtas, com seu instrumento físico e feedback por microfone.")+'</p>'+cta+'</div><div class="hero-art" aria-hidden="true"><div class="orbit"></div><div class="orbit"></div><span class="big-note">♫</span><span class="spark">✦</span></div></section>';
-  out+='<div class="grid three" style="margin-top:13px">'+metric("Seu nível",level.level,"⭐","purple")+metric("XP total",u.xp,"⚡","green")+metric("Dias de prática",streak.current,"🔥","")+'</div>';
-  if(next)out+='<div class="section-head"><h2>Seu próximo passo</h2><button class="link-action" data-route="courses">Ver trilha →</button></div>'+
-    '<div class="lesson-row"><span class="lesson-icon">'+next.icon+'</span><div class="grow"><span class="eyebrow">'+(complete?"CONTINUE DE ONDE PAROU":"PRIMEIRA LIÇÃO")+'</span><h3>'+esc(next.title)+'</h3><p>'+esc(next.subtitle)+'</p><div class="lesson-foot"><span>⏱ '+next.minutes+' min</span><span>⚡ até '+next.xp+' XP base</span></div></div><button class="btn lesson-action" data-lesson="'+esc(next.id)+'">'+(u.checkpoints?.[next.id]?"Retomar":"Começar")+' →</button></div>';
-  if(isVoice)out+='<div class="section-head"><h2>Comece cantando</h2><button class="link-action" data-route="singing">Ver repertório →</button></div>'+
-    '<div class="lesson-row"><span class="lesson-icon teal">🎤</span><div class="grow"><h3>Vocalize com Lá</h3><p>Aqueça sua voz e experimente notas sustentadas.</p></div><button class="btn lesson-action" data-vocal="voice-warmup">Cantar →</button></div>';
-  out+='<div class="section-head"><h2>O que vamos fazer hoje?</h2></div><div class="grid two"><div class="card workout"><div class="workout-deco" aria-hidden="true">♫</div><span class="pill dark">PRÁTICA CURTA</span><h2 style="margin:12px 0 8px">Treino de 5 minutos</h2><p>Uma sessão rápida pode manter o seu ritmo de estudo.</p><button class="btn white" data-route="workouts">Escolher treino →</button></div><div class="gamification-mini"><span class="pill">🏆 DESAFIOS</span><h3 style="margin:12px 0 5px">Suas conquistas</h3><p>Complete missões diárias e acompanhe seu progresso.</p><div class="statline"><strong>Próximo nível</strong><span>'+level.progress+'%</span></div><div class="progress-track"><div class="progress-fill" style="width:'+level.progress+'%"></div></div><button class="btn sm ghost" style="margin-top:13px" data-route="achievements">Ver conquistas →</button></div></div>';
-  out+='<div class="section-head"><h2>Músicas para '+esc(info.name.toLowerCase())+'</h2><button class="link-action" data-route="library">Ver biblioteca →</button></div>';
-  const preview=catalogFilter(fullCatalog(),{scope:"mine",instrument:info.id,difficulty:"all",favorites:u.favorites||[]}).slice(0,2);
-  out+='<div class="lesson-list">'+(preview.length?preview.map(item=>'<div class="lesson-row"><span class="lesson-icon sky">'+item.cover+'</span><div class="grow"><h3>'+esc(item.title)+'</h3><p>'+esc(item.artist)+' · '+esc(item.level)+'</p></div><button class="btn sm lesson-action" data-open-song="'+esc(item.id)+'">Ver →</button></div>').join(""):'<div class="card"><p class="muted small">Escolha um instrumento para encontrar as músicas adequadas.</p><button class="btn sm" data-route="instruments">Escolher</button></div>')+'</div>';
-  return out;
+ const u=active(),info=currentInstrument(),voice=info.id==="voice",lessons=currentLessons(),
+  completed=voice?VOCAL_SONGS.filter(v=>u.vocalCompleted?.[v.id]).length:lessons.filter(l=>u.completed?.[l.id]).length,
+  nextLesson=lessons.find(l=>!u.completed?.[l.id])||lessons[0],
+  nextVocal=VOCAL_SONGS.find(v=>!u.vocalCompleted?.[v.id])||VOCAL_SONGS[0],
+  candidates=catalogFilter(fullCatalog(),{scope:"mine",instrument:info.id,type:"song"}),
+  recommendation=candidates.find(item=>!((item.kind==="vocal"?u.vocalCompleted:u.completed)||{})[item.vocalId||item.lessonId])||candidates[0]||null;
+ return homeDashboard({instrument:info,level:levelInfo(u.xp),streak:streakInfo(u).current,
+  completed,total:voice?VOCAL_SONGS.length:lessons.length,xp:u.xp,
+  nextLesson,nextVocal,recommendation});
 }
 function courseCard(c){
   const total=LESSONS.filter(l=>l.course===c.id),done=total.filter(l=>active().completed[l.id]).length;
@@ -135,14 +152,25 @@ function instrumentsPage(){
  return instrumentPicker(active().instrument);
 }
 function workouts(){
- const u=active(),today=localDay(),seconds=(u.history||[]).filter(h=>h.day===today).reduce((sum,h)=>sum+(Number(h.seconds)||0),0),
-   options=currentLessons().filter(l=>["notes","reading","technique","rhythm"].includes(l.kind)).slice(0,3),
-   isVoice=currentInstrument().id==="voice";
- return instrumentContext(u.instrument)+'<div class="page-intro"><span class="eyebrow">CONSTÂNCIA MUSICAL</span><h1>Treinos rápidos ⏱</h1><p>Escolha uma habilidade para praticar em sessões curtas.</p></div>'+
- '<div class="card workout"><span class="pill dark">DESAFIO DO DIA</span><h2 style="margin:13px 0 8px">Meta: cinco minutos</h2><p>'+Math.floor(Math.min(300,seconds)/60)+' de 5 minutos registrados hoje.</p><div class="progress-track" style="background:#5a5a89;max-width:440px"><div class="progress-fill" style="width:'+Math.min(100,percent(seconds,300))+'%"></div></div><p class="small" style="margin:10px 0 0">O aplicativo registra tempo nas práticas concluídas.</p></div>'+
- '<div class="section-head"><h2>Escolha uma atividade</h2></div><div class="lesson-list">'+options.map(lessonCard).join("")+
- '<div class="lesson-row"><span class="lesson-icon teal">🎤</span><div class="grow"><h3>Aquecimento vocal</h3><p>Vocalize e exercite a afinação.</p><div class="lesson-foot"><span>🎤 Canto</span></div></div><button class="btn sm lesson-action" data-vocal="voice-warmup">Cantar →</button></div></div>'+
- (isVoice?'<p class="inline-tip">Você escolheu voz. Os exercícios de notas do piano não são apresentados nesta trilha.</p>':"");
+ const user=active(),info=currentInstrument(),voice=info.id==="voice",today=localDay(),
+  seconds=(user.history||[]).filter(h=>h.day===today).reduce((n,h)=>n+(Number(h.seconds)||0),0);
+ const lessons=currentLessons().filter(l=>["notes","reading","technique","rhythm"].includes(l.kind)).slice(0,3);
+ const recommended=VOCAL_SONGS.filter(v=>v.genre==="Vocalizes")
+  .concat(VOCAL_SONGS.filter(v=>v.genre==="Canções").slice(0,2));
+ const rows=voice?recommended.map(v=>'<div class="lesson-row"><span class="lesson-icon teal">'+v.icon+'</span>'+
+ '<div class="grow"><h3>'+esc(v.title)+'</h3><p>'+esc(v.description)+'</p></div>'+
+ '<button class="btn sm lesson-action" data-vocal="'+esc(v.id)+'">Cantar →</button></div>').join(""):lessons.map(lessonCard).join("");
+ return instrumentContext(user.instrument)+'<div class="page-intro"><span class="eyebrow">PRÁTICA DO SEU INSTRUMENTO</span>'+
+ '<h1>'+(voice?"Exercícios de canto":"Treinos de "+esc(info.name.toLowerCase()))+'</h1>'+
+ '<p>'+(voice?"Aquecimento e exercícios vocais.":"Notas, técnica e ritmo com seu instrumento físico.")+'</p></div>'+
+ '<section class="card workout"><span class="pill dark">META DO DIA</span><h2 style="margin:10px 0">Cinco minutos de prática</h2>'+
+ '<p>'+Math.floor(Math.min(300,seconds)/60)+' de 5 minutos registrados hoje.</p>'+
+ '<div class="progress-track" style="background:#5a5a89;max-width:440px"><div class="progress-fill" style="width:'+Math.min(100,percent(seconds,300))+'%"></div></div></section>'+
+ '<div class="section-head"><h2>Escolha uma atividade</h2></div><div class="lesson-list">'+rows+'</div>'+
+ '<details class="home-group" style="margin-top:15px"><summary><span class="home-group-icon">🎵</span>'+
+ '<span><strong>Outras atividades</strong><small>Explore outras opções</small></span><span class="home-chevron">⌄</span></summary>'+
+ '<div class="home-group-body"><button class="home-shortcut" data-route="library">🎶 Biblioteca completa</button>'+
+ (!voice?'<button class="home-shortcut" data-route="singing">🎤 Experimentar canto</button>':'')+'</div></details>';
 }
 function diagnostics(){
  let storageStatus="Disponível";try{const key="musical-sense-diagnostic";localStorage.setItem(key,"ok");localStorage.removeItem(key)}catch(e){storageStatus="Bloqueado ou indisponível"}
@@ -183,7 +211,7 @@ function progress(){
       const completed=Object.keys(user.vocalCompleted||{}).filter(id=>VOCAL_SONGS.some(song=>song.id===id));
       return {id:i.id,name:i.name,icon:i.icon,done:completed.length,total:VOCAL_SONGS.length};
     }
-    const lessons=lessonsForInstrument(i.id,LESSONS);
+    const lessons=[...lessonsForInstrument(i.id,LESSONS),...publishedLessons().filter(l=>l.instrument===i.id)];
     return {id:i.id,name:i.id==="piano"?"Piano / Teclado":i.name,icon:i.icon,
       done:lessons.filter(l=>user.completed?.[l.id]).length,total:lessons.length};
   });
@@ -199,7 +227,9 @@ function progress(){
 }
 function myMusic(){
   const user=active(),entries=fullCatalog(),favorites=new Set(user.favorites||[]);
-  const saved=entries.filter(item=>favorites.has(item.id));
+  const mineId=currentInstrument().id,belongs=item=>item.instrument===mineId||(mineId==="keyboard"&&item.instrument==="piano");
+  const saved=entries.filter(item=>favorites.has(item.id)&&belongs(item));
+  const otherFavorites=entries.filter(item=>favorites.has(item.id)&&!belongs(item));
   const recent=[],seen=new Set();
   const historical=[...(user.history||[])].sort((a,b)=>(Number(b.at)||0)-(Number(a.at)||0));
   for(const entry of historical){
@@ -210,7 +240,9 @@ function myMusic(){
     if(item&&!seen.has(item.id)){recent.push(item);seen.add(item.id)}
     if(recent.length>=5)break;
   }
-  return myMusicPage({favorites:saved,recent,personalCount:(user.personalLyrics||[]).length});
+  return myMusicPage({favorites:saved,otherFavorites,recent:recent.filter(belongs),
+ otherRecent:recent.filter(item=>!belongs(item)),instrumentName:currentInstrument().name,
+ personalCount:(user.personalLyrics||[]).length});
 }
 function settings(){return settingsPage()}
 const degree=[0,0,1,1,2,3,3,4,4,5,5,6];
@@ -265,14 +297,21 @@ function coachMessage(){
   return session.index===0?"Acompanhe a partitura e toque a primeira nota.":"Ótimo! Agora encontre a próxima nota. Você está indo bem.";
 }
 function practice(){
-  const s=session,l=s.lesson,total=s.steps.length,current=s.steps[s.index],progress=percent(s.index,total);
+  const s=session,l=s.lesson,lessonInfo=instrumentInfo(l.instrument||active().instrument),total=s.steps.length,current=s.steps[s.index],progress=percent(s.index,total);
   return '<div class="lesson-screen"><header class="lesson-top"><button class="lesson-back" data-action="leave" aria-label="Fechar aula">✕</button><div class="lesson-title"><strong>'+esc(l.title)+'</strong><span>'+esc(l.subtitle)+'</span></div><div class="lesson-progress"><div class="progress-track"><div class="progress-fill" style="width:'+progress+'%"></div></div></div><div class="lesson-stats"><span class="pill">⚡ '+(s.hits*10)+' XP</span><span class="pill">'+(s.index+1)+'/'+total+'</span></div></header>'+
-  '<div class="lesson-body"><div class="practice-modes" role="group" aria-label="Modo da aula"><button class="practice-mode '+(s.mode==="guided"?"active":"")+'" data-mode="guided">📖 Aprender sem pressa</button><button class="practice-mode '+(s.mode==="performance"?"active":"")+'" data-mode="performance">🎵 Tocar no ritmo</button></div>'+(s.mode==="performance"?performancePanel(s,noteName,bpm):"")+'<div class="instruction"><div><span class="difficulty">'+(s.mode==="performance"?"DESAFIO NO TEMPO":l.kind==="song"?"TOCANDO UMA MELODIA":"PRÁTICA GUIADA")+'</span><h1>Toque <span style="color:#6656e7">'+noteName(current.m)+'</span></h1><span class="muted">'+esc(s.sectionRange?"Treino focado nas notas "+(s.sectionRange.start+1)+" a "+s.sectionRange.end+".":l.tip)+'</span></div><button class="btn outline sm" data-action="demo" '+(demoBusy||s.mode==="performance"&&s.performance.phase!=="ready"?"disabled":"")+'>♫ Ouvir exemplo</button></div>'+
-  '<section class="lesson-main"><div class="score-header"><strong>🎼 Sua partitura</strong><span>Nota '+(s.index+1)+' de '+total+'</span></div><div class="score-board">'+scoreSvg()+'</div><div class="keyboard-panel"><div class="keyboard-top"><strong>'+(currentInstrument().group==="strings"?"🎸 Onde tocar no "+esc(currentInstrument().name):"⌨ Onde tocar no teclado")+'</strong><span>'+(s.showHint?"Posição destacada em lilás":"Toque no instrumento físico") +'</span></div>'+(currentInstrument().group==="strings"?fretboard(currentInstrument().id,current,{showHint:s.showHint,heard:lastFrame?.note??null}):piano())+'</div></section>'+
+  '<div class="lesson-body"><div class="practice-modes" role="group" aria-label="Modo da aula"><button class="practice-mode '+(s.mode==="guided"?"active":"")+'" data-mode="guided">📖 Aprender sem pressa</button><button class="practice-mode '+(s.mode==="performance"?"active":"")+'" data-mode="performance">🎵 Tocar no ritmo</button></div>'+(s.mode==="performance"?performancePanel(s,noteName,bpm):"")+'<div class="instruction"><div><span class="lesson-instrument-tag">'+lessonInfo.icon+' '+esc(lessonInfo.name)+'</span><span class="difficulty">'+(s.mode==="performance"?"DESAFIO NO TEMPO":l.kind==="song"?"TOCANDO UMA MELODIA":"PRÁTICA GUIADA")+'</span><h1>Toque <span style="color:#6656e7">'+noteName(current.m)+'</span></h1><span class="muted">'+esc(s.sectionRange?"Treino focado nas notas "+(s.sectionRange.start+1)+" a "+s.sectionRange.end+".":l.tip)+'</span></div><button class="btn outline sm" data-action="demo" '+(demoBusy||s.mode==="performance"&&s.performance.phase!=="ready"?"disabled":"")+'>♫ Ouvir exemplo</button></div>'+
+  '<section class="lesson-main"><div class="score-header"><strong>'+(lessonInfo.group==="strings"?"🎼 Sequência de notas":"🎼 Sua partitura")+'</strong><span>Nota '+(s.index+1)+' de '+total+'</span></div><div class="score-board">'+scoreSvg()+'</div><div class="keyboard-panel"><div class="keyboard-top"><strong>'+(lessonInfo.group==="strings"?"🎸 Onde tocar no "+esc(lessonInfo.name):"⌨ Onde tocar no teclado")+'</strong><span>'+(s.showHint?"Posição destacada em lilás":"Toque no instrumento físico") +'</span></div>'+(lessonInfo.group==="strings"?fretboard(lessonInfo.id,current,{showHint:s.showHint,heard:lastFrame?.note??null}):piano())+'</div></section>'+
   '<div class="lesson-bottom"><section class="listen-panel"><div class="listen-top"><div class="listen-indicator"><span class="audio-dot '+(audioStatus==="listening"?"on":audioStatus==="permission"?"wait":"")+'" id="audio-dot"></span><div><div class="audio-status" id="audio-status">'+esc(audioText())+'</div><div class="audio-sub" id="audio-sub">'+(audioStatus==="listening"?"Toque uma nota por vez e sustente por um instante.":"O acesso será solicitado pelo navegador.")+'</div></div></div><div class="row"><button class="btn sm '+(audio.listening?"ghost":"")+'" data-action="microphone" id="mic-btn">'+(audio.listening?"Desligar":"🎙 Ativar microfone")+'</button></div></div>'+
   '<div class="level"><div id="input-level" style="width:0%"></div></div><div class="audio-readings"><span id="heard">Nota: aguardando</span><span id="frequency">0 Hz</span><span id="tuning">Afinação: —</span></div>'+
-  '<div class="row wrap" style="margin-top:14px"><button class="btn outline sm" data-action="midi">🎹 '+(s.midiEnabled?"MIDI conectado":"Conectar MIDI")+'</button><label class="row small muted" for="sensitivity">Sensibilidade <input id="sensitivity" type="range" min="0" max="100" value="'+s.sensitivity+'" style="width:90px" aria-label="Sensibilidade do microfone"></label></div>'+volumeInline()+'</section>'+
-  '<section class="coaching-panel"><div class="coach-head"><span class="coach-emoji">💡</span> Seu professor virtual</div><div class="coach-message" id="coach-message">'+esc(coachMessage())+'</div><div class="coach-actions"><button class="btn sm ghost" data-action="hint">'+(s.showHint?"Ocultar dica":"🔍 Mostrar dica")+'</button><button class="btn sm outline" data-action="hear-note">♫ Ouvir nota</button><button class="btn sm outline" data-action="restart">↻ Reiniciar</button><button class="btn sm outline" data-action="tempo">⏱ '+bpm+' BPM</button>'+(s.mode==="performance"?"":'<button class="btn sm outline" data-action="metronome">'+(metronome?"◼ Parar pulso":"♪ Metrônomo")+'</button>')+'</div></section></div>'+
+  '<details class="practice-toolbox"><summary>Ajustes de som e entrada ▾</summary><div><div class="row wrap" style="margin-top:5px">'+
+ (lessonInfo.group==="keys"?'<button class="btn outline sm" data-action="midi">🎹 '+(s.midiEnabled?"MIDI conectado":"Conectar MIDI")+'</button>':"")+
+ '<label class="row small muted" for="sensitivity">Sensibilidade <input id="sensitivity" type="range" min="0" max="100" value="'+s.sensitivity+'" style="width:90px" aria-label="Sensibilidade do microfone"></label></div>'+
+ volumeInline()+'</div></details></section>'+
+  '<section class="coaching-panel"><div class="coach-head"><span class="coach-emoji">💡</span> Seu professor virtual</div><div class="coach-message" id="coach-message">'+esc(coachMessage())+'</div><div class="coach-actions"><button class="btn sm ghost" data-action="hint">'+(s.showHint?"Ocultar dica":"🔍 Mostrar dica")+'</button><button class="btn sm outline" data-action="hear-note">♫ Ouvir nota</button></div>'+
+ '<details class="practice-toolbox"><summary>Outras ferramentas ▾</summary><div class="row wrap">'+
+ '<button class="btn sm outline" data-action="restart">↻ Reiniciar</button><button class="btn sm outline" data-action="tempo">⏱ '+bpm+' BPM</button>'+
+ (s.mode==="performance"?"":'<button class="btn sm outline" data-action="metronome">'+(metronome?"◼ Parar pulso":"♪ Metrônomo")+'</button>')+
+ '</div></details></section></div>'+
   '<footer class="lesson-footer"><span class="muted">🎙 Use seu instrumento físico. A tela é apenas um guia visual.</span><span class="muted">Os acordes simultâneos ainda não são reconhecidos.</span><button class="btn dark sm" data-action="leave">Salvar e sair</button></footer></div></div>';
 }
 function result(){
@@ -299,6 +338,15 @@ function changePage(next){
 async function startLesson(id,requestMicrophone=true,options={}){
   stopTimers();audio.stop();audio.disconnectMidi();
   const lesson=findInstrumentLesson(id,LESSONS)||publishedLesson(id);if(!lesson){toast("Esta aula não está disponível.");return}
+  if(lesson.instrument){
+    const target=instrumentInfo(lesson.instrument),mine=currentInstrument();
+    if(target.id!==mine.id&&!(target.group==="keys"&&mine.group==="keys")){
+      const u=active(),prior=u.instrument,oldTimbre=db.soundTimbre;
+      u.instrument=target.name;db.soundTimbre="auto";
+      if(!save()){u.instrument=prior;db.soundTimbre=oldTimbre;toast("Não foi possível atualizar o instrumento.");return}
+      catalogScope="mine";catalogType="all";catalogGenre="all";catalogQuery="";catalogDifficulty="all";
+    }
+  }
   applyTimbre(lesson.instrument||active().instrument);
   const allSteps=getSessionNotes(lesson),range=options.range&&options.range.end>options.range.start?options.range:null,steps=range?allSteps.slice(range.start,range.end):allSteps,mode=options.mode==="performance"?"performance":"guided";
   active().checkpoints=active().checkpoints||{};
@@ -314,7 +362,7 @@ async function startLesson(id,requestMicrophone=true,options={}){
     session.assisted=checkpoint.assisted||0;session.activePracticeMs=checkpoint.activePracticeMs||0;session.feedback=Array(steps.length).fill(null).map((_,i)=>i<session.index?"correct":null);
   }
   page="practice";audioStatus="off";audioError="";lastFrame=null;audio.setSensitivity(.70);render();window.scrollTo(0,0);
-  tipTimer=setInterval(()=>{if(page!=="practice"||!session||session.mode!=="guided")return;if(!session.showHint&&Date.now()-session.stepStart>9000){session.showHint=true;session.coach="Precisa de ajuda? A tecla lilás indica onde tocar.";render()}},1100);
+  tipTimer=setInterval(()=>{if(page!=="practice"||!session||session.mode!=="guided")return;if(!session.showHint&&Date.now()-session.stepStart>9000){session.showHint=true;session.coach=currentInstrument().group==="strings"?"Precisa de ajuda? A casa destacada mostra onde tocar.":"Precisa de ajuda? A tecla destacada mostra onde tocar.";render()}},1100);
   if(requestMicrophone)await enableMic();
 }
 async function enableMic(){
@@ -375,12 +423,12 @@ function onNote(event){
       save();
     }
     if(s.index>=s.steps.length){finishLesson();return}
-    if(s.steps[s.index].m===m)s.coach="Acertou! Solte a tecla e toque novamente para repetir a nota.";
+    if(s.steps[s.index].m===m)s.coach=currentInstrument().group==="strings"?"Acertou! Abafe a corda e toque novamente.":"Acertou! Solte a tecla e toque novamente.";
     render();
   }else{
     s.misses++;s.wrongFlashUntil=Date.now()+650;
     s.coach="Tente outra vez: toque "+noteName(target)+". Eu reconheci "+noteName(m)+".";
-    if(s.misses>=2&&s.misses%(Math.max(2,Math.floor(s.steps.length/3)))===0){s.showHint=true;s.coach="Sem problema! Procure a tecla lilás e tente novamente."}
+    if(s.misses>=2&&s.misses%(Math.max(2,Math.floor(s.steps.length/3)))===0){s.showHint=true;s.coach=currentInstrument().group==="strings"?"Sem problema! Procure a casa destacada no braço e tente novamente.":"Sem problema! Procure a tecla destacada e tente novamente."}
     render();
     setTimeout(()=>{if(page==="practice"&&session===s&&s.wrongFlashUntil<Date.now())render()},750);
   }
@@ -627,10 +675,11 @@ document.addEventListener("click",async e=>{
   if(d.route){changePage(d.route);return}
   if(d.instrument){
     const info=INSTRUMENTS.find(item=>item.id===d.instrument);if(!info)return;
-    active().instrument=info.name;applyTimbre(info.name);
-    catalogScope="mine";catalogQuery="";catalogDifficulty="all";catalogType="all";catalogGenre="all";courseFilter="all";
-    if(!save())toast("Não foi possível salvar a preferência.");
-    changePage("home");toast("Instrumento selecionado: "+info.name+".");
+    const u=active(),before=u.instrument,oldTimbre=db.soundTimbre;
+    player.stop();demoBusy=false;u.instrument=info.name;db.soundTimbre="auto";applyTimbre(info.name);
+    if(!save()){u.instrument=before;db.soundTimbre=oldTimbre;applyTimbre();toast("Não foi possível salvar a troca de instrumento.");return}
+    catalogScope="mine";catalogQuery="";catalogDifficulty="all";catalogType="all";catalogGenre="all";courseFilter="all";songDetailId=null;
+    changePage("home");toast("Agora você está aprendendo "+info.name+". Aulas e demonstrações atualizadas.");
     return;
   }
   if(d.catalogScope){catalogScope=d.catalogScope;render();return}
@@ -649,9 +698,12 @@ document.addEventListener("click",async e=>{
     if(item.kind==="instrument"){
       const target=instrumentInfo(item.instrument);
       if(!(target.id==="piano"&&currentInstrument().group==="keys")&&currentInstrument().id!==target.id){
-        active().instrument=target.name;catalogScope="mine";save();
+        const u=active(),before=u.instrument,oldTimbre=db.soundTimbre;
+        u.instrument=target.name;db.soundTimbre="auto";
+        if(!save()){u.instrument=before;db.soundTimbre=oldTimbre;toast("Não foi possível trocar o instrumento.");return}
+        catalogScope="mine";catalogQuery="";catalogDifficulty="all";catalogType="all";catalogGenre="all";
       }
-      await startLesson(item.lessonId);return;
+      applyTimbre(target.id);await startLesson(item.lessonId);return;
     }
     if(item.kind==="vocal"){await beginVocal(item.vocalId);return}
     if(item.kind==="personal"){await beginPersonal(item.personalId);return}
@@ -680,7 +732,7 @@ document.addEventListener("click",async e=>{
     if(db.active===target.id){const dlg=$("#profile-dialog");if(dlg?.open)dlg.close();return}
     const previous=db.active;db.active=target.id;
     if(!save()){db.active=previous;toast("Não foi possível salvar a troca de aluno.");return}
-    applyTimbre(target.instrument);catalogScope="mine";catalogQuery="";catalogDifficulty="all";
+    db.soundTimbre="auto";save();applyTimbre(target.instrument);catalogScope="mine";catalogQuery="";catalogDifficulty="all";catalogType="all";catalogGenre="all";
     changePage("home");toast("Agora você está no perfil de "+target.name+".");return;
   }
   if(d.lesson){await startLesson(d.lesson);return}
@@ -779,7 +831,7 @@ document.addEventListener("click",async e=>{
   if(action==="demo"){await hearDemo();return}
   if(action==="hear-note"){await hearSingleNote();return}
   if(action==="tempo"){if(session?.mode==="performance"&&["running","countin"].includes(session.performance.phase)){toast("Pause antes de mudar a velocidade.");return}bpm=bpm===60?80:bpm===80?100:60;if(session?.mode==="performance"){resetPerformance();return}if(metronome){await player.metronome(bpm)}render();return}
-  if(action==="hint"){session.showHint=!session.showHint;session.coach=session.showHint?"Dica: procure a tecla destacada em lilás.":"";render();return}
+  if(action==="hint"){session.showHint=!session.showHint;session.coach=session.showHint?(currentInstrument().group==="strings"?"Dica: procure a casa indicada no braço do instrumento.":"Dica: procure a tecla destacada no teclado."):"";render();return}
   if(action==="restart"){await startLesson(session.lesson.id,true,{mode:session.mode,range:session.sectionRange,reset:true});return}
   if(action==="metronome"){await toggleMetro();return}
   if(action==="leave"){changePage("courses");return}

@@ -27,6 +27,7 @@ function boot(){
  const clock={now:()=>0};
  const singingUI=load("singing-ui.js",["renderSingingHome","renderImportLyrics","renderVocalPractice","renderVocalResult","renderPersonalPractice","renderAchievements"],{performance:clock});
  const performanceUI=load("performance-view.js",["performanceRollSvg","performancePanel","performanceResultExtra"],{performance:clock});
+ const homeUI=load("home-ui.js",["homeDashboard"]);
  const accountUI=load("account-ui.js",["profileSwitcher","profileHub","familyProfilesPage","progressPage","myMusicPage","settingsPage"]);
  const state={html:"",resultHtml:"",count:"",writes:0};
  const events={};
@@ -54,12 +55,12 @@ function boot(){
   setMetronomeVolume(value){this.metronomeVolume=value;return value}setTimbre(value){this.timbre=value;return value}
   stop(){}async context(){}async metronomeClick(){}async play(){return 200}}
  const bindings={...music,...instruments,...instrumentUI,...singing,...catalog,...discovery,
-  ...lyrics,...game,...backup,...scoreImport,...scoreImportUI,...model,...singingEngine,...performanceEngine,...singingUI,...performanceUI,...accountUI,
+  ...lyrics,...game,...backup,...scoreImport,...scoreImportUI,...model,...singingEngine,...performanceEngine,...singingUI,...performanceUI,...accountUI,...homeUI,
   document,window:win,navigator:{mediaDevices:{getUserMedia(){}},serviceWorker:{},userAgent:"Test"},
   localStorage:storage,performance:clock,AudioEngine:Audio,SoundPlayer:Player,
   setInterval(){return 1},clearInterval(){},requestAnimationFrame(){return 1},cancelAnimationFrame(){},
   setTimeout(){return 1},clearTimeout(){}};
- const app=new Function(...Object.keys(bindings),clean(read("app.js"))+";return {active,changePage,currentLessons,startLesson,onNote,getPage:()=>page,getSession:()=>session}")(...Object.values(bindings));
+ const app=new Function(...Object.keys(bindings),clean(read("app.js"))+";return {active,changePage,currentLessons,startLesson,onNote,getPage:()=>page,getSession:()=>session,getTimbre:()=>player.timbre}")(...Object.values(bindings));
  const click=async dataset=>events.click({target:{closest:()=>({dataset,disabled:false})}});
  return {app,state,events,click};
 }
@@ -75,7 +76,8 @@ test("seleção de violão muda toda a trilha e a recomendação musical",async(
  app.changePage("instruments");
  await click({instrument:"acoustic"});
  assert.equal(app.active().instrument,"Violão");
- assert.ok(state.html.includes("Meu instrumento: Violão"));
+ assert.ok(state.html.includes("SEU INSTRUMENTO ATUAL"));
+ assert.ok(state.html.includes(">Violão</strong>"));
  app.changePage("courses");
  assert.ok(state.html.includes("Primeira corda: Mi"));
  assert.ok(!state.html.includes("Conheça o Dó central"));
@@ -127,4 +129,61 @@ test("voz abre trilha de canto sem teclado ou exercícios de piano",async()=>{
  app.changePage("library");
  assert.ok(state.html.includes("Vocalize com Lá"));
  assert.ok(!state.html.includes("Ode à Alegria"));
+});
+
+test("mudar para ukulele sincroniza início, exemplos, trilha, treino e biblioteca",async()=>{
+ const {app,click,state}=boot();
+ await click({instrument:"ukulele"});
+ assert.equal(app.active().instrument,"Ukulele");
+ assert.equal(app.getTimbre(),"ukulele");
+ assert.ok(state.html.includes("Vamos fazer música com ukulele?"));
+ assert.ok(state.html.includes("Para ukulele"));
+ assert.ok(state.html.includes('class="home-groups"'));
+ assert.ok(!state.html.includes('class="grid three"'));
+ const nav=state.html.split('<nav class="mobile-nav"')[1].split("</nav>")[0];
+ assert.ok(nav.includes('data-route="workouts"'));
+ assert.ok(!nav.includes('data-route="singing"'));
+ app.changePage("workouts");
+ assert.ok(state.html.includes("Treinos de ukulele"));
+ assert.ok(!state.html.includes('data-vocal="voice-warmup"'));
+ app.changePage("library");
+ assert.ok(state.html.includes("Areia e Sol"));
+ assert.ok(!state.html.includes("Ode à Alegria"));
+ await app.startLesson("curated-ms-original-ukulele-01-arr",false);
+ assert.equal(app.getPage(),"practice");
+ assert.equal(app.getTimbre(),"ukulele");
+ assert.ok(state.html.includes('class="fretboard"'));
+ assert.ok(state.html.includes("Onde tocar no Ukulele"));
+ assert.ok(!state.html.includes("Conectar MIDI"));
+ assert.ok(state.html.includes("Ajustes de som e entrada"));
+});
+test("voz tem navegação de cantar e retorna ao timbre vocal após mudar instrumento",async()=>{
+ const {app,click,state}=boot();
+ await click({instrument:"ukulele"});
+ await click({instrument:"voice"});
+ assert.equal(app.active().instrument,"Voz");
+ assert.equal(app.getTimbre(),"soft");
+ assert.ok(state.html.includes("Sua voz merece ser ouvida."));
+ const nav=state.html.split('<nav class="mobile-nav"')[1].split("</nav>")[0];
+ assert.ok(nav.includes('data-route="singing"'));
+ assert.ok(!nav.includes('data-route="workouts"'));
+ app.changePage("workouts");
+ assert.ok(state.html.includes("Exercícios de canto"));
+ assert.ok(!state.html.includes("Treinos de ukulele"));
+ await click({instrument:"piano"});
+ assert.equal(app.getTimbre(),"piano");
+ assert.ok(state.html.includes("Para piano"));
+});
+test("favoritos dos demais instrumentos ficam agrupados fora da lista principal",async()=>{
+ const {app,click,state}=boot();
+ app.active().favorites=["piano:joy","curated:ms-original-ukulele-01-arr"];
+ await click({instrument:"ukulele"});
+ app.changePage("my-music");
+ assert.ok(state.html.includes("Favoritas de Ukulele"));
+ assert.ok(state.html.includes("Areia e Sol"));
+ assert.ok(state.html.includes("Outros instrumentos"));
+ const outer=state.html.indexOf("Outros instrumentos");
+ const piano=state.html.indexOf("Ode à Alegria");
+ assert.ok(outer>=0&&piano>outer);
+ assert.equal(app.active().favorites.length,2);
 });

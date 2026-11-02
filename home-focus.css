@@ -1,0 +1,99 @@
+/* Musical Sense fase 3: menos informação no início e navegação por instrumento. */
+.home-focus{max-width:950px;margin:0 auto 35px}
+.home-welcome{position:relative;overflow:hidden;background:linear-gradient(123deg,#252c64 0%,#433b95 65%,#6958c3 100%);border-radius:23px;color:#fff;padding:23px 25px;box-shadow:0 14px 30px #22224724}
+.home-welcome-top{display:flex;align-items:center;gap:11px;min-width:0}
+.home-instrument-icon{width:47px;height:47px;flex:0 0 47px;display:grid;place-items:center;background:#ffffff26;border-radius:14px;font-size:29px}
+.home-welcome-name{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.home-welcome-name strong{font-size:15px;color:white}
+.home-eyebrow{font-size:10px;letter-spacing:.09em;font-weight:800;color:#c4bcf9}
+.home-switch-instrument{display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:9px 12px;min-height:44px;background:#ffffff22;border:1px solid #ffffff52;border-radius:12px;color:#fff;font-size:12px;font-weight:850;white-space:nowrap}
+.home-switch-instrument:hover,.home-switch-instrument:focus-visible{background:#ffffff34}
+.home-welcome h1{font-size:clamp(24px,3.7vw,35px);letter-spacing:-.04em;line-height:1.17;color:#fff;margin:19px 0 8px}
+.home-welcome>p{color:#e6e2ff;max-width:570px;font-size:13px;line-height:1.6;margin:0}
+.home-next{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin:20px 0 16px;padding:17px 19px;background:#ffffff15;border:1px solid #ffffff29;border-radius:16px;max-width:650px}
+.home-next>strong{font-size:20px;line-height:1.24;color:#fff}
+.home-next-description{font-size:12px;color:#e6e2ff}
+.home-main-cta{margin-top:5px;min-height:49px;background:#fff!important;color:#4a3aa6!important}
+.home-main-cta:hover{background:#e5e0ff!important}
+.home-welcome-progress{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#efeaff;font-size:11px;font-weight:750}
+.home-progress-track{height:5px;background:#ffffff30;border-radius:15px;margin-top:7px;overflow:hidden}
+.home-progress-track>div{background:#67e4c9;height:100%;border-radius:15px}
+.home-recommend{margin:23px 0 17px}
+.home-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 0 11px}
+.home-section-heading .home-eyebrow{color:#695ac0}
+.home-section-heading h2{font-size:19px;color:#2f3156;margin:5px 0 0}
+.home-text-link{display:inline-flex;min-height:40px;align-items:center;padding:7px 0;color:#6350c7;font-size:12px;font-weight:850;border:0;background:transparent;white-space:nowrap}
+.home-music-card{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e6e8f3;border-radius:18px;padding:13px;box-shadow:0 3px 12px #29315110}
+.home-music-art{display:grid;place-items:center;width:55px;height:55px;flex:0 0 55px;border-radius:14px;background:#ece8ff;font-size:31px}
+.home-music-copy{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.home-music-copy strong{font-size:15px;color:#33375a;line-height:1.25}
+.home-music-copy small{font-size:11px;color:#8188a0;line-height:1.35}
+.home-music-action{min-height:44px;flex:none}
+.home-music-empty{border-radius:16px;background:#fff;padding:19px;font-size:12px;line-height:1.6;color:#717b96}
+.home-groups{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.home-group{background:#fff;border:1px solid #e9eaf5;border-radius:17px;min-width:0;box-shadow:0 3px 12px #33375a0d}
+.home-group summary{list-style:none;display:flex;align-items:center;gap:12px;padding:16px;min-height:76px;cursor:pointer}
+.home-group summary::-webkit-details-marker{display:none}
+.home-group summary>span:nth-child(2){flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.home-group summary strong{font-size:13px;color:#383e67}
+.home-group summary small{font-size:11px;color:#858ba5;line-height:1.35}
+.home-group-icon{display:grid;place-items:center;width:40px;height:40px;flex:0 0 40px;border-radius:11px;background:#eeebff;font-size:21px}
+.home-chevron{color:#7770b0;font-size:20px;transition:transform .15s}
+.home-group[open] .home-chevron{transform:rotate(180deg)}
+.home-group-body{border-top:1px solid #f0f0f8;padding:6px 10px 12px}
+.home-shortcut{display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;width:100%;border-radius:11px;min-height:59px;padding:9px 6px;color:#333955}
+.home-shortcut:hover,.home-shortcut:focus-visible{background:#f5f4ff}
+.home-shortcut-icon{width:34px;font-size:20px;text-align:center;flex:0 0 34px}
+.home-shortcut>span:nth-child(2){display:flex;flex-direction:column;flex:1;gap:3px;min-width:0}
+.home-shortcut strong{font-size:12px}
+.home-shortcut small{font-size:10px;line-height:1.3;color:#868ba6}
+.home-shortcut-arrow{font-size:22px;color:#a6abc0}
+.home-mini-metrics{display:flex;justify-content:space-around;gap:12px;background:#f5f3ff;border-radius:11px;padding:10px;margin:8px 5px;color:#5c50a5;font-size:12px;font-weight:800}
+.top-instrument-btn{min-height:43px;border:1px solid #e4e2f4;background:#f5f2ff;color:#5e53ba;display:inline-flex;align-items:center;gap:5px;border-radius:22px;padding:7px 12px;font-size:12px;font-weight:850;white-space:nowrap}
+.top-instrument-btn:hover{background:#eae5ff}
+.sidebar-details{margin-top:5px;border-top:1px solid #ffffff1f;padding:10px 0 0}
+.sidebar-details>summary{display:flex;justify-content:space-between;gap:7px;align-items:center;min-height:43px;padding:10px 12px;list-style:none;border-radius:12px;color:#bfc5e9;font-size:12px;font-weight:800;cursor:pointer}
+.sidebar-details>summary::-webkit-details-marker{display:none}
+.sidebar-details[open]>summary{color:#fff;background:#ffffff0b}
+.sidebar-details>div{padding:7px 0}
+.sidebar-details .nav-btn{width:100%}
+.practice-toolbox{margin-top:12px;border-radius:13px;background:#f8f7fc;border:1px solid #e7e6f4}
+.practice-toolbox>summary{cursor:pointer;list-style:none;padding:12px 15px;min-height:45px;color:#625aa0;font-size:12px;font-weight:800}
+.practice-toolbox>summary::-webkit-details-marker{display:none}
+.practice-toolbox[open]>summary{border-bottom:1px solid #e7e6f4}
+.practice-toolbox>div{padding:10px}
+.lesson-instrument-tag{display:inline-flex;align-items:center;gap:6px;color:#6658ae;border-radius:20px;background:#efecff;padding:6px 10px;font-weight:800;font-size:11px}
+@media(max-width:760px){
+ .home-focus{padding-bottom:12px}
+ .home-groups{grid-template-columns:1fr}
+ .home-welcome{padding:19px;border-radius:19px}
+ .home-next{max-width:none}
+ .home-switch-instrument{font-size:11px}
+ .home-recommend{margin:17px 0}
+ .top-instrument-btn{min-height:40px}
+}
+@media(max-width:480px){
+ .home-welcome{padding:16px}
+ .home-welcome h1{font-size:26px}
+ .home-instrument-icon{width:40px;height:40px;flex-basis:40px;font-size:25px}
+ .home-next{padding:15px}
+ .home-next>strong{font-size:18px}
+ .home-main-cta{width:100%}
+ .home-music-card{gap:9px;padding:10px}
+ .home-music-art{width:44px;height:44px;flex-basis:44px;font-size:26px}
+ .home-music-copy strong{font-size:13px}
+ .home-music-action{padding:9px;font-size:11px}
+ .top-instrument-btn{font-size:19px;padding:7px;min-width:39px}
+ .top-instrument-btn .top-instrument-name{display:none}
+}
+@media(max-width:340px){
+ .home-welcome-top{flex-wrap:wrap}
+ .home-switch-instrument{margin-left:auto}
+ .home-music-card{flex-wrap:wrap}
+ .home-music-action{flex:1}
+}
+@media(prefers-reduced-motion:reduce){.home-chevron{transition:none}}
+
+/* Ajuste de espaços com três controles de cabeçalho no iPhone */
+@media(max-width:560px){.topbar>.eyebrow{display:none}.topbar .top-actions{width:100%;justify-content:flex-end;gap:7px}}
+.account-other-music .home-group-body{padding:11px 13px}.account-other-music h3{font-size:13px;color:#4b4e80;margin:13px 0 5px}

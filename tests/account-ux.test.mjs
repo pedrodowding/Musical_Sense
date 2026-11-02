@@ -4,6 +4,7 @@ import {readFileSync} from "node:fs";
 const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 const clean=s=>s.replace(/^import[^\n]*\n/gm,"").replace(/^export /gm,"");
 const load=(path,names,bindings={})=>new Function(...Object.keys(bindings),clean(read(path))+";return {"+names.join(",")+"};")(...Object.values(bindings));
+const homeUI=load("home-ui.js",["homeDashboard"]);
 const account=load("account-ui.js",["profileSwitcher","profileHub","familyProfilesPage","progressPage","myMusicPage","settingsPage"]);
 function boot(){
  const music=load("music-data.js",["LESSONS","COURSES","SONGS","noteName","noteShort","lessonById","getSessionNotes","initialUser"]);
@@ -53,7 +54,7 @@ function boot(){
  }
  class Form{constructor(element){this.fields=element.fields||{}}get(key){return this.fields[key]}}
  const bindings={...music,...instruments,...instrumentUI,...singing,...catalog,...discovery,...lyrics,...game,...backup,
-  ...scoreImport,...scoreImportUI,...model,...singingEngine,...performanceEngine,...singingUI,...performanceUI,...account,document,window,
+  ...scoreImport,...scoreImportUI,...model,...singingEngine,...performanceEngine,...singingUI,...performanceUI,...account,...homeUI,document,window,
   navigator:{mediaDevices:{getUserMedia(){}},serviceWorker:{},userAgent:"Safari test"},
   localStorage,performance:perf,AudioEngine:Audio,SoundPlayer:Player,FormData:Form,
   setInterval(){return 1},clearInterval(){},requestAnimationFrame(){return 1},cancelAnimationFrame(){},

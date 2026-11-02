@@ -1,5 +1,2555 @@
 // Gerado por scripts/build-catalog.mjs. Não editar diretamente.
 export const PUBLISHED_CATALOG = {
-  "works": [],
-  "arrangements": []
+  "works": [
+    {
+      "id": "ms-original-piano-01",
+      "title": "Caminho das Estrelas",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Autorais",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-piano-02",
+      "title": "Gotas de Chuva",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Autorais",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-piano-03",
+      "title": "Pequena Valsa",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Autorais",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-piano-04",
+      "title": "Manhã de Música",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Autorais",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-piano-05",
+      "title": "Dança das Teclas",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Autorais",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-piano-06",
+      "title": "Jardim de Notas",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Autorais",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-piano-07",
+      "title": "Luar de Outono",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Autorais",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-piano-08",
+      "title": "Brisa Serena",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Autorais",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-violao-01",
+      "title": "Sol no Quintal",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-violao-02",
+      "title": "Trilha do Campo",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-violao-03",
+      "title": "Balanço de Cordas",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-violao-04",
+      "title": "Pôr do Sol",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-violao-05",
+      "title": "Eco da Montanha",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-guitarra-01",
+      "title": "Faíscas no Ar",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-guitarra-02",
+      "title": "Riff do Horizonte",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-guitarra-03",
+      "title": "Pulsos da Cidade",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-guitarra-04",
+      "title": "Rota Elétrica",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-guitarra-05",
+      "title": "Rock de Bolso",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-ukulele-01",
+      "title": "Areia e Sol",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-ukulele-02",
+      "title": "Brisa da Ilha",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-ukulele-03",
+      "title": "Passos na Praia",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-ukulele-04",
+      "title": "Dia Azul",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-ukulele-05",
+      "title": "Lá no Jardim",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-baixo-01",
+      "title": "Passo Marcado",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-baixo-02",
+      "title": "Linha do Vento",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-baixo-03",
+      "title": "Groove do Bairro",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-baixo-04",
+      "title": "Noite em Movimento",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    },
+    {
+      "id": "ms-original-baixo-05",
+      "title": "Rota Grave",
+      "composer": "Musical Sense (composição didática original)",
+      "genre": "Melodias",
+      "license": "original",
+      "status": "published",
+      "rightsVerified": true,
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02",
+      "evidence": "Melodia didática original criada para este projeto nesta fase, sem fonograma nem adaptação de catálogo de terceiros; validação estrutural automatizada."
+    }
+  ],
+  "arrangements": [
+    {
+      "id": "ms-original-piano-01-arr",
+      "workId": "ms-original-piano-01",
+      "instrument": "piano",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 82,
+      "notes": [
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1.5
+        },
+        {
+          "m": 65,
+          "beats": 0.5
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 2
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1.5
+        },
+        {
+          "m": 67,
+          "beats": 0.5
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original para mão direita no piano ou teclado",
+      "cover": "🌟",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-piano-02-arr",
+      "workId": "ms-original-piano-02",
+      "instrument": "piano",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 76,
+      "notes": [
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1.5
+        },
+        {
+          "m": 62,
+          "beats": 0.5
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 2
+        },
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1.5
+        },
+        {
+          "m": 67,
+          "beats": 0.5
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original para mão direita no piano ou teclado",
+      "cover": "💧",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-piano-03-arr",
+      "workId": "ms-original-piano-03",
+      "instrument": "piano",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 90,
+      "notes": [
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1.5
+        },
+        {
+          "m": 65,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1.5
+        },
+        {
+          "m": 65,
+          "beats": 0.5
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original para mão direita no piano ou teclado",
+      "cover": "🩰",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-piano-04-arr",
+      "workId": "ms-original-piano-04",
+      "instrument": "piano",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 86,
+      "notes": [
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 67,
+          "beats": 0.5
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 2
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1.5
+        },
+        {
+          "m": 65,
+          "beats": 0.5
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original para mão direita no piano ou teclado",
+      "cover": "🌄",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-piano-05-arr",
+      "workId": "ms-original-piano-05",
+      "instrument": "piano",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 102,
+      "notes": [
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 62,
+          "beats": 0.5
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 2
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 1.5
+        },
+        {
+          "m": 64,
+          "beats": 0.5
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original para mão direita no piano ou teclado",
+      "cover": "🎹",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-piano-06-arr",
+      "workId": "ms-original-piano-06",
+      "instrument": "piano",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 78,
+      "notes": [
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 2
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1.5
+        },
+        {
+          "m": 62,
+          "beats": 0.5
+        },
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original para mão direita no piano ou teclado",
+      "cover": "🌿",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-piano-07-arr",
+      "workId": "ms-original-piano-07",
+      "instrument": "piano",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 72,
+      "notes": [
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1.5
+        },
+        {
+          "m": 67,
+          "beats": 0.5
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1.5
+        },
+        {
+          "m": 64,
+          "beats": 0.5
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original para mão direita no piano ou teclado",
+      "cover": "🌙",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-piano-08-arr",
+      "workId": "ms-original-piano-08",
+      "instrument": "piano",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 94,
+      "notes": [
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 62,
+          "beats": 2
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 64,
+          "beats": 0.5
+        },
+        {
+          "m": 62,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 1
+        },
+        {
+          "m": 60,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original para mão direita no piano ou teclado",
+      "cover": "🍃",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-violao-01-arr",
+      "workId": "ms-original-violao-01",
+      "instrument": "acoustic",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 86,
+      "notes": [
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1.5
+        },
+        {
+          "m": 67,
+          "beats": 0.5
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na primeira corda do violão",
+      "cover": "🌞",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-violao-02-arr",
+      "workId": "ms-original-violao-02",
+      "instrument": "acoustic",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 80,
+      "notes": [
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1.5
+        },
+        {
+          "m": 71,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 64,
+          "beats": 0.5
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na primeira corda do violão",
+      "cover": "🌾",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-violao-03-arr",
+      "workId": "ms-original-violao-03",
+      "instrument": "acoustic",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 92,
+      "notes": [
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1.5
+        },
+        {
+          "m": 65,
+          "beats": 0.5
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 2
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 64,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na primeira corda do violão",
+      "cover": "🎸",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-violao-04-arr",
+      "workId": "ms-original-violao-04",
+      "instrument": "acoustic",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 74,
+      "notes": [
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 2
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1.5
+        },
+        {
+          "m": 65,
+          "beats": 0.5
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na primeira corda do violão",
+      "cover": "🌇",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-violao-05-arr",
+      "workId": "ms-original-violao-05",
+      "instrument": "acoustic",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 90,
+      "notes": [
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na primeira corda do violão",
+      "cover": "⛰️",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-guitarra-01-arr",
+      "workId": "ms-original-guitarra-01",
+      "instrument": "electric",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 102,
+      "notes": [
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1.5
+        },
+        {
+          "m": 65,
+          "beats": 0.5
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 2
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 64,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na primeira corda da guitarra",
+      "cover": "⚡",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-guitarra-02-arr",
+      "workId": "ms-original-guitarra-02",
+      "instrument": "electric",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 94,
+      "notes": [
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 2
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1.5
+        },
+        {
+          "m": 65,
+          "beats": 0.5
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na primeira corda da guitarra",
+      "cover": "🌌",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-guitarra-03-arr",
+      "workId": "ms-original-guitarra-03",
+      "instrument": "electric",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 108,
+      "notes": [
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na primeira corda da guitarra",
+      "cover": "🏙️",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-guitarra-04-arr",
+      "workId": "ms-original-guitarra-04",
+      "instrument": "electric",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 100,
+      "notes": [
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1.5
+        },
+        {
+          "m": 67,
+          "beats": 0.5
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na primeira corda da guitarra",
+      "cover": "🎸",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-guitarra-05-arr",
+      "workId": "ms-original-guitarra-05",
+      "instrument": "electric",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 112,
+      "notes": [
+        {
+          "m": 64,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1.5
+        },
+        {
+          "m": 71,
+          "beats": 0.5
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 65,
+          "beats": 1.5
+        },
+        {
+          "m": 64,
+          "beats": 0.5
+        },
+        {
+          "m": 65,
+          "beats": 1
+        },
+        {
+          "m": 67,
+          "beats": 1
+        },
+        {
+          "m": 64,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na primeira corda da guitarra",
+      "cover": "🤘",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-ukulele-01-arr",
+      "workId": "ms-original-ukulele-01",
+      "instrument": "ukulele",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 84,
+      "notes": [
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 74,
+          "beats": 1
+        },
+        {
+          "m": 76,
+          "beats": 1.5
+        },
+        {
+          "m": 76,
+          "beats": 0.5
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 2
+        },
+        {
+          "m": 74,
+          "beats": 1
+        },
+        {
+          "m": 76,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na corda Lá do ukulele",
+      "cover": "🏖️",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-ukulele-02-arr",
+      "workId": "ms-original-ukulele-02",
+      "instrument": "ukulele",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 78,
+      "notes": [
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 74,
+          "beats": 1
+        },
+        {
+          "m": 76,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1.5
+        },
+        {
+          "m": 71,
+          "beats": 0.5
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 2
+        },
+        {
+          "m": 76,
+          "beats": 1
+        },
+        {
+          "m": 74,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1.5
+        },
+        {
+          "m": 69,
+          "beats": 0.5
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na corda Lá do ukulele",
+      "cover": "🌴",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-ukulele-03-arr",
+      "workId": "ms-original-ukulele-03",
+      "instrument": "ukulele",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 92,
+      "notes": [
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1.5
+        },
+        {
+          "m": 74,
+          "beats": 0.5
+        },
+        {
+          "m": 76,
+          "beats": 1
+        },
+        {
+          "m": 74,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 2
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 74,
+          "beats": 1
+        },
+        {
+          "m": 76,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1.5
+        },
+        {
+          "m": 71,
+          "beats": 0.5
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na corda Lá do ukulele",
+      "cover": "🐚",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-ukulele-04-arr",
+      "workId": "ms-original-ukulele-04",
+      "instrument": "ukulele",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 88,
+      "notes": [
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 74,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 76,
+          "beats": 1.5
+        },
+        {
+          "m": 74,
+          "beats": 0.5
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 2
+        },
+        {
+          "m": 76,
+          "beats": 1
+        },
+        {
+          "m": 74,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1.5
+        },
+        {
+          "m": 74,
+          "beats": 0.5
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na corda Lá do ukulele",
+      "cover": "💙",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-ukulele-05-arr",
+      "workId": "ms-original-ukulele-05",
+      "instrument": "ukulele",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 80,
+      "notes": [
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 76,
+          "beats": 1.5
+        },
+        {
+          "m": 74,
+          "beats": 0.5
+        },
+        {
+          "m": 72,
+          "beats": 1
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 2
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 74,
+          "beats": 1
+        },
+        {
+          "m": 76,
+          "beats": 1
+        },
+        {
+          "m": 74,
+          "beats": 1.5
+        },
+        {
+          "m": 72,
+          "beats": 0.5
+        },
+        {
+          "m": 71,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 1
+        },
+        {
+          "m": 69,
+          "beats": 2
+        }
+      ],
+      "description": "Melodia original na corda Lá do ukulele",
+      "cover": "🌺",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-baixo-01-arr",
+      "workId": "ms-original-baixo-01",
+      "instrument": "bass-guitar",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 94,
+      "notes": [
+        {
+          "m": 43,
+          "beats": 1
+        },
+        {
+          "m": 43,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1.5
+        },
+        {
+          "m": 48,
+          "beats": 0.5
+        },
+        {
+          "m": 50,
+          "beats": 1
+        },
+        {
+          "m": 48,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 2
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 48,
+          "beats": 1
+        },
+        {
+          "m": 50,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1.5
+        },
+        {
+          "m": 45,
+          "beats": 0.5
+        },
+        {
+          "m": 43,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 43,
+          "beats": 2
+        }
+      ],
+      "description": "Linha original na corda Sol do baixo elétrico",
+      "cover": "👣",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-baixo-02-arr",
+      "workId": "ms-original-baixo-02",
+      "instrument": "bass-guitar",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 84,
+      "notes": [
+        {
+          "m": 43,
+          "beats": 1
+        },
+        {
+          "m": 48,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 50,
+          "beats": 1.5
+        },
+        {
+          "m": 48,
+          "beats": 0.5
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 43,
+          "beats": 2
+        },
+        {
+          "m": 50,
+          "beats": 1
+        },
+        {
+          "m": 48,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1.5
+        },
+        {
+          "m": 48,
+          "beats": 0.5
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 43,
+          "beats": 2
+        }
+      ],
+      "description": "Linha original na corda Sol do baixo elétrico",
+      "cover": "🍃",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-baixo-03-arr",
+      "workId": "ms-original-baixo-03",
+      "instrument": "bass-guitar",
+      "kind": "song",
+      "difficulty": 1,
+      "bpm": 98,
+      "notes": [
+        {
+          "m": 43,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 50,
+          "beats": 1.5
+        },
+        {
+          "m": 48,
+          "beats": 0.5
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 43,
+          "beats": 2
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 48,
+          "beats": 1
+        },
+        {
+          "m": 50,
+          "beats": 1
+        },
+        {
+          "m": 48,
+          "beats": 1.5
+        },
+        {
+          "m": 47,
+          "beats": 0.5
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 43,
+          "beats": 1
+        },
+        {
+          "m": 43,
+          "beats": 2
+        }
+      ],
+      "description": "Linha original na corda Sol do baixo elétrico",
+      "cover": "🌃",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-baixo-04-arr",
+      "workId": "ms-original-baixo-04",
+      "instrument": "bass-guitar",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 90,
+      "notes": [
+        {
+          "m": 43,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 48,
+          "beats": 1
+        },
+        {
+          "m": 50,
+          "beats": 1.5
+        },
+        {
+          "m": 50,
+          "beats": 0.5
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 43,
+          "beats": 2
+        },
+        {
+          "m": 48,
+          "beats": 1
+        },
+        {
+          "m": 50,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1.5
+        },
+        {
+          "m": 43,
+          "beats": 0.5
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 43,
+          "beats": 2
+        }
+      ],
+      "description": "Linha original na corda Sol do baixo elétrico",
+      "cover": "🌉",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    },
+    {
+      "id": "ms-original-baixo-05-arr",
+      "workId": "ms-original-baixo-05",
+      "instrument": "bass-guitar",
+      "kind": "song",
+      "difficulty": 2,
+      "bpm": 96,
+      "notes": [
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 48,
+          "beats": 1
+        },
+        {
+          "m": 50,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1.5
+        },
+        {
+          "m": 45,
+          "beats": 0.5
+        },
+        {
+          "m": 43,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 2
+        },
+        {
+          "m": 50,
+          "beats": 1
+        },
+        {
+          "m": 48,
+          "beats": 1
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1.5
+        },
+        {
+          "m": 43,
+          "beats": 0.5
+        },
+        {
+          "m": 47,
+          "beats": 1
+        },
+        {
+          "m": 45,
+          "beats": 1
+        },
+        {
+          "m": 43,
+          "beats": 2
+        }
+      ],
+      "description": "Linha original na corda Sol do baixo elétrico",
+      "cover": "🎚️",
+      "status": "published",
+      "reviewedBy": "Musical Sense: revisão estrutural automatizada (sem revisão humana)",
+      "reviewedAt": "2026-11-02"
+    }
+  ]
 };

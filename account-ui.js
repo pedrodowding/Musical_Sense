@@ -97,22 +97,36 @@ export function progressPage({user,level,streak,instruments,weekly,missions,badg
  '<div class="account-mission"><span>'+escapeHtml(m.icon)+'</span><div><strong>'+escapeHtml(m.name)+'</strong><small>'+safeNumber(m.current)+' de '+safeNumber(m.goal)+(m.key==="seconds"?" segundos":"")+'</small></div><span class="account-mission-status">'+(m.done?"✓":"○")+'</span></div>').join("")+'</div></section>'+
  '<button type="button" class="btn account-bottom-cta" data-route="courses">Continuar minha trilha →</button></div>';
 }
-export function myMusicPage({favorites=[],recent=[],personalCount=0}){
+export function myMusicPage({favorites=[],otherFavorites=[],recent=[],otherRecent=[],instrumentName="Piano",personalCount=0}){
  function songCard(item,remove=false){
-  return '<div class="account-music-row"><span class="account-music-cover">'+escapeHtml(item.cover||"♪")+'</span><div class="account-music-info">'+
-   '<strong>'+escapeHtml(item.title)+'</strong><small>'+escapeHtml(item.artist||"Musical Sense")+'</small></div>'+
+  return '<div class="account-music-row"><span class="account-music-cover">'+escapeHtml(item.cover||"♪")+'</span>'+
+   '<div class="account-music-info"><strong>'+escapeHtml(item.title)+'</strong>'+
+   '<small>'+escapeHtml(item.artist||"Musical Sense")+'</small></div>'+
    '<button class="account-music-play" data-open-song="'+escapeHtml(item.id)+'" aria-label="Abrir '+escapeHtml(item.title)+'">Abrir ›</button>'+
    (remove?'<button class="account-icon-btn" data-favorite="'+escapeHtml(item.id)+'" aria-label="Remover '+escapeHtml(item.title)+' dos favoritos">♥</button>':"")+
    '</div>';
  }
+ const group=(title,list,emptyText,remove=false)=>'<section class="account-card"><div class="account-card-title"><h2>'+title+
+ '</h2><span>'+list.length+' músicas</span></div>'+
+ (list.length?list.map(x=>songCard(x,remove)).join(""):'<div class="account-empty"><span>♫</span>'+
+ '<strong>'+escapeHtml(emptyText)+'</strong><p>Explore as músicas e comece sua próxima atividade.</p></div>')+'</section>';
  return '<div class="account-page my-music-page"><div class="account-page-title"><button class="account-back" data-route="profiles">‹ Meu perfil</button>'+
- '<span class="account-eyebrow">SEU REPERTÓRIO</span><h1 id="account-heading" tabindex="-1">Minhas músicas</h1><p>Volte às músicas que você gosta e às que já praticou.</p></div>'+
- '<section class="account-card"><div class="account-card-title"><h2>♥ Favoritas</h2><span>'+favorites.length+' salvas</span></div>'+
- (favorites.length?favorites.map(item=>songCard(item,true)).join(""):'<div class="account-empty"><span>♡</span><strong>Você ainda não favoritou músicas</strong><p>Explore o catálogo e toque no coração das suas favoritas.</p></div>')+
- '<button class="btn ghost account-bottom-cta" data-route="library">Explorar músicas →</button></section>'+
- '<section class="account-card"><div class="account-card-title"><h2>Tocadas recentemente</h2></div>'+
- (recent.length?recent.map(item=>songCard(item)).join(""):'<div class="account-empty"><span>♫</span><strong>Sua jornada começa aqui</strong><p>Quando concluir uma prática musical, ela poderá aparecer nesta seção.</p></div>')+'</section>'+
- '<button class="account-link standalone" data-route="singing"><span class="account-link-icon">📝</span><span class="account-link-body"><strong>Minhas letras</strong><small>'+safeNumber(personalCount)+' letras guardadas neste dispositivo</small></span><span class="account-link-chevron">›</span></button></div>';
+ '<span class="account-eyebrow">SEU REPERTÓRIO EM '+escapeHtml(instrumentName.toUpperCase())+'</span>'+
+ '<h1 id="account-heading" tabindex="-1">Minhas músicas</h1>'+
+ '<p>Seus favoritos e práticas recentes estão organizados para '+escapeHtml(instrumentName.toLowerCase())+'.</p></div>'+
+ group("♥ Favoritas de "+escapeHtml(instrumentName),favorites,"Ainda não há favoritas deste instrumento",true)+
+ group("Praticadas recentemente",recent,"Ainda não há práticas recentes deste instrumento")+
+ '<button class="btn ghost account-bottom-cta" data-route="library">Encontrar músicas para '+escapeHtml(instrumentName)+' →</button>'+
+ (otherFavorites.length||otherRecent.length?'<details class="home-group account-other-music" style="margin-top:15px"><summary>'+
+ '<span class="home-group-icon">🎵</span><span><strong>Outros instrumentos</strong>'+
+ '<small>Favoritos e histórico de outros estudos</small></span><span class="home-chevron">⌄</span></summary>'+
+ '<div class="home-group-body">'+
+ (otherFavorites.length?'<h3>Outras favoritas</h3>'+otherFavorites.map(x=>songCard(x,true)).join(""):"")+
+ (otherRecent.length?'<h3>Outras práticas</h3>'+otherRecent.map(x=>songCard(x)).join(""):"")+
+ '</div></details>':"")+
+ '<button class="account-link standalone" data-route="singing"><span class="account-link-icon">📝</span>'+
+ '<span class="account-link-body"><strong>Minhas letras</strong><small>'+safeNumber(personalCount)+
+ ' letras guardadas neste dispositivo</small></span><span class="account-link-chevron">›</span></button></div>';
 }
 export function settingsPage(){
  return '<div class="account-page settings-page"><div class="account-page-title"><button class="account-back" data-route="profiles">‹ Meu perfil</button>'+

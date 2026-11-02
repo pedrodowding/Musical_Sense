@@ -21,14 +21,14 @@ const fixture={
  arrangements:[{id:"my-song-piano",workId:"my-song",instrument:"piano",kind:"song",
   difficulty:1,bpm:90,status:"draft",notes:[{m:60,beats:1},{m:62,beats:1},{m:64,beats:2}]}]
 };
-test("catálogo inicial mantém as 32 entradas e diferencia músicas, exercícios e letras",()=>{
- assert.equal(entries.length,32);
+test("catálogo preserva as 32 entradas e acrescenta 32 melodias originais",()=>{
+ assert.equal(entries.length,64);
  assert.ok(entries.every(x=>x.workId&&x.arrangementId&&x.contentType));
  const types=Object.fromEntries(["song","exercise"].map(t=>[t,entries.filter(x=>x.contentType===t).length]));
  assert.ok(types.song>0&&types.exercise>0);
  const rel=catalog.catalogRelationships(entries);
- assert.equal(rel.works.length,32);assert.equal(rel.arrangements.length,32);
- assert.equal(rel.lessons.length,32);
+ assert.equal(rel.works.length,64);assert.equal(rel.arrangements.length,64);
+ assert.equal(rel.lessons.length,64);
 });
 test("filtros de tipo e gênero funcionam sem afetar o instrumento",()=>{
  const songs=catalog.catalogFilter(entries,{scope:"mine",instrument:"Piano",type:"song"});
@@ -120,8 +120,9 @@ test("formulário de importação deixa claro que não publica automaticamente",
  assert.ok(page.includes('data-action="import-audition"'));
  assert.ok(page.includes("sem publicar conteúdo"));
 });
-test("build editorial permanece sincronizado e começa sem obras extras na Fase 2",()=>{
- assert.deepEqual(PUBLISHED_CATALOG,{works:[],arrangements:[]});
+test("build editorial permanece sincronizado com as melodias originais da Fase 3",()=>{
+ assert.equal(PUBLISHED_CATALOG.works.length,28);
+ assert.equal(PUBLISHED_CATALOG.arrangements.length,28);
  const original=JSON.parse(readFileSync(new URL("../data/catalog.json",import.meta.url),"utf8"));
  assert.equal(model.validateEditorialCatalog(original).valid,true);
 });

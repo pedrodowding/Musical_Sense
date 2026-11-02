@@ -1,17 +1,38 @@
 const e=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pct=(a,b)=>b?Math.round(a/b*100):0;
 export function renderSingingHome(catalog,personal,completed){
- return '<div class="page-intro"><span class="eyebrow">CANTO E AFINAÇÃO</span><h1>Solte a voz, conquiste cada nota 🎤</h1><p>Cante com o microfone do iPad. Acompanhe letras, ritmo e afinação de canções originais. Você não precisa de um instrumento.</p></div>'+
- '<section class="card vocal-intro"><div><span class="pill">✨ NOVA EXPERIÊNCIA</span><h2 style="margin:13px 0 5px">Seu professor de canto, passo a passo</h2><p class="muted">Faça aquecimentos, cante a melodia e acompanhe sua evolução. A avaliação mede a afinação, não o reconhecimento das palavras.</p><button class="btn" data-vocal="voice-warmup">🎙 Começar aquecimento</button></div><span class="vocal-intro-art" aria-hidden="true">🎤</span></section>'+
- '<div class="section-head"><h2>Canções para cantar</h2><span class="pill green">Letras originais</span></div>'+
- '<div class="grid three">'+catalog.map(song=>{
- const done=completed?.[song.id],progress=done?"✓ Concluída":"Pronta para começar";
- return '<article class="course-card vocal-song"><div class="vocal-cover"><span>'+song.icon+'</span></div><div class="course-inner"><span class="eyebrow">'+e(song.genre)+' · '+song.bpm+' BPM</span><h3>'+e(song.title)+'</h3><p>'+e(song.description)+'</p><div class="course-foot"><span>'+e(progress)+'</span><button class="btn sm" data-vocal="'+e(song.id)+'">Cantar →</button></div></div></article>';
- }).join("")+'</div>'+
- '<div class="section-head"><h2>Minhas letras</h2><button class="btn sm ghost" data-action="lyrics-import">+ Adicionar letra</button></div>'+
- '<div class="card"><p class="muted small">Salve letras que você possui ou tem autorização para utilizar. Aceitamos letras com marcação LRC ou texto simples. Elas ficam neste dispositivo. Sem melodia de referência, o aplicativo acompanha o texto e sua voz, mas não calcula a precisão da afinação.</p>'+
- (personal.length?personal.map(song=>'<div class="song-row"><span class="song-cover">📝</span><div class="grow"><h3>'+e(song.title)+'</h3><p>'+e(song.artist)+' · '+(song.timed?"LRC sincronizado":"Texto com duração aproximada")+'</p></div><button class="btn sm" data-personal="'+e(song.id)+'">Praticar</button><button class="btn sm outline" data-edit-personal="'+e(song.id)+'">Editar</button><button class="btn sm outline" data-remove-personal="'+e(song.id)+'" aria-label="Remover '+e(song.title)+'">✕</button></div>').join(""):'<div class="blank">Você ainda não adicionou letras. Comece com um exercício de canto ou cadastre uma letra autorizada.</div>')+
- '<button class="btn ghost" data-action="lyrics-import">Adicionar letra minha →</button></div>';
+ const warmups=catalog.filter(song=>song.genre==="Vocalizes"),songs=catalog.filter(song=>song.genre!=="Vocalizes");
+ const row=song=>{
+  const done=completed?.[song.id];
+  return '<div class="lesson-row"><span class="lesson-icon teal">'+e(song.icon)+'</span>'+
+   '<div class="grow"><div class="row wrap" style="gap:6px"><h3>'+e(song.title)+'</h3>'+
+   (done?'<span class="pill green">✓ Concluída</span>':"")+'</div>'+
+   '<p>'+e(song.description)+'</p><div class="lesson-foot"><span>'+e(song.level)+'</span><span>'+song.bpm+' BPM</span></div></div>'+
+   '<button class="btn sm lesson-action" data-vocal="'+e(song.id)+'">Cantar →</button></div>';
+ };
+ return '<div class="page-intro"><span class="eyebrow">CANTO E AFINAÇÃO</span><h1>Aprenda a usar sua voz 🎤</h1>'+
+ '<p>Comece pelo aquecimento, escolha uma canção e acompanhe a afinação no microfone. O aplicativo avalia a altura das notas, não as palavras cantadas.</p></div>'+
+ '<section class="card vocal-intro"><div><span class="pill">SEU PRIMEIRO PASSO</span>'+
+ '<h2 style="margin:12px 0 6px">Aqueça a voz</h2><p class="muted">Um exercício curto antes de cantar músicas.</p>'+
+ '<button class="btn" data-vocal="'+e(warmups[0]?.id||"voice-warmup")+'">🎙 Começar aquecimento</button></div>'+
+ '<span class="vocal-intro-art" aria-hidden="true">🎤</span></section>'+
+ '<div class="section-head"><h2>Canções para cantar</h2><span class="pill green">Originais</span></div>'+
+ '<div class="lesson-list">'+songs.slice(0,2).map(row).join("")+'</div>'+
+ (songs.length>2?'<details class="home-group" style="margin:12px 0 18px"><summary><span class="home-group-icon">🎵</span>'+
+ '<span><strong>Ver todas as '+songs.length+' canções</strong><small>Mais melodias por nível</small></span>'+
+ '<span class="home-chevron" aria-hidden="true">⌄</span></summary>'+
+ '<div class="home-group-body lesson-list">'+songs.slice(2).map(row).join("")+'</div></details>':"")+
+ '<details class="home-group" style="margin-top:15px"><summary><span class="home-group-icon">📝</span>'+
+ '<span><strong>Minhas letras</strong><small>'+personal.length+' salvas neste aparelho</small></span>'+
+ '<span class="home-chevron" aria-hidden="true">⌄</span></summary>'+
+ '<div class="home-group-body"><p class="muted small">Use apenas letras próprias ou autorizadas. Sem melodia de referência, a avaliação não calcula afinação.</p>'+
+ (personal.length?personal.map(song=>'<div class="song-row"><span class="song-cover">📝</span>'+
+ '<div class="grow"><h3>'+e(song.title)+'</h3><p>'+e(song.artist)+'</p></div>'+
+ '<button class="btn sm" data-personal="'+e(song.id)+'">Praticar</button>'+
+ '<button class="btn sm outline" data-edit-personal="'+e(song.id)+'">Editar</button>'+
+ '<button class="btn sm outline" data-remove-personal="'+e(song.id)+'" aria-label="Remover '+e(song.title)+'">✕</button></div>').join(""):
+ '<p class="muted small">Nenhuma letra pessoal cadastrada.</p>')+
+ '<button class="btn ghost" data-action="lyrics-import">+ Adicionar letra autorizada</button></div></details>';
 }
 export function renderImportLyrics(song=null){
  const editing=Boolean(song),content=song?song.lines.map(line=>{

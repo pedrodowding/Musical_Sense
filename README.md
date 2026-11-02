@@ -2,6 +2,20 @@
 
 Aplicativo web de aprendizagem musical com aulas visuais e avaliação das notas tocadas em um **piano ou teclado físico** pelo microfone do navegador.
 
+## Fase 3: repertório original e interface adaptativa por instrumento
+
+**Repertório:** 32 novas melodias didáticas originais: oito para piano/teclado, cinco para violão, cinco para guitarra, cinco para ukulele, cinco para baixo e quatro canções vocais com letras e notas sincronizadas. O catálogo passa de 32 para 64 entradas, sendo 50 melodias/canções e 14 exercícios/vocalizes. São peças curtas de estudo, não músicas comerciais nem gravações reais.
+
+**UX:** a tela inicial apresenta um único próximo passo, uma recomendação do instrumento selecionado e dois grupos de atividades em submenus expansíveis. A navegação mobile tem cinco abas; a quarta apresenta Praticar para instrumentos e Cantar para voz. A sidebar agrupa Aprender, Praticar, Mais opções e Meu espaço.
+
+**Consistência:** troca de instrumento atualiza a tela inicial, filtros da biblioteca, recomendações, lista de treinos, aulas, guia visual e timbre sintetizado. O modo de timbre retorna a Automático ao trocar de instrumento. A tela Minhas músicas prioriza o instrumento ativo e coloca favoritos de outros instrumentos em submenu.
+
+**Aulas:** braço de cordas para cordas, teclado para piano, dicas contextualizadas e controles de áudio e ferramentas avançadas agrupados em submenus.
+
+**Proveniência:** repertório composto para este projeto e submetido a testes de formato, duração, unicidade e posição no braço. A revisão estrutural desta fase foi automatizada e registrada como tal nos metadados; **não substitui uma revisão musical ou jurídica humana**.
+
+Documentação técnica e jornada de aceitação: [docs/PHASE3_INSTRUMENT_UX.md](docs/PHASE3_INSTRUMENT_UX.md).
+
 ## Fase 2: Biblioteca Musical 2.0
 
 A nova biblioteca diferencia obras, arranjos e aulas. Mantém as 32 entradas atuais e acrescenta filtros de **música / exercício / letra**, gênero, dificuldade, instrumento e favoritos, com indicação da origem no detalhe.
