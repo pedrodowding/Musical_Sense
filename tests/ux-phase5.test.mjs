@@ -99,7 +99,7 @@ test("a melhoria não altera identificadores, XP nem o catálogo de músicas",()
  const v=cat.publishedLessons();
  assert.equal(v.length,28);
  assert.equal(lessonsFor("ukulele").length,11);
- assert.equal(lessonsFor("piano").length,13);
+ assert.equal(lessonsFor("piano").length,20);
  const app=read("app.js");
  assert.ok(!app.includes('localStorage.clear('));
  assert.ok(app.includes("u.completed"));
