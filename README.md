@@ -2,6 +2,23 @@
 
 Aplicativo web de aprendizagem musical com aulas visuais e avaliação das notas tocadas em um **piano ou teclado físico** pelo microfone do navegador.
 
+## Fase 1 do roadmap: perfil, família e experiência mobile
+
+Consolidamos o perfil pessoal em uma navegação dedicada, sem mudar o modelo de dados nem adicionar músicas nesta fase.
+
+- Avatar no cabeçalho: seletor rápido de aluno com diálogo nativo, acessível e até cinco perfis locais.
+- Aba Perfil: resumo com nível, XP, sequência de dias, aulas, precisão e atalhos claros.
+- Evolução: atividade dos últimos sete dias, progresso por instrumento e missões atuais.
+- Minhas músicas: favoritos, práticas recentes e acesso às letras pessoais, reutilizando o catálogo já existente.
+- Família: adicionar, renomear, excluir e alternar alunos em uma tela separada.
+- Configurações: som, diagnóstico do microfone e backup manual em uma área apropriada.
+- Navegação: mantidas as cinco abas mobile, com a aba Perfil ativa nas páginas internas.
+- Segurança de dados: identificadores mantidos, persistência com rollback para operações críticas e aviso explícito de armazenamento local.
+
+**Escopo intencional:** não alteramos repertório, avaliação de notas, regras de XP, detecção de microfone ou sincronização em nuvem.
+
+Validação automatizada: \`node --test tests/*.test.mjs\`. Critérios e testes detalhados: [docs/UX_PHASE1.md](docs/UX_PHASE1.md).
+
 ## Atualização 3.1: som mais audível e controle de volume
 
 A reprodução de notas foi reconstruída sobre uma única saída Web Audio. Em vez de enviar os osciladores diretamente aos alto-falantes com ganho fixo baixo, o aplicativo utiliza um barramento com ganho master ajustável, compressor dinâmico para reduzir picos, envelope de notas mais definido e seleção de timbre sintetizado.

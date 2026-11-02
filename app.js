@@ -13,8 +13,9 @@ import {INSTRUMENTS,instrumentId,instrumentInfo,instrumentName,lessonsForInstrum
 import {fretboard} from "./instrument-ui.js";
 import {catalogEntries,catalogFilter,catalogEntryById} from "./catalog.js";
 import {instrumentContext,instrumentPicker,learningPath,catalogPage,catalogResultsMarkup,songDetailPage} from "./discovery-ui.js";
+import {profileSwitcher,profileHub,familyProfilesPage,progressPage,myMusicPage,settingsPage} from "./account-ui.js";
 const DBKEY="musical-sense-v3",OLDKEY="musical-sense-v1";
-const routes=[["home","⌂","Início"],["courses","◎","Trilha"],["library","♫","Músicas"],["singing","🎤","Cantar"],["workouts","◷","Treinos"],["profiles","♙","Perfis"]];
+const routes=[["home","⌂","Início"],["courses","◎","Trilha"],["library","♫","Músicas"],["singing","🎤","Cantar"],["workouts","◷","Treinos"],["profiles","♙","Meu espaço"]];
 const mobileRoutes=[["home","🏠","Início"],["courses","🧭","Trilha"],["library","🎵","Músicas"],["singing","🎤","Cantar"],["profiles","👤","Perfil"]];
 const $=s=>document.querySelector(s);
 const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
@@ -71,15 +72,20 @@ const catalogData=()=>({pianoSongs:SONGS,lessons:LESSONS,vocalSongs:VOCAL_SONGS,
 const fullCatalog=()=>catalogEntries(catalogData());
 const selectedCatalogEntry=()=>catalogEntryById(songDetailId,catalogData());
 const save=()=>{try{localStorage.setItem(DBKEY,JSON.stringify(db));return true}catch(e){console.warn("Armazenamento local indisponível",e);return false}};
-function toast(message){const prev=$("#toast");if(prev)prev.remove();const node=document.createElement("div");node.id="toast";node.className="toast";node.textContent=message;document.body.appendChild(node);clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.remove(),3500)}
+function toast(message){const prev=$("#toast");if(prev)prev.remove();const node=document.createElement("div");node.id="toast";node.className="toast";node.role="status";node.textContent=message;document.body.appendChild(node);clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.remove(),3500)}
 function navButton(item){const [id,icon,label]=item;return '<button class="nav-btn '+(page===id?"active":"")+'" data-route="'+id+'"><span class="i">'+icon+'</span><span>'+label+'</span></button>'}
-function mobileButton(item){const [id,icon,label]=item;const selected=page===id||(page==="song-detail"&&id==="library")||(page==="instruments"&&id==="profiles");return '<button class="'+(selected?"active":"")+'" data-route="'+id+'" aria-label="'+label+'" aria-current="'+(selected?"page":"false")+'"><span class="icon">'+icon+'</span><span>'+label+'</span></button>'}
+function mobileButton(item){
+  const [id,icon,label]=item;
+  const accountPages=["profiles","instruments","family","settings","progress","my-music","achievements","sound","diagnostics"];
+  const selected=page===id||(page==="song-detail"&&id==="library")||(page==="lyrics-import"&&id==="singing")||(accountPages.includes(page)&&id==="profiles");
+  return '<button class="'+(selected?"active":"")+'" data-route="'+id+'" aria-label="'+label+'" '+(selected?'aria-current="page"':'')+'><span class="icon">'+icon+'</span><span>'+label+'</span></button>';
+}
 function shell(content){
   const u=active(),complete=currentLessons().filter(l=>u.completed[l.id]).length;
   return '<div class="shell"><aside class="sidebar"><div class="brand"><span class="brand-mark">♫</span> Musical Sense</div><div class="side-caption">EXPLORAR</div>'+
   routes.map(navButton).join("")+'<div class="sidebar-spacer"></div><div class="sidebar-panel"><strong>🎯 Seu progresso</strong><p>'+complete+' aulas concluídas · '+u.xp+' XP</p><div class="progress-track" style="margin-top:12px"><div class="progress-fill" style="width:'+percent(complete,Math.max(1,currentLessons().length))+'%"></div></div></div></aside>'+
-  '<div class="main"><div class="content"><div class="topbar"><span class="eyebrow">APRENDA NO SEU TEMPO</span><div class="top-actions"><span class="bubble">⚡ '+u.xp+' XP</span><button class="sound-top-btn" data-route="sound" aria-label="Configurar volume" title="Configurar volume">🔊 <span>Som</span></button><button class="profile-switch" data-route="profiles" title="Trocar perfil"><span class="avatar">'+esc(u.name.trim().charAt(0).toUpperCase())+'</span>'+esc(u.name.split(" ")[0])+' ▾</button></div></div>'+
-  content+'</div></div></div><nav class="mobile-nav" aria-label="Navegação principal">'+mobileRoutes.map(mobileButton).join("")+'</nav>';
+  '<div class="main"><div class="content"><div class="topbar"><span class="eyebrow">APRENDA NO SEU TEMPO</span><div class="top-actions"><span class="bubble">⚡ '+u.xp+' XP</span><button class="sound-top-btn" data-route="sound" aria-label="Configurar volume" title="Configurar volume">🔊 <span>Som</span></button><button class="profile-switch" data-action="open-profile-switch" aria-haspopup="dialog" aria-controls="profile-dialog" aria-label="Trocar de aluno" title="Trocar aluno"><span class="avatar">'+esc(u.name.trim().charAt(0).toUpperCase())+'</span>'+esc(u.name.split(" ")[0])+' ▾</button></div></div>'+
+  content+'</div></div></div><nav class="mobile-nav" aria-label="Navegação principal">'+mobileRoutes.map(mobileButton).join("")+'</nav>'+profileSwitcher(db.users,db.active);
 }
 function metric(label,value,icon,color){return '<div class="card stat"><span class="stat-icon '+color+'">'+icon+'</span><div><b>'+esc(value)+'</b><span>'+esc(label)+'</span></div></div>'}
 function home(){
@@ -156,13 +162,52 @@ function diagnosticReport(){
  "PWA: "+Boolean(navigator.serviceWorker),"Navegador: "+(navigator.userAgent||"indisponível")].join("\n");
 }
 function profiles(){
-  const u=active();
-  return '<div class="page-intro"><span class="eyebrow">UM ESPAÇO PARA CADA MÚSICO</span><h1>Perfis da família</h1><p>Compartilhem o aparelho sem misturar pontos, aulas e conquistas. Os dados ficam salvos apenas neste navegador.</p><button class="btn ghost sm" data-route="instruments">🎸 Trocar meu instrumento: '+esc(instrumentName(u.instrument))+' →</button></div>'+
-  '<div class="grid two"><section class="card"><h2>Escolha quem vai tocar</h2>'+db.users.map(p=>'<div class="profile-row '+(p.id===u.id?"active":"")+'"><span class="avatar">'+esc(p.name[0].toUpperCase())+'</span><div class="grow"><b>'+esc(p.name)+'</b><div class="muted small">'+esc(p.instrument)+' · '+(p.xp||0)+' XP</div></div><div class="profile-tools"><button class="btn sm '+(p.id===u.id?"ghost":"")+'" data-profile="'+esc(p.id)+'">'+(p.id===u.id?"✓ Ativo":"Entrar")+'</button><button class="btn sm outline" data-profile-edit="'+esc(p.id)+'" aria-label="Renomear perfil">✎</button><button class="btn sm outline" data-profile-delete="'+esc(p.id)+'" aria-label="Excluir perfil">×</button></div></div>').join("")+'</section>'+
-  '<section class="card"><h2>Adicionar músico</h2><form id="profile-form"><label class="form-field" for="profile-name">Nome</label><input class="form-input" id="profile-name" name="name" maxlength="30" required placeholder="Ex.: Ana"><label class="form-field" for="profile-instrument">Instrumento</label><select class="form-input" id="profile-instrument" name="instrument">'+INSTRUMENTS.map(v=>'<option>'+esc(v.name)+'</option>').join("")+'</select><button class="btn" type="submit">+ Criar perfil</button></form><p class="inline-tip">Nesta fase, as trilhas práticas estão preparadas para piano e teclado. Outros instrumentos terão conteúdos próprios em versões futuras.</p><button class="btn sm outline" data-route="diagnostics">🔧 Diagnóstico e teste de microfone</button></section></div>'+
-  '<div class="card" style="margin-top:18px"><h3>Seus números</h3><div class="grid three">'+metric("Experiência",u.xp+" XP","⚡","purple")+metric("Lições",Object.keys(u.completed||{}).length,"🏆","green")+metric("Precisão",percent(u.totalCorrect,u.totalAttempts)+"%","🎯","")+'</div></div>'+
-  '<div class="card" style="margin-top:17px"><h3>💾 Backup da família</h3><p class="muted small">Exporte seus perfis, XP, aulas e letras pessoais para um arquivo JSON. Guarde-o com cuidado, pois pode conter nomes e letras. Restaurar um backup substitui os dados deste dispositivo.</p><div class="row wrap"><button class="btn sm ghost" data-action="backup-export">⬇ Exportar progresso</button><label class="btn sm outline" for="backup-file">⬆ Restaurar backup</label><input type="file" id="backup-file" accept=".json,application/json" style="display:none"></div></div>';
+  const user=active(),level=levelInfo(user.xp),streak=streakInfo(user);
+  const accuracy=(Number(user.totalAttempts)||0)>0?percent(user.totalCorrect,user.totalAttempts):null;
+  return profileHub({user,level,streak,accuracy,instrumentName:instrumentName(user.instrument),
+    completed:Object.keys(user.completed||{}).length+Object.keys(user.vocalCompleted||{}).length,
+    favoritesCount:(user.favorites||[]).length,practiceMinutes:Math.round((Number(user.practiceSeconds)||0)/60)});
 }
+function family(){
+  return familyProfilesPage({users:db.users,activeId:db.active,instruments:INSTRUMENTS});
+}
+function progress(){
+  const user=active(),level=levelInfo(user.xp),streak=streakInfo(user);
+  const instruments=INSTRUMENTS.filter(i=>i.id!=="keyboard").map(i=>{
+    if(i.id==="voice"){
+      const completed=Object.keys(user.vocalCompleted||{}).filter(id=>VOCAL_SONGS.some(song=>song.id===id));
+      return {id:i.id,name:i.name,icon:i.icon,done:completed.length,total:VOCAL_SONGS.length};
+    }
+    const lessons=lessonsForInstrument(i.id,LESSONS);
+    return {id:i.id,name:i.id==="piano"?"Piano / Teclado":i.name,icon:i.icon,
+      done:lessons.filter(l=>user.completed?.[l.id]).length,total:lessons.length};
+  });
+  const dayNames=["dom","seg","ter","qua","qui","sex","sáb"],now=new Date();
+  const weekly=Array.from({length:7},(_,index)=>{
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6+index,12);
+    const key=localDay(d);
+    const historySeconds=(user.history||[]).filter(item=>item.day===key).reduce((n,item)=>n+(Number(item.seconds)||0),0);
+    return {label:dayNames[d.getDay()],date:key,seconds:Math.max(0,Number(user.game?.days?.[key]?.seconds??historySeconds)||0)};
+  });
+  return progressPage({user,level,streak,instruments,weekly,missions:missionState(user),BADGES,badges:BADGES,
+    historyCount:(user.history||[]).length});
+}
+function myMusic(){
+  const user=active(),entries=fullCatalog(),favorites=new Set(user.favorites||[]);
+  const saved=entries.filter(item=>favorites.has(item.id));
+  const recent=[],seen=new Set();
+  const historical=[...(user.history||[])].sort((a,b)=>(Number(b.at)||0)-(Number(a.at)||0));
+  for(const entry of historical){
+    const item=entries.find(song=>
+      entry.kind==="vocal"?song.kind==="vocal"&&song.vocalId===entry.id:
+      entry.kind==="personal"?song.kind==="personal"&&song.personalId===entry.id:
+      song.kind==="instrument"&&song.lessonId===entry.id);
+    if(item&&!seen.has(item.id)){recent.push(item);seen.add(item.id)}
+    if(recent.length>=5)break;
+  }
+  return myMusicPage({favorites:saved,recent,personalCount:(user.personalLyrics||[]).length});
+}
+function settings(){return settingsPage()}
 const degree=[0,0,1,1,2,3,3,4,4,5,5,6];
 function diatonic(m){return Math.floor(m/12)*7+degree[((m%12)+12)%12]}
 function noteY(m,bass){return 138-(diatonic(m)-(bass?diatonic(43):diatonic(64)))*8.5}
@@ -231,7 +276,7 @@ function result(){
 }
 function render(){
   if(!db.users.some(u=>u.id===db.active))db.active=db.users[0].id;
-  const content=page==="home"?home():page==="courses"?courses():page==="instruments"?instrumentsPage():page==="library"?library():page==="song-detail"?songDetail():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics((active().personalLyrics||[]).find(x=>x.id===editingSongId)):page==="diagnostics"?diagnostics():page==="sound"?soundSettings():page==="workouts"?workouts():profiles();
+  const content=page==="home"?home():page==="courses"?courses():page==="instruments"?instrumentsPage():page==="library"?library():page==="song-detail"?songDetail():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics((active().personalLyrics||[]).find(x=>x.id===editingSongId)):page==="diagnostics"?diagnostics():page==="sound"?soundSettings():page==="workouts"?workouts():page==="family"?family():page==="settings"?settings():page==="progress"?progress():page==="my-music"?myMusic():profiles();
   $("#app").innerHTML=page==="practice"&&session?practice():page==="result"&&session?result():page==="vocal-practice"&&vocal?renderVocalPractice(vocal,noteName,audioStatus,lastFrame,player.getVolume()*100):page==="vocal-result"&&vocal?renderVocalResult(vocal.summary(),vocalAward?.xp||0,vocalAward?.level||1,(vocalAward?.badges||[]).map(id=>BADGES.find(b=>b.id===id)?.name||id)):page==="personal-practice"&&personalSession?renderPersonalPractice(personalSession.song,{...personalSession,micActive:audio.listening},lastFrame,noteName):shell(content);
   document.title=(page==="practice"&&session?session.lesson.title+" | ":page==="vocal-practice"&&vocal?vocal.song.title+" | ":"")+"Musical Sense";
   updateAudioUI();
@@ -240,7 +285,11 @@ function stopTimers(){clearInterval(tipTimer);tipTimer=null;if(performanceRAF)ca
 function changePage(next){
   if(page==="song-detail"||page==="sound"){player.stop();demoBusy=false}
   if(["practice","result","vocal-practice","vocal-result","personal-practice","diagnostics"].includes(page)){audio.stop();audio.disconnectMidi();stopTimers();session=null;vocal=null;personalSession=null}
+  const dlg=$("#profile-dialog");if(dlg?.open)dlg.close();
   page=next;render();window.scrollTo(0,0);
+  if(["profiles","family","settings","progress","my-music"].includes(next)){
+    const heading=$("#account-heading");if(heading?.focus)heading.focus({preventScroll:true});
+  }
 }
 async function startLesson(id,requestMicrophone=true,options={}){
   stopTimers();audio.stop();audio.disconnectMidi();
@@ -566,6 +615,7 @@ async function toggleMetro(){
   try{await player.metronome(bpm);metronome=true;render()}catch(e){toast("Não foi possível iniciar o metrônomo.")}
 }
 document.addEventListener("click",async e=>{
+  if(e.target?.id==="profile-dialog"){e.target.close();return}
   const b=e.target.closest("button");if(!b||b.disabled)return;
   const d=b.dataset;
   if(d.route){changePage(d.route);return}
@@ -606,16 +656,26 @@ document.addEventListener("click",async e=>{
     const p=db.users.find(x=>x.id===d.profileEdit);if(!p)return;
     const proposed=window.prompt("Novo nome do perfil:",p.name);if(proposed===null)return;
     const name=proposed.trim().slice(0,30);if(!name){toast("Informe um nome válido.");return}
-    p.name=name;if(!save())toast("Não foi possível salvar o nome.");render();return;
+    const previous=p.name;p.name=name;if(!save()){p.name=previous;toast("Não foi possível salvar o nome.");return}render();toast("Nome atualizado.");return;
   }
   if(d.profileDelete){
     if(db.users.length<=1){toast("Mantenha pelo menos um perfil.");return}
     const p=db.users.find(x=>x.id===d.profileDelete);if(!p)return;
     if(!window.confirm("Excluir o perfil "+p.name+"? O progresso e as letras locais deste aluno serão apagados."))return;
-    db.users=db.users.filter(x=>x.id!==d.profileDelete);if(db.active===d.profileDelete)db.active=db.users[0].id;
-    if(!save())toast("Não foi possível salvar a exclusão.");render();return;
+    const previousUsers=db.users,previousActive=db.active;
+    db.users=db.users.filter(x=>x.id!==d.profileDelete);
+    if(db.active===d.profileDelete)db.active=db.users[0].id;
+    if(!save()){db.users=previousUsers;db.active=previousActive;toast("Não foi possível excluir o perfil.");return}
+    applyTimbre();render();toast("Perfil excluído deste aparelho.");return;
   }
-  if(d.profile){db.active=d.profile;save();changePage("home");return}
+  if(d.profile){
+    const target=db.users.find(u=>u.id===d.profile);if(!target)return;
+    if(db.active===target.id){const dlg=$("#profile-dialog");if(dlg?.open)dlg.close();return}
+    const previous=db.active;db.active=target.id;
+    if(!save()){db.active=previous;toast("Não foi possível salvar a troca de aluno.");return}
+    applyTimbre(target.instrument);catalogScope="mine";catalogQuery="";catalogDifficulty="all";
+    changePage("home");toast("Agora você está no perfil de "+target.name+".");return;
+  }
   if(d.lesson){await startLesson(d.lesson);return}
   if(d.vocal){await beginVocal(d.vocal);return}
   if(d.personal){await beginPersonal(d.personal);return}
@@ -634,6 +694,15 @@ document.addEventListener("click",async e=>{
   const action=d.action;
   if(!action)return;
   if(action==="microphone"){await enableMic();return}
+  if(action==="open-profile-switch"){
+    const dialog=$("#profile-dialog");
+    if(typeof dialog?.showModal==="function"){if(!dialog.open)dialog.showModal()}
+    else changePage("family");
+    return;
+  }
+  if(action==="close-profile-switch"){
+    const dialog=$("#profile-dialog");if(dialog?.open)dialog.close();return;
+  }
   if(action==="sound-test"){
     if(session?.mode==="performance"&&["running","countin"].includes(session.performance?.phase)||vocal&&["running","countin"].includes(vocal.phase)){
       toast("Pause o exercício antes de ouvir uma demonstração.");return;
@@ -660,6 +729,7 @@ document.addEventListener("click",async e=>{
   if(action==="preview-song"){await previewSong();return}
   if(action==="catalog-reset"){catalogQuery="";catalogScope="all";catalogDifficulty="all";render();return}
   if(action==="diagnose-mic"){await enableMic();return}
+  if(action==="backup-import"){$("#backup-file")?.click?.();return}
   if(action==="backup-export"){
     try{
       const contents=makeBackup(db),blob=new Blob([contents],{type:"application/json"});
@@ -719,7 +789,12 @@ document.addEventListener("submit",e=>{
   const fd=new FormData(e.target),name=String(fd.get("name")||"").trim(),instrument=String(fd.get("instrument")||"Piano");
   if(!name){toast("Digite o nome do aluno.");return}
   if(db.users.length>=5){toast("O plano familiar permite até cinco perfis neste dispositivo.");return}
-  const u=initialUser(name,instrument);db.users.push(u);db.active=u.id;save();changePage("home");toast("Perfil criado. Bons estudos!");
+  if(db.users.some(p=>p.name.trim().toLocaleLowerCase("pt-BR")===name.toLocaleLowerCase("pt-BR"))){toast("Esse nome já existe. Escolha um nome diferente.");return}
+  if(!INSTRUMENTS.some(item=>item.name===instrument)){toast("Selecione um instrumento válido.");return}
+  const previousActive=db.active,u=initialUser(name.slice(0,30),instrument);
+  db.users.push(u);db.active=u.id;
+  if(!save()){db.users.pop();db.active=previousActive;toast("Não foi possível criar o perfil neste navegador.");return}
+  applyTimbre(instrument);changePage("home");toast("Perfil criado. Bons estudos!");
 });
 document.addEventListener("change",async e=>{
   if(e.target.id==="sound-volume"||e.target.id==="pulse-volume"){

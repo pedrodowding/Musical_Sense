@@ -23,6 +23,7 @@ function boot(){
  const clock={now:()=>0};
  const singingUI=load("singing-ui.js",["renderSingingHome","renderImportLyrics","renderVocalPractice","renderVocalResult","renderPersonalPractice","renderAchievements"],{performance:clock});
  const performanceUI=load("performance-view.js",["performanceRollSvg","performancePanel","performanceResultExtra"],{performance:clock});
+ const accountUI=load("account-ui.js",["profileSwitcher","profileHub","familyProfilesPage","progressPage","myMusicPage","settingsPage"]);
  const state={html:"",resultHtml:"",count:"",writes:0};
  const events={};
  const document={
@@ -46,7 +47,7 @@ function boot(){
  }
  class Player{stop(){}async context(){}async metronomeClick(){}async play(){return 200}}
  const bindings={...music,...instruments,...instrumentUI,...singing,...catalog,...discovery,
-  ...lyrics,...game,...backup,...singingEngine,...performanceEngine,...singingUI,...performanceUI,
+  ...lyrics,...game,...backup,...singingEngine,...performanceEngine,...singingUI,...performanceUI,...accountUI,
   document,window:win,navigator:{mediaDevices:{getUserMedia(){}},serviceWorker:{},userAgent:"Test"},
   localStorage:storage,performance:clock,AudioEngine:Audio,SoundPlayer:Player,
   setInterval(){return 1},clearInterval(){},requestAnimationFrame(){return 1},cancelAnimationFrame(){},
