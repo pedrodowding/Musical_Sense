@@ -49,7 +49,8 @@ function soundTimbre(instrument=active().instrument){
  const setting=db.soundTimbre||"auto";
  if(setting!=="auto")return setting;
  const info=instrumentInfo(instrument);
- return info.group==="strings"?"strings":info.group==="vocal"?"soft":"piano";
+ const timbres={ukulele:"ukulele",acoustic:"acoustic",electric:"electric","bass-guitar":"bass"};
+ return timbres[info.id]|| (info.group==="vocal"?"soft":"piano");
 }
 function applyTimbre(instrument=active().instrument){player.setTimbre(soundTimbre(instrument))}
 function volumeInline(){
@@ -58,13 +59,13 @@ function volumeInline(){
 }
 function soundSettings(){
  const volume=Math.round(player.getVolume()*100),pulse=Math.round(player.metronomeVolume*100),timbre=db.soundTimbre||"auto";
- const presets=[["auto","Automático pelo instrumento"],["piano","Piano sintetizado"],["strings","Cordas sintetizadas"],["soft","Suave (guia vocal)"]];
+ const presets=[["auto","Automático pelo instrumento"],["ukulele","Ukulele (corda pinçada)"],["acoustic","Violão (corda pinçada)"],["electric","Guitarra (corda sintetizada)"],["bass","Baixo (corda sintetizada)"],["piano","Piano sintetizado"],["strings","Cordas sintetizadas (legado)"],["soft","Suave (guia vocal)"]];
  return '<div class="page-intro"><span class="eyebrow">AJUSTES DE ÁUDIO</span><h1>Ouça cada nota com clareza 🔊</h1><p>Configure o volume dos exemplos e do metrônomo, ouça um teste e escolha o timbre que prefere.</p></div>'+
  '<div class="card sound-settings"><div class="sound-setting"><div><h2>🔊 Volume das melodias</h2><p class="muted small">Ajusta notas demonstradas, prévias e sons das lições.</p></div><div class="sound-setting-input"><input id="sound-volume" type="range" min="0" max="100" step="5" value="'+volume+'" aria-label="Volume principal"><strong id="sound-volume-value">'+volume+'%</strong></div></div>'+
  '<div class="sound-setting"><div><h2>🥁 Volume do metrônomo</h2><p class="muted small">Equilibre o pulso com o som dos exercícios.</p></div><div class="sound-setting-input"><input id="pulse-volume" type="range" min="0" max="100" step="5" value="'+pulse+'" aria-label="Volume do metrônomo"><strong id="pulse-volume-value">'+pulse+'%</strong></div></div>'+
  '<div class="sound-setting"><div><h2>🎹 Timbre da guia</h2><p class="muted small">São sons sintetizados, não amostras de instrumentos reais.</p></div><select id="sound-timbre" class="form-input">'+presets.map(([id,label])=>'<option value="'+id+'" '+(timbre===id?"selected":"")+'>'+label+'</option>').join("")+'</select></div>'+
  '<div class="row wrap sound-actions"><button class="btn" data-action="sound-test">♫ Ouvir melodia</button><button class="btn outline" data-action="pulse-test">🥁 Ouvir pulso</button><button class="btn ghost" data-action="sound-reset">Restaurar padrão</button></div>'+
- '<p class="inline-tip">Comece com volume moderado, especialmente ao usar fones. O controle do aplicativo não altera o volume físico do iPad. Para evitar que o microfone ouça o próprio aplicativo, use fones de ouvido durante a prática.</p></div>';
+ '<p class="inline-tip">No modo automático, a guia usa síntese de corda pinçada para ukulele, violão, guitarra e baixo. Não é uma gravação real desses instrumentos. Comece com volume moderado, especialmente ao usar fones. O controle do aplicativo não altera o volume físico do iPad. Para evitar que o microfone ouça o próprio aplicativo, use fones de ouvido durante a prática.</p></div>';
 }
 applyTimbre();
 const currentLessons=()=>lessonsForInstrument(active().instrument,LESSONS);
@@ -588,6 +589,7 @@ async function hearDemo(){
   if(!session||demoBusy)return;
   demoBusy=true;const notes=session.steps.slice(session.index,Math.min(session.steps.length,session.index+8));
   try{
+    applyTimbre(session.lesson.instrument||active().instrument);
     const milliseconds=await player.play(notes,bpm);
     audio.muteFor(milliseconds+150);
     toast("Ouça a sequência e depois toque no seu instrumento.");
@@ -598,7 +600,7 @@ async function hearDemo(){
 async function hearSingleNote(){
   if(!session||demoBusy)return;
   demoBusy=true;
-  try{const duration=await player.play([session.steps[session.index]],bpm);audio.muteFor(duration+150);toast("Ouça a nota e tente reproduzi-la.");render();setTimeout(()=>{demoBusy=false;if(page==="practice")render()},duration)}
+  try{applyTimbre(session.lesson.instrument||active().instrument);const duration=await player.play([session.steps[session.index]],bpm);audio.muteFor(duration+150);toast("Ouça a nota e tente reproduzi-la.");render();setTimeout(()=>{demoBusy=false;if(page==="practice")render()},duration)}
   catch(e){demoBusy=false;toast("Não foi possível ouvir a nota.");render()}
 }
 async function connectMidi(){
@@ -710,7 +712,9 @@ document.addEventListener("click",async e=>{
     try{
       player.stop();metronome=false;
       applyTimbre(page==="vocal-practice"?"Voz":page==="practice"?session?.lesson?.instrument||active().instrument:active().instrument);
-      const demo=[{m:60,beats:1},{m:64,beats:1},{m:67,beats:1},{m:72,beats:2}];
+      const demo=session?.steps?.length&&page==="practice"?session.steps.slice(session.index,session.index+5):
+        currentInstrument().id==="voice"?VOCAL_SONGS[0].steps.slice(0,5):
+        currentLessons()[0]?.steps?.slice(0,5)||[{m:60,beats:1},{m:64,beats:1},{m:67,beats:1},{m:72,beats:2}];
       const duration=await player.play(demo,110);
       if(audio.listening)audio.muteFor(duration+160);
       toast("Teste de áudio iniciado. Ajuste o volume enquanto ouve.");
@@ -802,7 +806,7 @@ document.addEventListener("change",async e=>{
   }
   if(e.target.id==="sound-timbre"){
     const value=e.target.value;
-    if(!["auto","piano","strings","soft"].includes(value))return;
+    if(!["auto","piano","strings","soft","ukulele","acoustic","electric","bass"].includes(value))return;
     db.soundTimbre=value;applyTimbre();save();toast("Timbre atualizado.");return;
   }
   if(e.target.id==="catalog-difficulty"){catalogDifficulty=e.target.value;render();return}

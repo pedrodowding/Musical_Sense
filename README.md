@@ -2,6 +2,14 @@
 
 Aplicativo web de aprendizagem musical com aulas visuais e avaliação das notas tocadas em um **piano ou teclado físico** pelo microfone do navegador.
 
+## Correção da demonstração por instrumento
+
+A escolha de Ukulele, Violão, Guitarra e Baixo agora direciona as notas de demonstração para um **modelo sintetizado de corda pinçada**, com ataque e decaimento distintos do piano. O botão "Testar" utiliza notas da trilha do instrumento atual, em vez de apresentar sempre notas de piano.
+
+São aproximações físicas locais feitas no navegador por Karplus-Strong, **não gravações reais**. Em Som > Timbre da guia, escolha "Automático pelo instrumento". A preferência manual "Piano sintetizado" continuará ativa até retornar ao automático.
+
+Testes em `tests/instrument-audio.test.mjs` verificam diferentes timbres, encerramento do áudio e encaminhamento da demonstração.
+
 ## Fase 1 do roadmap: perfil, família e experiência mobile
 
 Consolidamos o perfil pessoal em uma navegação dedicada, sem mudar o modelo de dados nem adicionar músicas nesta fase.

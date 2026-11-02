@@ -137,9 +137,58 @@ export class AudioEngine{
  * Uma única saída master mantém o volume previsível em Safari, iPad e desktop.
  * A compressão limita picos, mas não substitui o volume físico do dispositivo.
  */
+/**
+ * Guia de cordas: síntese física simplificada por linha de atraso
+ * (Karplus-Strong). Não utiliza samples de músicas ou instrumentos de terceiros.
+ * "Ukulele" é distinto de "Piano": ataque pinçado e decaimento de corda.
+ */
+export function synthesizePluckedString(frequency,sampleRate,duration=1,voice="ukulele"){
+  const f=Number(frequency),sr=Number(sampleRate);
+  if(!Number.isFinite(f)||!Number.isFinite(sr)||f<35||f>2200||sr<8000||sr>192000)return new Float32Array(0);
+  const d=Math.max(.1,Math.min(3.1,Number(duration)||1));
+  const count=Math.min(600000,Math.ceil(sr*d)),delayLength=Math.max(4,Math.round(sr/f-.5));
+  const delay=new Float32Array(delayLength),output=new Float32Array(count);
+  const traits={
+    ukulele:{feedback:.9898,brightness:.33,body:.70},
+    acoustic:{feedback:.9955,brightness:.25,body:.85},
+    electric:{feedback:.9976,brightness:.12,body:.90},
+    bass:{feedback:.9985,brightness:.09,body:1},
+    strings:{feedback:.994,brightness:.26,body:.84}
+  };
+  const tone=traits[voice]||traits.ukulele;
+  // Deterministic excitation: repeatable audio and test results.
+  let seed=(Math.round(f*100) ^ delayLength*2654435761)>>>0;
+  let previousExcitation=0;
+  for(let i=0;i<delayLength;i++){
+    seed=(Math.imul(1664525,seed)+1013904223)>>>0;
+    const white=(seed/4294967296)*2-1;
+    previousExcitation=white*tone.brightness+previousExcitation*(1-tone.brightness);
+    delay[i]=previousExcitation*tone.body;
+  }
+  let index=0,previousSample=0,peak=0;
+  for(let i=0;i<count;i++){
+    const current=delay[index];
+    const next=delay[(index+1)%delayLength];
+    delay[index]=.5*(current+next)*tone.feedback;
+    index=(index+1)%delayLength;
+    const sample=.85*current+.15*previousSample;
+    previousSample=current;
+    output[i]=sample;
+    if(Math.abs(sample)>peak)peak=Math.abs(sample);
+  }
+  // Normalize conservatively: different pitches retain similar audibility.
+  const scale=peak>.0001?Math.min(2.2,.68/peak):1;
+  const fade=Math.min(count-1,Math.round(sr*.065));
+  for(let i=0;i<count;i++){
+    const edge=i<Math.round(sr*.0025)?i/Math.max(1,Math.round(sr*.0025)):1;
+    const tail=i>=count-fade?(count-i)/Math.max(1,fade):1;
+    output[i]*=scale*edge*tail;
+  }
+  return output;
+}
 export class SoundPlayer{
   constructor(){
-    this.ctx=null;this.timer=null;this.demoEnd=0;this.oscillators=new Set();
+    this.ctx=null;this.timer=null;this.demoEnd=0;this.oscillators=new Set();this.sources=new Set();
     this.input=null;this.compressor=null;this.master=null;
     this.volume=.85;this.metronomeVolume=.72;this.timbre="piano";
   }
@@ -161,7 +210,7 @@ export class SoundPlayer{
   }
   getVolume(){return this.volume}
   setMetronomeVolume(value){this.metronomeVolume=this.clamp(value,.72);return this.metronomeVolume}
-  setTimbre(value){this.timbre=["piano","strings","soft"].includes(value)?value:"piano";return this.timbre}
+  setTimbre(value){this.timbre=["piano","strings","soft","ukulele","acoustic","electric","bass"].includes(value)?value:"piano";return this.timbre}
   initMaster(ctx){
     if(this.master)return;
     this.input=ctx.createGain();
@@ -191,6 +240,28 @@ export class SoundPlayer{
     const valid=Number.isFinite(f)&&f>30&&f<20000;
     if(!valid)return [];
     const timbre=this.timbre;
+    if(["ukulele","acoustic","electric","bass","strings"].includes(timbre)
+       &&typeof ctx.createBuffer==="function"&&typeof ctx.createBufferSource==="function"){
+      const d=Math.max(.09,Math.min(3,Number(duration)||.35));
+      const tail=timbre==="bass"?.52:timbre==="electric"?.42:.25;
+      const samples=synthesizePluckedString(f,ctx.sampleRate,d+tail,timbre);
+      if(!samples.length)return [];
+      const buffer=ctx.createBuffer(1,samples.length,ctx.sampleRate);
+      buffer.getChannelData(0).set(samples);
+      const source=ctx.createBufferSource();
+      source.buffer=buffer;
+      const envelope=ctx.createGain();
+      const peak=Math.min(.55,Math.max(.1,Number(volume)||.30))*1.05;
+      envelope.gain.setValueAtTime(.0001,start);
+      envelope.gain.exponentialRampToValueAtTime(peak,start+.008);
+      envelope.gain.setValueAtTime(peak,start+Math.min(.1,d*.2));
+      envelope.gain.exponentialRampToValueAtTime(.0001,start+d+tail);
+      source.connect(envelope);envelope.connect(this.input||ctx.destination);
+      this.sources.add(source);
+      source.onended=()=>this.sources.delete(source);
+      source.start(start);source.stop(start+d+tail+.015);
+      return [source];
+    }
     const harmonics=timbre==="strings"?[[1,1],[2,.43],[3,.22],[4,.10]]:
       timbre==="soft"?[[1,1],[2,.12],[3,.035]]:
       [[1,1],[2,.34],[3,.14],[4,.06]];
@@ -249,6 +320,8 @@ export class SoundPlayer{
     if(this.timer)clearInterval(this.timer);this.timer=null;
     for(const osc of this.oscillators){try{osc.stop()}catch{}}
     this.oscillators.clear();
+    for(const source of this.sources){try{source.stop()}catch{}}
+    this.sources.clear();
   }
   async metronome(bpm){
     this.stop();let i=0;
