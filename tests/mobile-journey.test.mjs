@@ -45,7 +45,10 @@ function boot(){
   stop(){this.active=false;this.status("off")}
   disconnectMidi(){}setSensitivity(){}muteFor(){}
  }
- class Player{stop(){}async context(){}async metronomeClick(){}async play(){return 200}}
+ class Player{constructor(){this.volume=.85;this.metronomeVolume=.72;this.timbre="piano"}
+  setVolume(value){this.volume=value;return value}getVolume(){return this.volume}
+  setMetronomeVolume(value){this.metronomeVolume=value;return value}setTimbre(value){this.timbre=value;return value}
+  stop(){}async context(){}async metronomeClick(){}async play(){return 200}}
  const bindings={...music,...instruments,...instrumentUI,...singing,...catalog,...discovery,
   ...lyrics,...game,...backup,...singingEngine,...performanceEngine,...singingUI,...performanceUI,...accountUI,
   document,window:win,navigator:{mediaDevices:{getUserMedia(){}},serviceWorker:{},userAgent:"Test"},
