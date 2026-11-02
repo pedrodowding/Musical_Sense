@@ -12,26 +12,75 @@ export function instrumentPicker(current){
  return '<div class="instrument-choice-head"><span class="pill">🎵 SEU CAMINHO MUSICAL</span><h1>Qual instrumento você quer aprender?</h1><p class="muted">Escolha o instrumento de agora. Você pode trocar quando quiser sem apagar as conquistas de nenhum deles.</p></div>'+instrumentOptions(id)+
  '<p class="instrument-explain">Piano e teclado usam a mesma trilha de notas. Violão, guitarra, ukulele e baixo têm exercícios iniciais próprios de corda única. Para acordes simultâneos, ainda estamos desenvolvendo um detector específico. A opção Voz abre o treinamento de canto.</p>';
 }
+/**
+ * Trilha mobile em capítulos. Apenas o capítulo com a próxima aula fica aberto,
+ * mas todos continuam acessíveis, sem alterar IDs nem bloquear conteúdo.
+ */
 export function learningPath({instrument,lessons,completed={},checkpoints={}}){
  const info=instrumentInfo(instrument);
  if(!lessons.length){
-  return instrumentContext(instrument)+'<section class="path-summary"><div><span class="eyebrow" style="color:#c7c5ff">TRILHA DE CANTO</span><h2>Aprenda com a sua voz</h2><p>Vocalizes, afinação e letras sincronizadas</p></div><span style="font-size:48px">🎤</span></section>'+
-   '<div class="card" style="margin-top:16px"><h3>Seu próximo passo</h3><p class="muted small">Comece com um aquecimento para reconhecer as notas da sua voz.</p><button class="btn" data-vocal="voice-warmup">🎙 Começar aquecimento</button></div>';
+  return instrumentContext(instrument)+
+   '<div class="journey-intro"><span class="eyebrow">TRILHA DE CANTO</span>'+
+   '<h1>Seu próximo passo no canto</h1><p>Comece com aquecimento, afinação e canções originais.</p></div>'+
+   '<section class="journey-focus"><span>COMECE POR AQUI</span><strong>Prepare sua voz</strong>'+
+   '<p>Faça um aquecimento curto para reconhecer as notas.</p>'+
+   '<button class="btn" data-vocal="voice-warmup">🎙 Começar aquecimento</button></section>';
  }
- const done=lessons.filter(l=>completed[l.id]).length, next=lessons.find(l=>!completed[l.id])||lessons[0],sections=getInstrumentCourses(info.id);
- let lastCourse="";
- const nodes=lessons.map((l,index)=>{
-  const complete=Boolean(completed[l.id]),current=l.id===next.id,resume=checkpoints[l.id]?.index>0;
-  const status=complete?"complete":current?"current":"upcoming";
-  const chapter=l.course!==lastCourse;lastCourse=l.course;
-  const section=sections.find(s=>s.id===l.course);
-  return (chapter?'<div class="path-stage">'+e(section?.name||"Nova etapa")+'</div>':"")+
-    '<div class="path-unit '+status+'"><div class="path-node">'+(complete?"✓":l.icon||"♪")+'</div>'+
-    '<div class="path-body"><h3>'+e(l.title)+'</h3><p>'+e(l.subtitle)+'</p><div class="path-meta">'+(complete?"✓ CONCLUÍDA":resume?"↻ CONTINUAR":"LIÇÃO "+(index+1))+' · '+l.minutes+' MIN · '+l.xp+' XP</div></div>'+
-    '<button class="btn '+(current?"":"ghost")+' sm" data-lesson="'+e(l.id)+'">'+(complete?"Refazer":resume?"Continuar":current?"Começar":"Praticar")+'</button></div>';
+ const done=lessons.filter(l=>completed[l.id]).length;
+ const next=lessons.find(l=>!completed[l.id])||lessons[0];
+ const sections=getInstrumentCourses(info.id),chapters=[];
+ const label=(l)=>l.id?.startsWith("curated-")?"extra":l.course||"fundamentals";
+ for(let index=0;index<lessons.length;index++){
+  const l=lessons[index],key=label(l);
+  let chapter=chapters[chapters.length-1];
+  if(!chapter||chapter.key!==key){
+   const course=sections.find(x=>x.id===key);
+   chapter={key,title:key==="extra"?"Mais melodias":course?.name||"Nova etapa",
+    subtitle:key==="extra"?"Amplie seu repertório":course?.subtitle||"Pratique no seu ritmo",
+    icon:key==="extra"?"🎼":course?.icon||"♪",items:[]};
+   chapters.push(chapter);
+  }
+  chapter.items.push({lesson:l,index});
+ }
+ const currentChapter=chapters.findIndex(c=>c.items.some(item=>item.lesson.id===next.id));
+ const stages=chapters.map((chapter,stageIndex)=>{
+  const chapterDone=chapter.items.filter(item=>completed[item.lesson.id]).length;
+  const isOpen=stageIndex===Math.max(currentChapter,0);
+  const allDone=chapterDone===chapter.items.length;
+  const nodes=chapter.items.map(({lesson:l,index})=>{
+   const complete=!!completed[l.id],resume=Number(checkpoints[l.id]?.index)||0;
+   const current=l.id===next.id;
+   const status=complete?"complete":current?"current":"upcoming";
+   const action=complete?"Refazer":resume>0?"Continuar":current?"Começar":"Praticar";
+   const progress=resume>0&&!complete?" · "+resume+"/"+(l.steps?.length||"?")+" notas":"";
+   return '<div class="journey-lesson path-unit '+status+'">'+
+    '<span class="journey-lesson-number" aria-hidden="true">'+(complete?"✓":e(l.icon||String(index+1)))+'</span>'+
+    '<div class="journey-lesson-copy"><strong>'+e(l.title)+'</strong>'+
+    '<span>'+e(l.subtitle||"Aprenda uma melodia")+'</span>'+
+    '<small>Aula '+(index+1)+' · '+(l.minutes||1)+' min'+progress+'</small></div>'+
+    '<button class="btn sm '+(current?"":"ghost")+'" data-lesson="'+e(l.id)+'" aria-label="'+action+' '+e(l.title)+'">'+action+'</button></div>';
+  }).join("");
+  return '<details class="journey-chapter" '+(isOpen?"open":"")+'>'+
+   '<summary class="journey-chapter-summary"><span class="journey-chapter-symbol" aria-hidden="true">'+chapter.icon+'</span>'+
+   '<span class="journey-chapter-copy"><strong>'+e(chapter.title)+'</strong><small>'+e(chapter.subtitle)+'</small></span>'+
+   '<span class="journey-chapter-count" aria-label="'+chapterDone+' de '+chapter.items.length+' aulas concluídas">'+
+   (allDone?"✓ ":"")+chapterDone+"/"+chapter.items.length+'</span>'+
+   '<span class="journey-chapter-chevron" aria-hidden="true">⌄</span></summary>'+
+   '<div class="journey-chapter-lessons">'+nodes+'</div></details>';
  }).join("");
- return instrumentContext(instrument)+'<div class="path-summary"><div><span class="eyebrow" style="color:#d3ceff">TRILHA DE '+e(info.name.toUpperCase())+'</span><h2>Um passo de cada vez</h2><p>Escolha uma lição ou continue de onde parou.</p></div><div class="path-progress">'+done+' / '+lessons.length+' aulas ✓</div></div>'+
- '<div class="learning-path">'+nodes+'</div><p class="path-subtitle">As lições não são bloqueadas. Você pode rever qualquer etapa para praticar.</p>';
+ const percentage=Math.round(100*done/lessons.length);
+ return instrumentContext(instrument)+
+  '<div class="journey-intro"><span class="eyebrow">SEU CAMINHO MUSICAL</span><h1>Sua trilha de '+e(info.name)+'</h1>'+
+  '<p>Aprenda uma etapa por vez. Abra outros capítulos quando quiser.</p></div>'+
+  '<section class="journey-focus"><div class="journey-focus-heading"><span>PRÓXIMA AULA</span>'+
+  '<span>'+done+' de '+lessons.length+' concluídas</span></div>'+
+  '<strong>'+e(next.title)+'</strong><p>'+e(next.subtitle||"Continue seu aprendizado")+'</p>'+
+  '<button class="btn" data-lesson="'+e(next.id)+'">'+(checkpoints[next.id]?.index>0?"Continuar de onde parei":"▶ Começar agora")+'</button>'+
+  '<div class="journey-focus-track" role="progressbar" aria-label="Progresso da trilha" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+percentage+'">'+
+  '<span style="width:'+percentage+'%"></span></div></section>'+
+  '<div class="journey-sections-head"><h2>Capítulos</h2><span>'+chapters.length+' etapas</span></div>'+
+  '<div class="journey-chapters">'+stages+'</div>'+
+  '<p class="journey-footnote">Nenhuma aula está bloqueada. Seu progresso é preservado ao trocar de instrumento.</p>';
 }
 export function catalogResultsMarkup(entries,settings){
  const matches=catalogFilter(entries,settings),fav=new Set(settings.favorites||[]);

@@ -76,9 +76,9 @@ test("início usa um único passo principal, uma recomendação e menus recolhí
   assert.equal((html.match(/<details class="home-group"/g)||[]).length,2);
   assert.equal((html.match(/class="home-music-card"/g)||[]).length,1);
   assert.equal((html.match(/class="btn home-main-cta"/g)||[]).length,1);
-  assert.ok(html.includes('data-route="instruments"'));
+  assert.ok(html.includes('data-route="courses"'));
   assert.ok(html.includes("Mais atividades"));
-  assert.ok(html.includes("Meu progresso e ajustes"));
+  assert.ok(html.includes("Minha evolução"));
   assert.ok(!html.includes('class="grid three"'));
   assert.ok(html.includes(voice?'data-vocal="voice-warmup"':'data-lesson="'+lesson.id+'"'));
  }

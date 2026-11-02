@@ -105,13 +105,25 @@ function navButton(item){
  return '<button class="nav-btn '+(selected?"active":"")+'" data-route="'+id+'" '+(selected?'aria-current="page"':'')+
  '><span class="i">'+icon+'</span><span>'+label+'</span></button>';
 }
+function mobileNavGlyph(route){
+ const paths={
+  home:'<path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22v-8h6v8"/>',
+  courses:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2.4 4.6-4.6 2.4 2.4-4.6z"/>',
+  library:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  workouts:'<circle cx="12" cy="13" r="8"/><path d="M12 9v5l3 2M9 2h6M12 2v3M19 6l2-2"/>',
+  singing:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M9 22h6"/>',
+  profiles:'<circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/>'
+ };
+ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">'+
+ (paths[route]||paths.home)+'</svg>';
+}
 function mobileButton(item){
  const [id,icon,label]=item,voice=currentInstrument().id==="voice";
  const selected=page===id||(page==="song-detail"&&id==="library")||(page==="score-import"&&id==="library")||
  (page==="lyrics-import"&&id==="singing")||(accountPages.includes(page)&&id==="profiles")||
  (voice&&page==="workouts"&&id==="singing");
  return '<button class="'+(selected?"active":"")+'" data-route="'+id+'" aria-label="'+label+'" '+
- (selected?'aria-current="page"':'')+'><span class="icon">'+icon+'</span><span>'+label+'</span></button>';
+ (selected?'aria-current="page"':'')+'><span class="icon">'+mobileNavGlyph(id)+'</span><span>'+label+'</span></button>';
 }
 function shell(content){
  const u=active(),info=currentInstrument(),voice=info.id==="voice",menu=primaryRoutes(voice),
@@ -155,8 +167,7 @@ function lessonCard(l){
 }
 function courses(){
  const u=active();
- return '<div class="page-intro"><span class="eyebrow">UM PASSO DE CADA VEZ</span><h1>Sua trilha de aprendizagem</h1><p>Uma sequência clara de lições para seu instrumento, sem bloquear a liberdade de praticar.</p></div>'+
- learningPath({instrument:u.instrument,lessons:currentLessons(),completed:u.completed||{},checkpoints:u.checkpoints||{}});
+ return learningPath({instrument:u.instrument,lessons:currentLessons(),completed:u.completed||{},checkpoints:u.checkpoints||{}});
 }
 function library(){
  return catalogPage({entries:fullCatalog(),query:catalogQuery,scope:catalogScope,difficulty:catalogDifficulty,
@@ -171,23 +182,36 @@ function instrumentsPage(){
 function workouts(){
  const user=active(),info=currentInstrument(),voice=info.id==="voice",today=localDay(),
   seconds=(user.history||[]).filter(h=>h.day===today).reduce((n,h)=>n+(Number(h.seconds)||0),0);
- const lessons=currentLessons().filter(l=>["notes","reading","technique","rhythm"].includes(l.kind)).slice(0,3);
- const recommended=VOCAL_SONGS.filter(v=>v.genre==="Vocalizes")
-  .concat(VOCAL_SONGS.filter(v=>v.genre==="Canções").slice(0,2));
- const rows=voice?recommended.map(v=>'<div class="lesson-row"><span class="lesson-icon teal">'+v.icon+'</span>'+
- '<div class="grow"><h3>'+esc(v.title)+'</h3><p>'+esc(v.description)+'</p></div>'+
- '<button class="btn sm lesson-action" data-vocal="'+esc(v.id)+'">Cantar →</button></div>').join(""):lessons.map(lessonCard).join("");
- return instrumentContext(user.instrument)+'<div class="page-intro"><span class="eyebrow">PRÁTICA DO SEU INSTRUMENTO</span>'+
- '<h1>'+(voice?"Exercícios de canto":"Treinos de "+esc(info.name.toLowerCase()))+'</h1>'+
- '<p>'+(voice?"Aquecimento e exercícios vocais.":"Notas, técnica e ritmo com seu instrumento físico.")+'</p></div>'+
- '<section class="card workout"><span class="pill dark">META DO DIA</span><h2 style="margin:10px 0">Cinco minutos de prática</h2>'+
- '<p>'+Math.floor(Math.min(300,seconds)/60)+' de 5 minutos registrados hoje.</p>'+
- '<div class="progress-track" style="background:#5a5a89;max-width:440px"><div class="progress-fill" style="width:'+Math.min(100,percent(seconds,300))+'%"></div></div></section>'+
- '<div class="section-head"><h2>Escolha uma atividade</h2></div><div class="lesson-list">'+rows+'</div>'+
- '<details class="home-group" style="margin-top:15px"><summary><span class="home-group-icon">🎵</span>'+
- '<span><strong>Outras atividades</strong><small>Explore outras opções</small></span><span class="home-chevron">⌄</span></summary>'+
- '<div class="home-group-body"><button class="home-shortcut" data-route="library">🎶 Biblioteca completa</button>'+
- (!voice?'<button class="home-shortcut" data-route="singing">🎤 Experimentar canto</button>':'')+'</div></details>';
+ const completedSeconds=Math.max(0,Math.min(300,seconds)),progress=Math.round(completedSeconds/300*100);
+ const lessons=currentLessons().filter(l=>["notes","reading","technique","rhythm"].includes(l.kind));
+ const upcoming=lessons.find(l=>!user.completed?.[l.id])||lessons[0];
+ const rhythm=lessons.find(l=>l.kind==="rhythm"&&l.id!==upcoming?.id);
+ const selected=[upcoming,rhythm].filter(Boolean);
+ const rest=lessons.filter(l=>!selected.some(x=>x.id===l.id));
+ const vocalWarmups=VOCAL_SONGS.filter(v=>v.genre==="Vocalizes");
+ const vocalSelected=vocalWarmups.slice(0,2);
+ const vocalMore=VOCAL_SONGS.filter(v=>!vocalSelected.some(x=>x.id===v.id));
+ const vocalCard=v=>'<div class="workout-lesson"><span class="workout-lesson-icon" aria-hidden="true">'+esc(v.icon)+'</span>'+
+  '<div class="workout-lesson-text"><strong>'+esc(v.title)+'</strong>'+
+  '<small>'+esc(v.description)+'</small></div>'+
+  '<button class="btn sm" data-vocal="'+esc(v.id)+'" aria-label="Cantar '+esc(v.title)+'">Cantar ›</button></div>';
+ const lessonCardMini=l=>'<div class="workout-lesson"><span class="workout-lesson-icon" aria-hidden="true">'+esc(l.icon)+'</span>'+
+  '<div class="workout-lesson-text"><strong>'+esc(l.title)+'</strong><small>'+esc(l.subtitle)+'</small></div>'+
+  '<button class="btn sm" data-lesson="'+esc(l.id)+'" aria-label="Praticar '+esc(l.title)+'">Treinar ›</button></div>';
+ const recommended=voice?vocalSelected.map(vocalCard).join(""):selected.map(lessonCardMini).join("");
+ const extras=voice?vocalMore.map(vocalCard).join(""):rest.map(lessonCardMini).join("");
+ return '<div class="workout-focus"><div class="workout-intro"><span class="eyebrow">PRÁTICA DO SEU INSTRUMENTO</span>'+
+ '<h1>'+(voice?"Treino de canto":"Treinos de "+esc(info.name.toLowerCase()))+'</h1>'+
+ '<p>'+(voice?"Aquecimento e prática vocal.":"Exercícios curtos para tocar com mais confiança.")+'</p></div>'+
+ '<section class="workout-goal"><div class="workout-goal-row"><span>⏱ Meta diária · 5 min</span><strong>'+Math.floor(completedSeconds/60)+' de 5 min</strong></div>'+
+ '<div class="workout-goal-track" role="progressbar" aria-label="Tempo de prática de hoje" aria-valuemin="0" aria-valuemax="300" aria-valuenow="'+completedSeconds+'">'+
+ '<span style="width:'+progress+'%"></span></div></section>'+
+ '<div class="workout-selection"><div class="workout-section-title"><h2>Para praticar agora</h2>'+
+ '<button class="home-text-link" data-route="'+(voice?"singing":"courses")+'">Ver '+(voice?"canções":"trilha")+' ›</button></div>'+
+ '<div class="workout-list">'+recommended+'</div></div>'+
+ (extras.length?'<details class="workout-more"><summary>Mais opções de treino <span aria-hidden="true">⌄</span></summary>'+
+ '<div class="workout-list">'+extras+'</div></details>':"")+
+ '<div class="workout-footer"><button data-route="library" class="home-text-link">🎵 Explorar todas as músicas ›</button></div></div>';
 }
 function diagnostics(){
  let storageStatus="Disponível";try{const key="musical-sense-diagnostic";localStorage.setItem(key,"ok");localStorage.removeItem(key)}catch(e){storageStatus="Bloqueado ou indisponível"}

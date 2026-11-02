@@ -2,6 +2,16 @@
 
 Aplicativo web de aprendizagem musical com aulas visuais e avaliação das notas tocadas em um **piano ou teclado físico** pelo microfone do navegador.
 
+## Fase 5: simplificação do mobile e trilha em capítulos
+
+A partir de quatro prints reais da experiência, a tela inicial foi compactada, a área de Praticar passou a destacar dois treinos e uma meta diária discreta, e o Perfil ganhou dois submenus para métricas e configurações.
+
+A Trilha de aprendizagem agora mostra **capítulos recolhíveis**. Somente o capítulo que contém a próxima aula começa aberto, mas **todas as aulas continuam disponíveis** para praticar e refazer. A mudança não altera IDs, favoritos, XP nem checkpoints.
+
+Os ícones do menu mobile passaram de emojis para vetores, com cores que acompanham a aba ativa. O ícone do ukulele deixou de ser uma flor. A troca de instrumento continua visível de forma mais compacta.
+
+Documentação e critérios de aceite: [docs/PHASE5_MOBILE_UX.md](docs/PHASE5_MOBILE_UX.md). A revisão visual em Safari/iPad físico continua necessária.
+
 ## Fase 4: áudio real e afinação por instrumento
 
 O Musical Sense agora utiliza até **11 amostras de instrumentos reais sob licença CC0**, distribuídas por piano, violão, guitarra elétrica, ukulele e baixo. As gravações são carregadas apenas ao demonstrar notas, com alternativa sintetizada para navegadores que não reconhecem OGG/FLAC. As fontes estão em [docs/SAMPLE_CREDITS.md](docs/SAMPLE_CREDITS.md).

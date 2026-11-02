@@ -29,30 +29,40 @@ export function profileSwitcher(users,activeId){
  '<p class="account-local-note">Os perfis e o progresso ficam salvos neste dispositivo.</p></div></dialog>';
 }
 export function profileHub({user,level,streak,completed,favoritesCount,accuracy,practiceMinutes,instrumentName}){
- const first=escapeHtml(user.name);
- const accuracyDisplay=accuracy===null?"Ainda sem dados":accuracy+"%";
+ const first=escapeHtml(user.name),pct=Math.max(0,Math.min(100,safeNumber(level.progress)));
+ const accuracyDisplay=accuracy===null?"Sem práticas":accuracy+"%";
  return '<div class="account-page profile-hub">'+
- '<div class="account-page-title"><span class="account-eyebrow">MEU ESPAÇO MUSICAL</span><h1 id="account-heading" tabindex="-1">Meu perfil</h1>'+
- '<p>Acompanhe seu progresso e organize sua experiência musical.</p></div>'+
- '<section class="account-hero"><div class="account-hero-identity"><span class="account-avatar large">'+avatar(user.name)+'</span>'+
- '<div class="account-hero-name"><span class="account-eyebrow">VOCÊ ESTÁ NO PERFIL DE</span><h2>'+first+'</h2>'+
- '<span>'+escapeHtml(instrumentName)+' · Nível '+safeNumber(level.level)+'</span></div>'+
- '<button class="account-hero-switch" type="button" data-action="open-profile-switch">Trocar aluno <span aria-hidden="true">⌄</span></button></div>'+
- '<div class="account-level-label"><strong>Rumo ao nível '+(safeNumber(level.level)+1)+'</strong><span>'+safeNumber(level.progress)+'% concluído</span></div>'+
- '<div class="account-track"><div style="width:'+Math.max(0,Math.min(100,safeNumber(level.progress)))+'%"></div></div>'+
- '<div class="account-hero-bottom"><span>⚡ '+safeNumber(user.xp)+' XP</span><span>🔥 '+safeNumber(streak.current)+' dia(s) seguidos</span></div></section>'+
+ '<div class="account-page-title"><span class="account-eyebrow">MEU ESPAÇO MUSICAL</span>'+
+ '<h1 id="account-heading" tabindex="-1">Meu perfil</h1><p>Seu progresso, suas músicas e sua família.</p></div>'+
+ '<section class="account-hero"><div class="account-hero-identity">'+
+ '<span class="account-avatar large">'+avatar(user.name)+'</span>'+
+ '<div class="account-hero-name"><span class="account-eyebrow">ALUNO</span><h2>'+first+'</h2>'+
+ '<span>'+escapeHtml(instrumentName)+' · Nível '+safeNumber(level.level)+'</span></div></div>'+
+ '<div class="account-level-label"><strong>Rumo ao nível '+(safeNumber(level.level)+1)+'</strong><span>'+pct+'%</span></div>'+
+ '<div class="account-track" role="progressbar" aria-label="Progresso até o próximo nível" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'">'+
+ '<div style="width:'+pct+'%"></div></div>'+
+ '<div class="account-hero-bottom"><span>⚡ '+safeNumber(user.xp)+' XP</span>'+
+ '<span>🔥 '+safeNumber(streak.current)+' dia(s) de sequência</span></div></section>'+
+ '<div class="account-section-title"><h2>Minha jornada</h2></div><div class="account-link-list">'+
+ accountLink({route:"progress",icon:"📈",title:"Minha evolução",description:"Progresso, habilidades e missões",detail:"Nível "+safeNumber(level.level)})+
+ accountLink({route:"instruments",icon:"🎹",title:"Meus instrumentos",description:"Aprender ou trocar de instrumento",detail:instrumentName})+
+ accountLink({route:"my-music",icon:"♥",title:"Minhas músicas",description:"Favoritas e praticadas",detail:safeNumber(favoritesCount)+" favoritas"})+
+ '</div>'+
+ '<details class="profile-more"><summary><span class="profile-more-icon">📊</span>'+
+ '<span class="profile-more-copy"><strong>Meu desempenho</strong><small>Aulas, precisão e tempo de prática</small></span>'+
+ '<span class="profile-more-chevron" aria-hidden="true">⌄</span></summary>'+
  '<div class="account-metrics" aria-label="Seus indicadores musicais">'+
  '<div class="account-metric"><strong>'+safeNumber(completed)+'</strong><span>Aulas concluídas</span></div>'+
  '<div class="account-metric"><strong>'+accuracyDisplay+'</strong><span>Precisão das notas</span></div>'+
- '<div class="account-metric"><strong>'+safeNumber(practiceMinutes)+' min</strong><span>Tempo praticado</span></div></div>'+
- '<div class="account-section-title"><h2>Minha jornada</h2></div><div class="account-link-list">'+
- accountLink({route:"progress",icon:"📈",title:"Minha evolução",description:"Progresso, habilidades e missões",detail:"Nível "+safeNumber(level.level)})+
- accountLink({route:"instruments",icon:"🎹",title:"Meus instrumentos",description:"Trocar instrumento sem perder XP",detail:instrumentName})+
- accountLink({route:"my-music",icon:"♥",title:"Minhas músicas",description:"Favoritos e músicas praticadas",detail:safeNumber(favoritesCount)+" favoritas"})+
+ '<div class="account-metric"><strong>'+safeNumber(practiceMinutes)+' min</strong><span>Tempo praticado</span></div></div></details>'+
+ '<details class="profile-more"><summary><span class="profile-more-icon">⚙️</span>'+
+ '<span class="profile-more-copy"><strong>Conta e preferências</strong><small>Família, áudio e configurações</small></span>'+
+ '<span class="profile-more-chevron" aria-hidden="true">⌄</span></summary>'+
+ '<div class="account-link-list inner">'+
  accountLink({route:"family",icon:"👨‍👩‍👧‍👦",title:"Perfis da família",description:"Trocar, adicionar ou editar alunos"})+
- '</div><div class="account-section-title"><h2>Preferências e ajuda</h2></div><div class="account-link-list">'+
  accountLink({route:"settings",icon:"⚙️",title:"Configurações",description:"Som, microfone, backup e ajuda"})+
- '</div><p class="account-footnote">O Musical Sense usa perfis locais. Seu progresso não é sincronizado automaticamente entre aparelhos.</p></div>';
+ '</div></details>'+
+ '<p class="account-footnote">O progresso fica salvo neste aparelho. Para manter uma cópia, use Configurações e exporte um backup.</p></div>';
 }
 export function familyProfilesPage({users,activeId,instruments}){
  return '<div class="account-page family-page"><div class="account-page-title"><button class="account-back" data-route="profiles">‹ Meu perfil</button>'+

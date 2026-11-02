@@ -7,7 +7,7 @@ export const INSTRUMENTS=[
  {id:"keyboard",name:"Teclado",icon:"🎼",group:"keys",available:true,description:"Prática por microfone e notas no teclado"},
  {id:"acoustic",name:"Violão",icon:"🎸",group:"strings",available:true,description:"Notas e melodias na primeira corda"},
  {id:"electric",name:"Guitarra",icon:"⚡",group:"strings",available:true,description:"Riffs e melodias em uma corda"},
- {id:"ukulele",name:"Ukulele",icon:"🌺",group:"strings",available:true,description:"Melodias na corda Lá"},
+ {id:"ukulele",name:"Ukulele",icon:"🪕",group:"strings",available:true,description:"Melodias na corda Lá"},
  {id:"bass-guitar",name:"Baixo",icon:"🎸",group:"strings",available:true,description:"Grooves na corda Sol"},
  {id:"voice",name:"Voz",icon:"🎤",group:"vocal",available:true,description:"Afinação, aquecimento e canções com letra"}
 ];
@@ -30,7 +30,7 @@ const sources=[
   {key:"rhythm",title:"Pulso do rock",subtitle:"Ataques na corda Mi com metrônomo",icon:"🥁",kind:"rhythm",notes:[64,64,64,67,67,69,67,64],xp:90,minutes:5}
  ]},
  {id:"ukulele",prefix:"uke",string:"Lá",stringNumber:1,open:69,kind:"ukulele",program:[
-  {key:"first",title:"Seu primeiro Lá",subtitle:"Comece com a corda Lá do ukulele",icon:"🌺",kind:"notes",notes:[69,71,72,71,69],xp:50,minutes:4},
+  {key:"first",title:"Seu primeiro Lá",subtitle:"Comece com a corda Lá do ukulele",icon:"🪕",kind:"notes",notes:[69,71,72,71,69],xp:50,minutes:4},
   {key:"steps",title:"Primeiras casas",subtitle:"Casas 0, 2, 3 e 5 da corda Lá",icon:"☀️",kind:"technique",notes:[69,71,72,74,72,71,69],xp:75,minutes:5},
   {key:"song",title:"Canção da ilha",subtitle:"Pequena melodia original para ukulele",icon:"🏝️",kind:"song",notes:[69,72,74,72,71,69,71,72,69],xp:110,minutes:6},
   {key:"rhythm",title:"Pulso tropical",subtitle:"Repita notas no tempo musical",icon:"🥁",kind:"rhythm",notes:[69,69,72,72,74,72,71,69],xp:90,minutes:5}

@@ -1,0 +1,159 @@
+/* Musical Sense | Fase 5: UX mobile com foco na próxima ação. */
+.home-welcome{padding:20px 22px;border-radius:21px}
+.home-welcome h1{font-size:clamp(23px,3vw,29px);margin:14px 0 5px;line-height:1.18}
+.home-welcome>p{font-size:12px;line-height:1.45}
+.home-welcome-level{display:inline-flex;align-items:center;border-radius:99px;padding:8px 10px;background:#ffffff1a;color:#fff;font-size:11px;font-weight:850;white-space:nowrap}
+.home-welcome .home-instrument-icon{width:40px;height:40px;flex-basis:40px;font-size:24px;border-radius:12px}
+.home-welcome .home-welcome-name strong{font-size:14px}
+.home-next{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:16px;max-width:none;margin:15px 0 12px;padding:13px 15px;border-radius:14px}
+.home-next-title{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.home-next-title>strong{font-size:17px;line-height:1.25}
+.home-next-description{font-size:11px;line-height:1.35}
+.home-next .home-main-cta{margin:0;min-height:44px;flex:none;font-size:12px;padding:11px 15px}
+.home-welcome-progress{font-size:11px}
+.home-progress-link{border:0;background:transparent;color:#fff;min-height:34px;padding:4px 0;font-size:11px;font-weight:850}
+.home-recommend{margin:17px 0 12px}
+.home-section-heading{margin-bottom:7px}
+.home-section-heading h2{font-size:17px}
+.home-music-card{padding:10px 12px;border-radius:15px}
+.home-music-art{width:47px;height:47px;flex-basis:47px;font-size:25px;border-radius:12px}
+.home-music-copy strong{font-size:14px}
+.home-music-copy small{font-size:11px}
+.home-music-action{min-height:44px}
+.home-groups{gap:9px}
+.home-group{border-radius:15px}
+.home-group summary{padding:12px 14px;min-height:65px;gap:10px}
+.home-group-icon{width:37px;height:37px;flex-basis:37px;font-size:20px}
+.home-group summary strong{font-size:13px}
+.home-group summary small{font-size:11px}
+/* Trilha compacta em capítulos recolhíveis. */
+.journey-intro{margin:4px 0 13px}
+.journey-intro h1{font-size:clamp(24px,3.5vw,32px);line-height:1.2;letter-spacing:-.035em;margin:6px 0}
+.journey-intro p{font-size:12px;line-height:1.45;color:#757e9e;margin:0}
+.journey-focus{background:linear-gradient(125deg,#383b90,#7060e4);color:#fff;border-radius:18px;padding:17px 18px;box-shadow:0 7px 20px #443d891e}
+.journey-focus-heading{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px}
+.journey-focus-heading span,.journey-focus>span{font-size:10px;letter-spacing:.065em;font-weight:850;color:#dedaff}
+.journey-focus>strong{display:block;font-size:20px;line-height:1.18;color:#fff}
+.journey-focus>p{font-size:12px;color:#e4e3ff;margin:5px 0 11px}
+.journey-focus>.btn{min-height:44px;background:#fff;color:#5448ba;font-size:12px}
+.journey-focus-track{height:5px;border-radius:10px;background:#ffffff30;overflow:hidden;margin-top:13px}
+.journey-focus-track>span{height:100%;display:block;background:#7ef0d1;border-radius:10px}
+.journey-sections-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:19px 0 10px}
+.journey-sections-head h2{font-size:18px;color:#303557;margin:0}
+.journey-sections-head>span{font-size:11px;color:#8389a4}
+.journey-chapters{display:flex;flex-direction:column;gap:9px}
+.journey-chapter{background:#fff;border:1px solid #e5e7f4;border-radius:17px;overflow:hidden;box-shadow:0 2px 11px #2527550b}
+.journey-chapter[open]{border-color:#d9d4fa}
+.journey-chapter-summary{min-height:70px;display:flex;align-items:center;gap:11px;padding:11px 13px;cursor:pointer;list-style:none;user-select:none}
+.journey-chapter-summary::-webkit-details-marker{display:none}
+.journey-chapter-symbol{width:41px;height:41px;flex:0 0 41px;display:grid;place-items:center;background:#f0ecff;border-radius:13px;font-size:21px}
+.journey-chapter-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.journey-chapter-copy strong{font-size:14px;color:#32375e;line-height:1.23}
+.journey-chapter-copy small{font-size:11px;color:#7e86a2;line-height:1.25}
+.journey-chapter-count{font-size:12px;color:#675ac7;font-weight:850;white-space:nowrap}
+.journey-chapter-chevron{font-size:22px;color:#8580af;transition:transform .15s}
+.journey-chapter[open] .journey-chapter-chevron{transform:rotate(180deg)}
+.journey-chapter-lessons{padding:0 12px 9px;border-top:1px solid #f0eef9}
+.journey-lesson.path-unit{display:flex;min-height:65px;gap:10px;padding:10px 0;align-items:center;border-bottom:1px solid #f0f1f8}
+.journey-lesson.path-unit:last-child{border-bottom:0}
+.journey-lesson.path-unit::after{display:none!important}
+.journey-lesson-number{height:38px;width:38px;flex:0 0 38px;border-radius:12px;background:#f2f1fb;display:grid;place-items:center;font-size:20px}
+.journey-lesson.current .journey-lesson-number{background:#e8e3ff}
+.journey-lesson.complete .journey-lesson-number{background:#e0f8ef;color:#137d62;font-size:20px;font-weight:900}
+.journey-lesson-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.journey-lesson-copy strong{font-size:12px;color:#323653;line-height:1.2}
+.journey-lesson-copy>span{font-size:11px;color:#7c849d;line-height:1.25}
+.journey-lesson-copy small{font-size:10px;color:#7468ac;font-weight:750}
+.journey-lesson .btn{min-height:42px;min-width:74px;padding:9px 10px;font-size:11px;flex:none}
+.journey-footnote{font-size:11px;line-height:1.5;color:#848ba4;margin:13px 0 0}
+/* Treinos menos redundantes com a trilha. */
+.workout-focus{max-width:850px;margin:0 auto}
+.workout-intro{margin:5px 0 14px}
+.workout-intro h1{font-size:clamp(25px,3.4vw,32px);line-height:1.2;margin:6px 0}
+.workout-intro p{font-size:12px;color:#7a819e;margin:0;line-height:1.45}
+.workout-goal{background:#fff;border:1px solid #e7e7f4;border-radius:15px;padding:15px 17px}
+.workout-goal-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:#525784}
+.workout-goal-row strong{color:#5b4ec0;white-space:nowrap}
+.workout-goal-track{height:7px;border-radius:9px;background:#ececfa;overflow:hidden;margin-top:12px}
+.workout-goal-track>span{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#7d69f4,#39cdb3)}
+.workout-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0 10px}
+.workout-section-title h2{font-size:18px;margin:0}
+.workout-list{display:flex;flex-direction:column;gap:9px}
+.workout-lesson{display:flex;align-items:center;gap:11px;border:1px solid #e7e8f3;background:#fff;border-radius:15px;padding:11px 12px}
+.workout-lesson-icon{width:43px;height:43px;flex:0 0 43px;display:grid;place-items:center;border-radius:12px;background:#eeedfd;font-size:23px}
+.workout-lesson-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.workout-lesson-text strong{font-size:13px;color:#333657}
+.workout-lesson-text small{font-size:11px;color:#7c819c;line-height:1.3}
+.workout-lesson .btn{min-height:44px;flex:none}
+.workout-more{background:#fff;border:1px solid #e9e9f6;border-radius:15px;margin-top:10px;overflow:hidden}
+.workout-more>summary{min-height:53px;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;font-size:12px;color:#6559c1;font-weight:850;cursor:pointer}
+.workout-more>summary::-webkit-details-marker{display:none}
+.workout-more[open]>summary{border-bottom:1px solid #eeedf8}
+.workout-more .workout-list{padding:10px}
+.workout-more .workout-lesson{box-shadow:none}
+.workout-footer{margin-top:9px;text-align:right}
+/* Perfil: estatísticas e administração deixam a primeira dobra. */
+.profile-hub .account-page-title{margin-bottom:13px}
+.profile-hub .account-hero{padding:18px 20px;border-radius:18px}
+.profile-hub .account-hero-identity{gap:11px}
+.profile-hub .account-avatar.large{width:50px;height:50px;flex-basis:50px;font-size:24px}
+.profile-hub .account-hero-name h2{font-size:19px}
+.profile-hub .account-level-label{margin:13px 0 7px;font-size:11px}
+.profile-hub .account-track{height:7px}
+.profile-hub .account-hero-bottom{margin-top:8px}
+.profile-hub .account-section-title{margin:17px 0 9px}
+.profile-hub .account-link-list{gap:7px}
+.profile-hub .account-link{min-height:63px;padding:10px 12px}
+.profile-hub .account-link-icon{width:39px;height:39px;flex-basis:39px}
+.profile-more{background:#fff;border:1px solid #e7e8f3;border-radius:15px;margin-top:9px;overflow:hidden}
+.profile-more>summary{display:flex;align-items:center;gap:10px;min-height:66px;padding:11px 12px;list-style:none;cursor:pointer}
+.profile-more>summary::-webkit-details-marker{display:none}
+.profile-more-icon{width:39px;height:39px;flex:0 0 39px;display:grid;place-items:center;border-radius:12px;background:#f0edff;font-size:21px}
+.profile-more-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.profile-more-copy strong{font-size:13px;color:#363b5d}
+.profile-more-copy small{font-size:11px;color:#7c849d}
+.profile-more-chevron{font-size:22px;color:#8179b5;transition:transform .16s}
+.profile-more[open] .profile-more-chevron{transform:rotate(180deg)}
+.profile-more .account-metrics{margin:0;padding:10px;gap:8px;border-top:1px solid #efeff7}
+.profile-more .account-metric{box-shadow:none;border-radius:12px;padding:9px;min-height:75px}
+.profile-more .account-metric strong{font-size:clamp(14px,2vw,20px)}
+.profile-more .account-metric span{font-size:10px}
+.profile-more .account-link-list.inner{padding:8px;gap:4px;border-top:1px solid #efeff7}
+.profile-more .account-link-list.inner .account-link{box-shadow:none}
+/* Navegação: ícones de traço recebem a cor do estado ativo. */
+.mobile-nav .icon{display:grid;place-items:center}
+.mobile-nav .icon svg{height:23px;width:23px;display:block;stroke:currentColor}
+.mobile-nav button.active .icon{color:#6253df}
+.mobile-nav button{transition:color .15s ease}
+@media(max-width:560px){
+ .home-welcome{padding:16px;border-radius:18px}
+ .home-welcome h1{font-size:24px;margin:11px 0 5px}
+ .home-next{padding:12px;gap:10px;margin:12px 0 11px}
+ .home-next-title>strong{font-size:15px}
+ .home-next .home-main-cta{font-size:11px;min-height:44px;padding:9px 10px}
+ .home-section-heading h2{font-size:16px}
+ .journey-focus{padding:15px;border-radius:16px}
+ .journey-focus>strong{font-size:18px}
+ .journey-chapter-summary{min-height:64px}
+ .journey-lesson .btn{min-width:70px}
+ .profile-more .account-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:380px){
+ .home-next{flex-direction:column;align-items:stretch}
+ .home-next .home-main-cta{width:100%}
+ .journey-chapter-summary{gap:8px;padding:10px}
+ .journey-chapter-symbol{width:35px;height:35px;flex-basis:35px}
+ .journey-lesson.path-unit{gap:7px}
+ .journey-lesson-number{height:34px;width:34px;flex-basis:34px;font-size:18px}
+ .journey-lesson .btn{padding:9px 7px;font-size:10px}
+ .workout-lesson{gap:8px}
+ .workout-lesson-icon{width:35px;height:35px;flex-basis:35px;font-size:20px}
+ .workout-lesson .btn{padding:8px}
+ .profile-more .account-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){.journey-chapter-chevron,.profile-more-chevron,.mobile-nav button{transition:none}}
+
+/* Troca de instrumento visível, mas sem ocupar um botão gigante. */
+.home-switch-mini{min-height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #ffffff4a;border-radius:11px;background:#ffffff1a;color:#fff;padding:8px 12px;font-size:11px;font-weight:850;white-space:nowrap}
+.home-switch-mini:hover,.home-switch-mini:focus-visible{background:#ffffff30}
+@media(max-width:380px){.home-welcome-progress{font-size:10px}}

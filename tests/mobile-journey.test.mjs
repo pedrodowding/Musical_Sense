@@ -137,7 +137,7 @@ test("mudar para ukulele sincroniza início, exemplos, trilha, treino e bibliote
  await click({instrument:"ukulele"});
  assert.equal(app.active().instrument,"Ukulele");
  assert.equal(app.getTimbre(),"ukulele");
- assert.ok(state.html.includes("Vamos fazer música com ukulele?"));
+ assert.ok(state.html.includes("Vamos tocar hoje?"));
  assert.ok(state.html.includes("Para ukulele"));
  assert.ok(state.html.includes('class="home-groups"'));
  assert.ok(!state.html.includes('class="grid three"'));
@@ -164,12 +164,12 @@ test("voz tem navegação de cantar e retorna ao timbre vocal após mudar instru
  await click({instrument:"voice"});
  assert.equal(app.active().instrument,"Voz");
  assert.equal(app.getTimbre(),"soft");
- assert.ok(state.html.includes("Sua voz merece ser ouvida."));
+ assert.ok(state.html.includes("Sua voz é o instrumento."));
  const nav=state.html.split('<nav class="mobile-nav"')[1].split("</nav>")[0];
  assert.ok(nav.includes('data-route="singing"'));
  assert.ok(!nav.includes('data-route="workouts"'));
  app.changePage("workouts");
- assert.ok(state.html.includes("Exercícios de canto"));
+ assert.ok(state.html.includes("Treino de canto"));
  assert.ok(!state.html.includes("Treinos de ukulele"));
  await click({instrument:"piano"});
  assert.equal(app.getTimbre(),"piano");
