@@ -11,9 +11,11 @@ const instruments=load("instrument-data.js",["INSTRUMENTS","STRING_LESSONS","ins
  "lessonsForInstrument","findInstrumentLesson","getInstrumentCourses","stringPosition","stringTunings"]);
 const singing=load("singing-data.js",["VOCAL_SONGS"]);
 const ui=load("instrument-ui.js",["fretboard","instrumentOptions"],{...music,...instruments});
-const catalog=load("catalog.js",["catalogEntries","catalogFilter","catalogEntryById","suggestedCatalogEntry"],instruments);
+const model=load("catalog-model.js",["publishedCatalogEntries","normalizedLegacyCatalog","catalogSummary","curatedLessonById","validateEditorialCatalog"]);
+const {PUBLISHED_CATALOG}=load("catalog-published.js",["PUBLISHED_CATALOG"]);
+const catalog=load("catalog.js",["catalogEntries","catalogFilter","catalogEntryById","suggestedCatalogEntry","publishedLesson","publishedLessons","availableGenres"],{...instruments,...model,PUBLISHED_CATALOG});
 const discovery=load("discovery-ui.js",["instrumentContext","instrumentPicker","learningPath","catalogResultsMarkup","catalogPage","songDetailPage"],
- {...instruments,...ui,...catalog});
+ {...instruments,...ui,...catalog,availableGenres:catalog.availableGenres});
 const data={pianoSongs:music.SONGS,lessons:music.LESSONS,vocalSongs:singing.VOCAL_SONGS};
 
 test("sete opções mapeiam corretamente instrumentos anteriores e voz",()=>{

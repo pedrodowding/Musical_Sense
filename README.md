@@ -2,6 +2,23 @@
 
 Aplicativo web de aprendizagem musical com aulas visuais e avaliação das notas tocadas em um **piano ou teclado físico** pelo microfone do navegador.
 
+## Fase 2: Biblioteca Musical 2.0
+
+A nova biblioteca diferencia obras, arranjos e aulas. Mantém as 32 entradas atuais e acrescenta filtros de **música / exercício / letra**, gênero, dificuldade, instrumento e favoritos, com indicação da origem no detalhe.
+
+Acesse **Músicas > Importar partitura** para analisar localmente arquivos MIDI ou MusicXML simples, ouvir uma prévia sintetizada e exportar um **rascunho** JSON. Nenhum arquivo é enviado ou publicado automaticamente. Partituras polifônicas, com pausas longas ou estruturas complexas são recusadas nesta primeira versão.
+
+Um catálogo editorial em data/catalog.json, com aprovação obrigatória de autoria, fonte e licença, gera catalog-published.js através do comando:
+
+    node scripts/build-catalog.mjs
+
+O GitHub Actions verifica o catálogo por meio de:
+
+    node scripts/build-catalog.mjs --check
+    node --test tests/*.test.mjs
+
+**A Fase 2 não adiciona novas músicas**. Isso fica para a Fase 3. Documentação e limites: [docs/CATALOG_PHASE2.md](docs/CATALOG_PHASE2.md).
+
 ## Correção da demonstração por instrumento
 
 A escolha de Ukulele, Violão, Guitarra e Baixo agora direciona as notas de demonstração para um **modelo sintetizado de corda pinçada**, com ataque e decaimento distintos do piano. O botão "Testar" utiliza notas da trilha do instrumento atual, em vez de apresentar sempre notas de piano.

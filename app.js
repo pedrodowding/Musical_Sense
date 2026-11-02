@@ -11,7 +11,10 @@ import {awardPractice,ensureProgress,levelInfo,missionState,streakInfo,localDay,
 import {makeBackup,parseBackup} from "./backup.js";
 import {INSTRUMENTS,instrumentId,instrumentInfo,instrumentName,lessonsForInstrument,findInstrumentLesson,getInstrumentCourses} from "./instrument-data.js";
 import {fretboard} from "./instrument-ui.js";
-import {catalogEntries,catalogFilter,catalogEntryById} from "./catalog.js";
+import {catalogEntries,catalogFilter,catalogEntryById,publishedLesson,publishedLessons} from "./catalog.js";
+import {parseMusicXML,parseMIDI,draftFromImport} from "./score-import.js";
+import {scoreImportPage} from "./score-import-ui.js";
+import {validateEditorialCatalog} from "./catalog-model.js";
 import {instrumentContext,instrumentPicker,learningPath,catalogPage,catalogResultsMarkup,songDetailPage} from "./discovery-ui.js";
 import {profileSwitcher,profileHub,familyProfilesPage,progressPage,myMusicPage,settingsPage} from "./account-ui.js";
 const DBKEY="musical-sense-v3",OLDKEY="musical-sense-v1";
@@ -37,7 +40,7 @@ function load(){
 let db=load(),page="home",courseFilter="all",songFilter="Todas",session=null,audioStatus="off",audioError="",lastFrame=null,tipTimer=null,demoBusy=false,metronome=false,bpm=80,toastTimer=null;
 db.users.forEach(u=>{ensureProgress(u);u.personalLyrics=safeLibrary(u.personalLyrics)});
 let vocal=null,vocalAward=null,personalSession=null,singingRAF=0,singingLastTick=0,vocalFrame=null,editingSongId=null;
-let catalogQuery="",catalogScope="mine",catalogDifficulty="all",songDetailId=null;
+let catalogQuery="",catalogScope="mine",catalogDifficulty="all",catalogType="all",catalogGenre="all",songDetailId=null,scorePreview=null,scoreError="";
 let performanceRAF=0,lastVisualTick=0;
 const player=new SoundPlayer();
 player.setVolume(db.audioVolume??.85);
@@ -68,7 +71,8 @@ function soundSettings(){
  '<p class="inline-tip">No modo automático, a guia usa síntese de corda pinçada para ukulele, violão, guitarra e baixo. Não é uma gravação real desses instrumentos. Comece com volume moderado, especialmente ao usar fones. O controle do aplicativo não altera o volume físico do iPad. Para evitar que o microfone ouça o próprio aplicativo, use fones de ouvido durante a prática.</p></div>';
 }
 applyTimbre();
-const currentLessons=()=>lessonsForInstrument(active().instrument,LESSONS);
+const currentLessons=()=>[...lessonsForInstrument(active().instrument,LESSONS),
+ ...publishedLessons().filter(l=>instrumentId(l.instrument)===currentInstrument().id||(currentInstrument().id==="keyboard"&&l.instrument==="piano"))];
 const catalogData=()=>({pianoSongs:SONGS,lessons:LESSONS,vocalSongs:VOCAL_SONGS,personalSongs:active().personalLyrics||[]});
 const fullCatalog=()=>catalogEntries(catalogData());
 const selectedCatalogEntry=()=>catalogEntryById(songDetailId,catalogData());
@@ -122,7 +126,7 @@ function courses(){
 }
 function library(){
  return catalogPage({entries:fullCatalog(),query:catalogQuery,scope:catalogScope,difficulty:catalogDifficulty,
-   favorites:active().favorites||[],instrument:active().instrument});
+   favorites:active().favorites||[],instrument:active().instrument,type:catalogType,genre:catalogGenre});
 }
 function songDetail(){
  return songDetailPage(selectedCatalogEntry(),{favorite:(active().favorites||[]).includes(songDetailId),instrument:active().instrument});
@@ -277,14 +281,14 @@ function result(){
 }
 function render(){
   if(!db.users.some(u=>u.id===db.active))db.active=db.users[0].id;
-  const content=page==="home"?home():page==="courses"?courses():page==="instruments"?instrumentsPage():page==="library"?library():page==="song-detail"?songDetail():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics((active().personalLyrics||[]).find(x=>x.id===editingSongId)):page==="diagnostics"?diagnostics():page==="sound"?soundSettings():page==="workouts"?workouts():page==="family"?family():page==="settings"?settings():page==="progress"?progress():page==="my-music"?myMusic():profiles();
+  const content=page==="home"?home():page==="courses"?courses():page==="instruments"?instrumentsPage():page==="library"?library():page==="score-import"?scoreImportPage({preview:scorePreview,error:scoreError}):page==="song-detail"?songDetail():page==="singing"?renderSingingHome(VOCAL_SONGS,active().personalLyrics||[],active().vocalCompleted||{}):page==="achievements"?renderAchievements(active(),{levelInfo,streakInfo,missionState,BADGES}):page==="lyrics-import"?renderImportLyrics((active().personalLyrics||[]).find(x=>x.id===editingSongId)):page==="diagnostics"?diagnostics():page==="sound"?soundSettings():page==="workouts"?workouts():page==="family"?family():page==="settings"?settings():page==="progress"?progress():page==="my-music"?myMusic():profiles();
   $("#app").innerHTML=page==="practice"&&session?practice():page==="result"&&session?result():page==="vocal-practice"&&vocal?renderVocalPractice(vocal,noteName,audioStatus,lastFrame,player.getVolume()*100):page==="vocal-result"&&vocal?renderVocalResult(vocal.summary(),vocalAward?.xp||0,vocalAward?.level||1,(vocalAward?.badges||[]).map(id=>BADGES.find(b=>b.id===id)?.name||id)):page==="personal-practice"&&personalSession?renderPersonalPractice(personalSession.song,{...personalSession,micActive:audio.listening},lastFrame,noteName):shell(content);
   document.title=(page==="practice"&&session?session.lesson.title+" | ":page==="vocal-practice"&&vocal?vocal.song.title+" | ":"")+"Musical Sense";
   updateAudioUI();
 }
 function stopTimers(){clearInterval(tipTimer);tipTimer=null;if(performanceRAF)cancelAnimationFrame(performanceRAF);performanceRAF=0;if(singingRAF)cancelAnimationFrame(singingRAF);singingRAF=0;player.stop();metronome=false;demoBusy=false}
 function changePage(next){
-  if(page==="song-detail"||page==="sound"){player.stop();demoBusy=false}
+  if(page==="song-detail"||page==="sound"||page==="score-import"){player.stop();demoBusy=false}
   if(["practice","result","vocal-practice","vocal-result","personal-practice","diagnostics"].includes(page)){audio.stop();audio.disconnectMidi();stopTimers();session=null;vocal=null;personalSession=null}
   const dlg=$("#profile-dialog");if(dlg?.open)dlg.close();
   page=next;render();window.scrollTo(0,0);
@@ -294,7 +298,7 @@ function changePage(next){
 }
 async function startLesson(id,requestMicrophone=true,options={}){
   stopTimers();audio.stop();audio.disconnectMidi();
-  const lesson=findInstrumentLesson(id,LESSONS);if(!lesson){toast("Esta aula não está disponível.");return}
+  const lesson=findInstrumentLesson(id,LESSONS)||publishedLesson(id);if(!lesson){toast("Esta aula não está disponível.");return}
   applyTimbre(lesson.instrument||active().instrument);
   const allSteps=getSessionNotes(lesson),range=options.range&&options.range.end>options.range.start?options.range:null,steps=range?allSteps.slice(range.start,range.end):allSteps,mode=options.mode==="performance"?"performance":"guided";
   active().checkpoints=active().checkpoints||{};
@@ -624,12 +628,13 @@ document.addEventListener("click",async e=>{
   if(d.instrument){
     const info=INSTRUMENTS.find(item=>item.id===d.instrument);if(!info)return;
     active().instrument=info.name;applyTimbre(info.name);
-    catalogScope="mine";catalogQuery="";catalogDifficulty="all";courseFilter="all";
+    catalogScope="mine";catalogQuery="";catalogDifficulty="all";catalogType="all";catalogGenre="all";courseFilter="all";
     if(!save())toast("Não foi possível salvar a preferência.");
     changePage("home");toast("Instrumento selecionado: "+info.name+".");
     return;
   }
   if(d.catalogScope){catalogScope=d.catalogScope;render();return}
+  if(d.catalogType){catalogType=d.catalogType;render();return}
   if(d.openSong){songDetailId=d.openSong;changePage("song-detail");return}
   if(d.favorite){
     const item=catalogEntryById(d.favorite,catalogData());if(!item)return;
@@ -731,7 +736,18 @@ document.addEventListener("click",async e=>{
     db.soundTimbre="auto";applyTimbre();save();render();toast("Configurações de áudio restauradas.");return;
   }
   if(action==="preview-song"){await previewSong();return}
-  if(action==="catalog-reset"){catalogQuery="";catalogScope="all";catalogDifficulty="all";render();return}
+  if(action==="import-audition"){
+    if(!scorePreview||demoBusy)return;
+    try{
+      player.stop();demoBusy=true;
+      const selection=$("#import-instrument")?.value||"piano";applyTimbre(selection);
+      const duration=await player.play(scorePreview.notes.slice(0,16),scorePreview.bpm);
+      toast("Prévia sintetizada iniciada. Nenhum arquivo foi enviado ou publicado.");
+      setTimeout(()=>{demoBusy=false},duration+150);
+    }catch(e){demoBusy=false;toast("Não foi possível reproduzir a prévia.")}
+    return;
+  }
+  if(action==="catalog-reset"){catalogQuery="";catalogScope="all";catalogDifficulty="all";catalogType="all";catalogGenre="all";render();return}
   if(action==="diagnose-mic"){await enableMic();return}
   if(action==="backup-import"){$("#backup-file")?.click?.();return}
   if(action==="backup-export"){
@@ -772,6 +788,26 @@ document.addEventListener("click",async e=>{
   if(action==="next"){const lessons=currentLessons(),idx=lessons.findIndex(l=>l.id===session.lesson.id),next=lessons[idx+1];if(next)await startLesson(next.id);else changePage("courses");return}
 });
 document.addEventListener("submit",e=>{
+  if(e.target.id==="score-draft-form"){
+    e.preventDefault();
+    if(!scorePreview){toast("Escolha primeiro um arquivo de partitura.");return}
+    const form=new FormData(e.target);
+    if(form.get("rights")!=="on"){toast("Confirme a declaração de direitos para continuar.");return}
+    try{
+      const draft=draftFromImport(scorePreview,{
+        title:form.get("title"),composer:form.get("composer"),instrument:form.get("instrument"),
+        genre:form.get("genre"),license:form.get("license"),sourceUrl:form.get("sourceUrl"),evidence:form.get("evidence")
+      });
+      const check=validateEditorialCatalog(draft);
+      if(!check.valid)throw Error(check.errors.join(" "));
+      const blob=new Blob([JSON.stringify(draft,null,2)],{type:"application/json"});
+      const url=URL.createObjectURL(blob),link=document.createElement("a");
+      link.href=url;link.download=draft.works[0].id+".json";document.body.appendChild(link);link.click();link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      toast("Rascunho exportado. A publicação requer revisão editorial e direitos confirmados.");
+    }catch(error){toast(error.message||"Não foi possível preparar o rascunho.")}
+    return;
+  }
   if(e.target.id==="lyrics-form"){
     e.preventDefault();const form=new FormData(e.target);
     try{
@@ -801,6 +837,22 @@ document.addEventListener("submit",e=>{
   applyTimbre(instrument);changePage("home");toast("Perfil criado. Bons estudos!");
 });
 document.addEventListener("change",async e=>{
+  if(e.target.id==="score-file"){
+    const file=e.target.files?.[0];if(!file)return;
+    player.stop();demoBusy=false;scorePreview=null;scoreError="";
+    if(file.size>450000){scoreError="Arquivo muito grande. O limite é 450 KB.";render();return}
+    try{
+      const name=file.name||"";
+      if(/\.(musicxml|xml)$/i.test(name))scorePreview=parseMusicXML(await file.text());
+      else if(/\.(mid|midi)$/i.test(name))scorePreview=parseMIDI(await file.arrayBuffer());
+      else throw Error("Escolha um arquivo .mid, .midi, .xml ou .musicxml.");
+      scorePreview.title=scorePreview.title==="Partitura importada"||scorePreview.title==="Melodia MIDI importada"?
+        name.replace(/\.(musicxml|xml|midi|mid)$/i,"").replace(/[_-]/g," ").slice(0,120):scorePreview.title;
+      if(page==="score-import")render();
+      toast("Partitura analisada. Confira as notas, autoria e direitos antes de exportar.");
+    }catch(error){scoreError=error.message||"Arquivo não reconhecido.";scorePreview=null;render();}
+    return;
+  }
   if(e.target.id==="sound-volume"||e.target.id==="pulse-volume"){
     db.audioVolume=player.getVolume();db.pulseVolume=player.metronomeVolume;save();return;
   }
@@ -810,6 +862,7 @@ document.addEventListener("change",async e=>{
     db.soundTimbre=value;applyTimbre();save();toast("Timbre atualizado.");return;
   }
   if(e.target.id==="catalog-difficulty"){catalogDifficulty=e.target.value;render();return}
+  if(e.target.id==="catalog-genre"){catalogGenre=e.target.value;render();return}
   if(e.target.id==="backup-file"){
     const file=e.target.files?.[0];if(!file)return;
     if(file.size>2000000){toast("O backup deve ter no máximo 2 MB.");return}
@@ -861,7 +914,7 @@ document.addEventListener("input",e=>{
   if(e.target.id==="catalog-query"){
     catalogQuery=String(e.target.value||"");
     const entries=fullCatalog(),settings={query:catalogQuery,scope:catalogScope,difficulty:catalogDifficulty,
-      favorites:active().favorites||[],instrument:active().instrument};
+      favorites:active().favorites||[],instrument:active().instrument,type:catalogType,genre:catalogGenre};
     const container=$("#catalog-results"),counter=$("#catalog-count");
     if(container)container.innerHTML=catalogResultsMarkup(entries,settings);
     if(counter)counter.textContent=catalogFilter(entries,settings).length+" opções";

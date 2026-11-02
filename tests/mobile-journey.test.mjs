@@ -12,12 +12,16 @@ function boot(){
   "lessonsForInstrument","findInstrumentLesson","getInstrumentCourses","stringTunings","stringPosition"]);
  const instrumentUI=load("instrument-ui.js",["fretboard","instrumentOptions"],{...music,...instruments});
  const singing=load("singing-data.js",["VOCAL_SONGS","vocalById"]);
- const catalog=load("catalog.js",["catalogEntries","catalogFilter","catalogEntryById","suggestedCatalogEntry"],instruments);
+ const model=load("catalog-model.js",["publishedCatalogEntries","normalizedLegacyCatalog","catalogSummary","curatedLessonById","validateEditorialCatalog"]);
+ const {PUBLISHED_CATALOG}=load("catalog-published.js",["PUBLISHED_CATALOG"]);
+ const catalog=load("catalog.js",["catalogEntries","catalogFilter","catalogEntryById","suggestedCatalogEntry","publishedLesson","publishedLessons","availableGenres"],{...instruments,...model,PUBLISHED_CATALOG});
  const discovery=load("discovery-ui.js",["instrumentContext","instrumentPicker","learningPath","catalogResultsMarkup","catalogPage","songDetailPage"],
-  {...instruments,...instrumentUI,...catalog});
+  {...instruments,...instrumentUI,...catalog,availableGenres:catalog.availableGenres});
  const lyrics=load("lyrics-library.js",["createPersonalSong","safeLibrary"]);
  const game=load("gamification.js",["awardPractice","ensureProgress","levelInfo","missionState","streakInfo","localDay","BADGES"]);
  const backup=load("backup.js",["makeBackup","parseBackup"],{...game,...lyrics});
+ const scoreImport=load("score-import.js",["parseMusicXML","parseMIDI","draftFromImport"]);
+ const scoreImportUI=load("score-import-ui.js",["scoreImportPage"]);
  const singingEngine=load("singing-engine.js",["SingingSession"]);
  const performanceEngine=load("performance-engine.js",["PerformanceSession"]);
  const clock={now:()=>0};
@@ -50,7 +54,7 @@ function boot(){
   setMetronomeVolume(value){this.metronomeVolume=value;return value}setTimbre(value){this.timbre=value;return value}
   stop(){}async context(){}async metronomeClick(){}async play(){return 200}}
  const bindings={...music,...instruments,...instrumentUI,...singing,...catalog,...discovery,
-  ...lyrics,...game,...backup,...singingEngine,...performanceEngine,...singingUI,...performanceUI,...accountUI,
+  ...lyrics,...game,...backup,...scoreImport,...scoreImportUI,...model,...singingEngine,...performanceEngine,...singingUI,...performanceUI,...accountUI,
   document,window:win,navigator:{mediaDevices:{getUserMedia(){}},serviceWorker:{},userAgent:"Test"},
   localStorage:storage,performance:clock,AudioEngine:Audio,SoundPlayer:Player,
   setInterval(){return 1},clearInterval(){},requestAnimationFrame(){return 1},cancelAnimationFrame(){},

@@ -1,0 +1,72 @@
+/* Musical Sense Biblioteca 2.0: descoberta, gêneros e importação editorial. */
+.catalog-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0 20px}
+.catalog-overview>div{display:flex;flex-direction:column;gap:5px;padding:16px 18px;border-radius:17px;background:#fff;border:1px solid #e5e7f2;box-shadow:0 3px 12px #272b5210}
+.catalog-overview strong{font-size:24px;line-height:1.1;color:#4b43a2}
+.catalog-overview span{font-size:11px;line-height:1.4;color:#7b839f}
+.catalog-selects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.catalog-selects label{display:flex;flex-direction:column;gap:6px;color:#67718d;font-size:11px;font-weight:800}
+.catalog-selects .catalog-level{width:100%;max-width:none;min-height:46px;padding:11px 12px;font-size:13px;text-align:left}
+.catalog-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;flex-wrap:wrap}
+.catalog-import-cta{display:flex;align-items:center;gap:14px;border-radius:20px;background:linear-gradient(130deg,#f2eeff,#eafbf8);padding:20px;margin:21px 0 9px;border:1px solid #dedaf4}
+.catalog-import-emoji{font-size:36px;flex:none}
+.catalog-import-cta>div{flex:1;min-width:0}
+.catalog-import-cta strong{display:block;color:#383a69;font-size:15px;margin-bottom:5px}
+.catalog-import-cta p{font-size:12px;color:#6f7899;line-height:1.45;margin:0}
+.catalog-import-cta .btn{min-height:44px;flex:none}
+.song-rights-note{margin:15px 0 0;padding:12px 15px;border-radius:14px;background:#f6f7fb;border:1px solid #e8eaf3}
+.song-rights-note strong{font-size:12px;color:#424a6b}
+.song-rights-note p{font-size:12px;color:#777f98;line-height:1.5;margin:6px 0 0;overflow-wrap:anywhere}
+.import-page{max-width:810px;margin:0 auto 30px}
+.import-page .account-back{min-height:44px}
+.import-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
+.import-step{display:flex;align-items:center;gap:6px;padding:10px;border-radius:12px;color:#8d91a9;background:#f0f1f7;font-size:11px;font-weight:800;line-height:1.25}
+.import-step strong{display:grid;place-items:center;min-width:25px;height:25px;border-radius:50%;background:#dadce9;color:#68718f;font-size:11px}
+.import-step.active{color:#5b4bc2;background:#eeebff}
+.import-step.active strong{background:#6959d7;color:#fff}
+.import-card{margin-bottom:15px}
+.import-card h2{font-size:19px;margin:0 0 15px}
+.import-card h3{font-size:18px;margin:0 0 5px}
+.import-card .muted{line-height:1.6}
+.import-file{display:flex;align-items:center;flex-direction:column;justify-content:center;gap:8px;cursor:pointer;border:2px dashed #c9c5ed;background:#f9f8ff;padding:25px 16px;border-radius:17px;min-height:154px;color:#5046a1;text-align:center}
+.import-file>span{font-size:37px}
+.import-file strong{font-size:15px}
+.import-file small{font-size:12px;color:#7e84a0}
+.import-file:has(+ input:focus-visible){outline:3px solid #6655dd;outline-offset:3px}
+.import-file-hidden{position:absolute;overflow:hidden;width:1px;height:1px;clip-path:inset(50%);opacity:0}
+.import-error{border:1px solid #f1b6b6;background:#fff2f2;border-radius:16px;padding:14px 18px;margin:12px 0;color:#a53949}
+.import-error strong{font-size:14px}
+.import-error p{font-size:12px;margin:8px 0 0;line-height:1.5}
+.import-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:15px 0}
+.import-metrics>div{display:flex;align-items:flex-start;flex-direction:column;gap:4px;border:1px solid #e9eafa;background:#fbfbfe;border-radius:13px;padding:12px}
+.import-metrics strong{font-size:16px;color:#4a42a2}
+.import-metrics span{font-size:11px;color:#7d84a0}
+.import-notes{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 18px;max-height:180px;overflow:auto}
+.import-notes>span{display:inline-flex;align-items:center;gap:3px;background:#e9e5ff;color:#564ca5;padding:6px 9px;border-radius:8px;font-size:12px;font-weight:800}
+.import-notes small{font-size:10px;opacity:.7}
+.import-form{display:flex;flex-direction:column;gap:10px}
+.import-form label{color:#4c5373;font-size:12px;font-weight:750}
+.import-form .form-input{width:100%;font-size:16px;min-height:46px;padding:10px 12px;margin:0 0 5px}
+.import-form textarea{min-height:86px}
+.import-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.import-form-grid>div{display:flex;flex-direction:column;gap:9px}
+.import-form .rights-check{font-size:12px;font-weight:500;line-height:1.45}
+.import-form .btn{min-height:49px}
+.import-pending{text-align:center;border:1px dashed #d8d6ef;background:#fbfbff;border-radius:17px;padding:28px}
+.import-pending>span{font-size:40px;display:block;margin-bottom:10px}
+.import-pending strong{font-size:14px}
+.import-pending p{font-size:12px;color:#7c829e;line-height:1.5}
+@media(max-width:560px){
+ .catalog-overview{gap:7px}
+ .catalog-overview>div{padding:12px 9px;min-height:83px}
+ .catalog-overview strong{font-size:20px}
+ .catalog-overview span{font-size:10px}
+ .catalog-selects{grid-template-columns:1fr;gap:8px}
+ .catalog-import-cta{flex-wrap:wrap;padding:15px;gap:10px}
+ .catalog-import-emoji{font-size:30px}
+ .catalog-import-cta>div{flex-basis:calc(100% - 45px)}
+ .catalog-import-cta .btn{width:100%}
+ .import-form-grid{grid-template-columns:1fr}
+ .import-steps{gap:4px}
+ .import-step{flex-direction:column;text-align:center;padding:8px 4px;font-size:10px}
+ .import-card h2{font-size:17px}
+}
