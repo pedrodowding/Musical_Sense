@@ -154,7 +154,7 @@ test("Minhas músicas recupera favoritos e atividades recentes sem criar catálo
  u.history=[{id:"joy",kind:"instrument",at:Date.now(),seconds:60,day:"2026-11-01"}];
  app.changePage("my-music");
  assert.ok(state.html.includes("Ode à Alegria"));
- assert.ok(state.html.includes("Tocadas recentemente"));
+ assert.ok(state.html.includes("Praticadas recentemente"));
  assert.ok(state.html.includes('data-favorite="piano:joy"'));
  assert.ok(state.html.includes('data-open-song="piano:joy"'));
 });

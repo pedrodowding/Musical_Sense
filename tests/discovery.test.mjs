@@ -116,9 +116,11 @@ test("cinco abas móveis, áreas seguras e arquivos em cache",()=>{
  const app=readFileSync(new URL("../app.js",import.meta.url),"utf8");
  const css=readFileSync(new URL("../mobile-ux.css",import.meta.url),"utf8");
  const sw=readFileSync(new URL("../sw.js",import.meta.url),"utf8");
- const nav=app.match(/const mobileRoutes=\[([^\n]+)\]/);
+ const nav=app.match(/const primaryRoutes=voice=>\[([\s\S]*?)\];/);
  assert.ok(nav);
- assert.equal((nav[1].match(/\["/g)||[]).length,5);
+ const common=(nav[1].match(/\["(?:home|courses|library|profiles)"/g)||[]).length;
+ assert.equal(common,4);
+ assert.ok(nav[1].includes('voice?["singing"')&&nav[1].includes('["workouts"'));
  assert.ok(css.includes("env(safe-area-inset-bottom)"));
  assert.ok(css.includes("min-height:44px"));
  for(const name of ["mobile-ux.css","instrument-data.js","instrument-ui.js","catalog.js","discovery-ui.js"])
